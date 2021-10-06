@@ -1,0 +1,57 @@
+Site,Dry_plot,Wet_plot,Water_barrel_mm,Water_can_mm,Date,Notes
+1,C,B,55,50,5/08/2020,
+2,A,C,155,220,5/08/2020,
+3,A,B,NA,0,NA,"Did not water, set up on 06/08"
+4,B,C,105,135,5/08/2020,
+5,B,C,70,0,5/08/2020,Did not measure water in can
+6,A,B,NA,0,NA,"Did not water, set up on 06/08"
+7,A,B,155,225,5/08/2020,
+8,A,B,65,65,5/08/2020,
+1,C,B,NA,425,13/08/2020,Afternoon
+2,A,C,NA,675,13/08/2020,Afternoon
+3,A,B,NA,665,13/08/2020,Afternoon
+4,B,C,NA,670,13/08/2020,Afternoon
+5,B,C,NA,390,13/08/2020,Afternoon
+6,A,B,NA,665,13/08/2020,Afternoon
+7,A,B,NA,545,13/08/2020,Afternoon
+8,A,B,NA,555,13/08/2020,Afternoon
+1,C,B,NA,230,14/08/2020,Morning
+2,A,C,NA,0,14/08/2020,Morning
+3,A,B,NA,0,14/08/2020,Morning
+4,B,C,NA,0,14/08/2020,Morning
+5,B,C,NA,270,14/08/2020,Morning
+6,A,B,NA,0,14/08/2020,Morning
+7,A,B,NA,125,14/08/2020,Morning
+8,A,B,NA,0,14/08/2020,Morning
+1,C,B,NA,355,19/08/2020,
+2,A,C,NA,360,19/08/2020,
+3,A,B,NA,310,19/08/2020,
+4,B,C,NA,355,19/08/2020,"Forgot to measure second value, 170-180, assuming middle"
+5,B,C,NA,335,19/08/2020,
+6,A,B,NA,320,19/08/2020,
+7,A,B,NA,335,19/08/2020,
+8,A,B,NA,330,19/08/2020,
+1,C,B,NA,305,20/08/2020,
+2,A,C,NA,300,20/08/2020,
+3,A,B,NA,355,20/08/2020,
+4,B,C,NA,290,20/08/2020,
+5,B,C,NA,330,20/08/2020,Accidentally started pouring (why the last value was +5)
+6,A,B,NA,340,20/08/2020,
+7,A,B,NA,320,20/08/2020,
+8,A,B,NA,340,20/08/2020,
+1,C,B,NA,50,4/09/2020,
+2,A,C,NA,190,4/09/2020,
+3,A,B,NA,80,4/09/2020,
+4,B,C,NA,150,4/09/2020,
+5,B,C,NA,145,4/09/2020,
+6,A,B,NA,210,4/09/2020,
+7,A,B,NA,215,4/09/2020,
+8,A,B,NA,70,4/09/2020,
+1,C,B,NA,90,9/07/2020,
+2,A,C,NA,155,9/07/2020,
+3,A,B,NA,100,9/07/2020,
+4,B,C,NA,140,9/07/2020,
+5,B,C,NA,125,9/07/2020,
+6,A,B,NA,180,9/07/2020,
+7,A,B,NA,185,9/07/2020,
+8,A,B,NA,80,9/07/2020,

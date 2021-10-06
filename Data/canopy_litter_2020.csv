@@ -1,0 +1,25 @@
+Site,Plot,Measurement 1,Measurement 2,Measurement 3,Measurement 4,Measurement 5,Litter_cover_percent,Litter_notes
+1,A,24,23,24,24,24,<25,Melaleuca needles
+1,B,11,16,17,18,11,25,Melaleuca needles. Approximately 10 m from a Eucalyptus tree
+1,C,22,21,22,22,22,25,Melaleuca needles
+2,A,5,0,0,4,0,0,
+2,B,0,0,0,0,0,0,
+2,C,0,0,0,0,0,0,
+3,A,21,19,22,21,19,<25,Melaleuca needles
+3,B,12,21,19,18,18,<25,Melaleuca needles
+3,C,21,12,15,17,18,<25,Melaleuca needles
+4,A,0,0,0,0,1,0,
+4,B,2,5,0,0,0,0,
+4,C,0,0,0,0,0,0,
+5,A,20,12,14,14,16,25,Melaleuca needles
+5,B,18,13,12,12,15,25,Melaleuca needles
+5,C,16,23,22,19,22,25,Melaleuca needles
+6,A,0,0,0,0,1,0,
+6,B,0,0,3,0,11,0,
+6,C,0,0,0,0,0,0,
+7,A,2,0,0,0,0,<25,Acacia
+7,B,0,0,1,0,1,0,
+7,C,0,1,2,0,1,0,
+8,A,22,24,23,23,22,<25,Mostly melaleuca twigs
+8,B,24,23,24,24,13,50,Melaleuca needles
+8,C,19,20,19,19,16,50,Melaleuca needles

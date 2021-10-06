@@ -1,0 +1,17 @@
+Site,Plot,Species,C_E_or_T,Rep,Notes_removal
+1,A,HYGL,E,1,Wrong ID
+1,B,POLE,E,2,Ambient plant
+1,B,PEAI,T,2,Not sown
+1,B,POLE,T,1,Kangaroo
+1,B,POLE,E,1,Ambient plant
+1,C,VERO,E,3,Ambient plant
+2,C,HYGL,E,1,Wrong ID
+3,B,TROR,C,1,Ambient plant
+3,C,ARCA,C,3,Wrong ID
+5,A,ARCA,C,2,Wrong ID
+5,B,POLE,E,1,Wrong ID
+5,B,POLE,E,2,Wrong ID
+6,A,VERO,C,3,Ambient plant
+7,B,POLE,C,1,Wrong ID
+8,A,HYGL,T,2,Ants nest
+8,B,POLE,E,3,Wrong ID

@@ -1,0 +1,217 @@
+Site,Plot,Species,No_with_neighbours,No_alone,No_traits,Notes
+1,A,ARCA,3,3,1,One 'C' may die
+1,A,HYGL,1,0,0,
+1,A,LARO,3,3,0,
+1,A,PEAI,3,3,0,
+1,A,PLDE,3,3,0,
+1,A,POLE,0,0,0,
+1,A,TRCY,3,3,0,
+1,A,TROR,3,3,1,
+1,A,VERO,2,4,2,One 'C' has no neighbours
+1,B,ARCA,3,3,1,
+1,B,HYGL,2,1,0,
+1,B,LARO,3,3,2,
+1,B,PEAI,2,3,0,
+1,B,PLDE,3,3,2,
+1,B,POLE,1,1,0,
+1,B,TRCY,3,3,1,One 'T' likely to die
+1,B,TROR,1,3,2,One 'C' and one 'T' almost dead
+1,B,VERO,3,2,0,
+1,C,ARCA,2,3,2,One 'E' likely to die
+1,C,HYGL,1,1,0,One 'E' likely to die
+1,C,LARO,3,3,1,
+1,C,PEAI,3,2,0,
+1,C,PLDE,3,3,1,
+1,C,POLE,0,1,0,
+1,C,TRCY,3,3,0,
+1,C,TROR,3,3,0,
+1,C,VERO,3,3,0,I think
+2,A,ARCA,3,3,2,One 'C' may die
+2,A,HYGL,3,3,1,
+2,A,LARO,3,3,2,
+2,A,PEAI,3,3,1,
+2,A,PLDE,2,3,0,
+2,A,POLE,2,0,0,
+2,A,TRCY,3,3,1,
+2,A,TROR,3,3,1,
+2,A,VERO,3,3,0,
+2,B,ARCA,3,2,0,
+2,B,HYGL,3,2,0,
+2,B,LARO,3,3,2,
+2,B,PEAI,3,3,1,One 'T' and one 'E' (old 'T') almost dead
+2,B,PLDE,3,3,0,
+2,B,POLE,1,2,0,
+2,B,TRCY,3,3,0,
+2,B,TROR,2,3,0,
+2,B,VERO,3,3,2,
+2,C,ARCA,3,3,1,
+2,C,HYGL,2,2,0,
+2,C,LARO,3,3,2,
+2,C,PEAI,3,3,0,
+2,C,PLDE,3,3,1,
+2,C,POLE,3,2,0,
+2,C,TRCY,3,3,0,
+2,C,TROR,2,3,1,
+2,C,VERO,3,3,2,
+3,A,ARCA,1,3,0,
+3,A,HYGL,1,0,0,
+3,A,LARO,2,3,0,"One 'E' almost dead, one 'C' with only one neighbour"
+3,A,PEAI,0,2,0,
+3,A,PLDE,3,3,1,
+3,A,POLE,0,0,0,
+3,A,TRCY,1,2,0,
+3,A,TROR,0,3,0,
+3,A,VERO,3,3,0,
+3,B,ARCA,2,3,0,One 'E' almost dead
+3,B,HYGL,0,1,0,May be one more 'E'
+3,B,LARO,0,2,1,"T' has no neighbours, so effectively 3 'E's"
+3,B,PEAI,3,3,1,
+3,B,PLDE,3,2,0,
+3,B,POLE,0,0,0,
+3,B,TRCY,1,2,0,One 'C' has only one neighbour
+3,B,TROR,2,2,1,T' likely to die
+3,B,VERO,2,3,0,
+3,C,ARCA,1,1,0,
+3,C,HYGL,1,0,0,
+3,C,LARO,3,2,0,One 'C' has only one neighbour
+3,C,PEAI,3,2,0,
+3,C,PLDE,2,1,0,
+3,C,POLE,1,0,0,
+3,C,TRCY,2,4,2,One 'C' has no neighbours
+3,C,TROR,2,3,2,
+3,C,VERO,2,3,0,One 'C' almost dead
+4,A,ARCA,3,3,0,One 'E' and one 'C' may die
+4,A,HYGL,3,3,0,
+4,A,LARO,3,3,2,One 'T' likely to die
+4,A,PEAI,3,3,2,
+4,A,PLDE,3,3,1,
+4,A,POLE,1,2,0,
+4,A,TRCY,3,3,2,
+4,A,TROR,3,3,2,
+4,A,VERO,3,3,1,
+4,B,ARCA,3,3,2,One 'T' (swapped) likely to be dead
+4,B,HYGL,3,3,0,
+4,B,LARO,3,3,1,
+4,B,PEAI,2,3,1,
+4,B,PLDE,3,3,1,
+4,B,POLE,0,0,0,
+4,B,TRCY,3,3,2,
+4,B,TROR,3,3,0,
+4,B,VERO,3,3,0,
+4,C,ARCA,3,3,2,
+4,C,HYGL,2,1,0,One 'C' may die
+4,C,LARO,3,3,0,
+4,C,PEAI,3,3,2,
+4,C,PLDE,3,3,0,
+4,C,POLE,2,1,0,
+4,C,TRCY,3,3,2,
+4,C,TROR,3,3,2,
+4,C,VERO,2,1,0,
+5,A,ARCA,1,1,0,The 'C' has no neighbours
+5,A,HYGL,2,2,0,One 'E' likely to die and need to check ID of other
+5,A,LARO,2,2,0,
+5,A,PEAI,3,2,1,Can make this 'T' an 'E'?
+5,A,PLDE,NA,NA,NA,
+5,A,POLE,1,2,0,Not sure on one of 'E' IDs
+5,A,TRCY,2,3,0,One 'C' has only one neighbour
+5,A,TROR,3,2,0,"Two 'E's may die, one 'C' has only one neighbour"
+5,A,VERO,1,2,0,
+5,B,ARCA,3,3,1,One 'E' almost dead
+5,B,HYGL,1,1,0,E' likely to die
+5,B,LARO,3,2,1,One 'E' almost dead
+5,B,PEAI,3,3,0,
+5,B,PLDE,NA,NA,NA,
+5,B,POLE,0,2,0,Not sure on either of those 'E' IDs
+5,B,TRCY,3,3,1,One 'C' likely to die
+5,B,TROR,3,3,1,
+5,B,VERO,3,3,0,One 'C' almost dead
+5,C,ARCA,0,1,0,E' almost dead
+5,C,HYGL,1,1,1,
+5,C,LARO,0,1,0,E' almost dead
+5,C,PEAI,0,0,0,
+5,C,PLDE,NA,NA,NA,
+5,C,POLE,0,0,0,
+5,C,TRCY,0,1,0,It's a 'C' but has no neighbours
+5,C,TROR,0,0,0,
+5,C,VERO,0,1,0,It's a 'C' but has no neighbours
+6,A,ARCA,3,3,2,
+6,A,HYGL,3,3,0,
+6,A,LARO,3,3,1,
+6,A,PEAI,3,3,2,
+6,A,PLDE,NA,NA,NA,
+6,A,POLE,1,1,0,
+6,A,TRCY,3,3,2,
+6,A,TROR,3,3,2,
+6,A,VERO,3,3,2,
+6,B,ARCA,3,3,0,
+6,B,HYGL,3,3,0,
+6,B,LARO,3,3,2,
+6,B,PEAI,3,3,1,
+6,B,PLDE,NA,NA,NA,
+6,B,POLE,3,3,0,
+6,B,TRCY,3,3,2,
+6,B,TROR,3,3,2,
+6,B,VERO,3,3,1,Not sure other 'T' is my plant
+6,C,ARCA,3,3,0,
+6,C,HYGL,3,1,0,"Made an error, I think only 1 'E'. Notes says two were swapped with HYGL T2"
+6,C,LARO,3,3,0,An 'E' likely to die
+6,C,PEAI,3,3,2,Two 'C's may die and one 'E'
+6,C,PLDE,NA,NA,NA,
+6,C,POLE,1,1,0,
+6,C,TRCY,3,3,1,A 'T' almost dead
+6,C,TROR,3,3,0,
+6,C,VERO,3,3,2,
+7,A,ARCA,1,2,0,
+7,A,HYGL,3,1,0,
+7,A,LARO,3,3,1,
+7,A,PEAI,3,3,1,
+7,A,PLDE,NA,NA,NA,
+7,A,POLE,0,1,0,
+7,A,TRCY,3,3,2,
+7,A,TROR,3,3,2,
+7,A,VERO,3,3,1,
+7,B,ARCA,3,3,2,A 'C' may die
+7,B,HYGL,2,3,0,
+7,B,LARO,3,3,1,
+7,B,PEAI,3,3,1,
+7,B,PLDE,NA,NA,NA,
+7,B,POLE,1,1,1,T' almost dead
+7,B,TRCY,3,3,1,Made an error. I assume TRCY E1 swapped with TRCY T1? Check
+7,B,TROR,3,3,2,
+7,B,VERO,3,3,0,"A 'T' plot was not thinned, needs to be swapped with a dying C2"
+7,C,ARCA,3,3,0,"One 'C' (old 'T') almost dead, another C with only one leaf"
+7,C,HYGL,2,3,0,There is a 'T' which was just a thinned ambient HYGL. One 'C' may die
+7,C,LARO,3,3,2,One 'C' may die
+7,C,PEAI,3,3,2,
+7,C,PLDE,NA,NA,NA,
+7,C,POLE,0,2,0,
+7,C,TRCY,3,3,2,
+7,C,TROR,3,3,2,
+7,C,VERO,3,3,2,
+8,A,ARCA,3,3,1,
+8,A,HYGL,2,3,0,
+8,A,LARO,3,3,2,"One unhealthy 'C' and unhealthy 'E', plus one 'C' with only one neighbour"
+8,A,PEAI,3,3,1,
+8,A,PLDE,NA,NA,NA,
+8,A,POLE,0,0,0,
+8,A,TRCY,1,1,0,
+8,A,TROR,2,0,0,One 'C' has only one neighbour
+8,A,VERO,2,3,0,One 'C' (old 'T') may die
+8,B,ARCA,2,2,0,One 'C' may die
+8,B,HYGL,0,1,0,
+8,B,LARO,2,3,0,
+8,B,PEAI,2,1,0,
+8,B,PLDE,NA,NA,NA,
+8,B,POLE,0,1,0,
+8,B,TRCY,2,2,1,"New germs in T, check"
+8,B,TROR,2,2,1,One 'C' may die
+8,B,VERO,0,0,0,
+8,C,ARCA,1,2,0,The 'C' has only one neighbour
+8,C,HYGL,0,2,0,One is a 'C' with no neighbours
+8,C,LARO,3,3,2,
+8,C,PEAI,2,3,1,
+8,C,PLDE,NA,NA,NA,
+8,C,POLE,0,0,0,
+8,C,TRCY,3,3,1,
+8,C,TROR,1,0,0,Only one neighbour for 'C'
+8,C,VERO,1,1,1,

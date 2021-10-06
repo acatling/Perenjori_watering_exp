@@ -1,0 +1,73 @@
+Row,Column,Species,C_E_or_T,Rep,No_germinants_200720,Notes_200720,Notes_thinning_290720,No_germinants_290720
+1,1,TROR,E,1,8,,,8
+1,2,PLDE,E,1,2,,,2
+1,3,LARO,E,2,4,,"Almost entirely dead. Swapped with 5, 9 LARO C2",4
+1,4,VERO,E,3,7,5 of which very dead,,7
+1,5,HYGL,E,3,0,,,0
+1,6,TRCY,C,1,0,,,0
+1,7,PEAI,C,1,6,,,6
+1,8,PEAI,T,2,10,,Plus one germinant. Does it just regrow after being cut?,11
+1,9,PEAI,E,1,1,,Dead,1
+2,1,ARCA,T,1,6,,,6
+2,2,PLDE,E,2,1,,,1
+2,3,LARO,T,2,7,,,7
+2,4,PLDE,C,1,1,,,1
+2,5,VERO,C,2,2,,Swapped with VERO E1,2
+2,6,HYGL,C,3,1,,Budding,1
+2,7,TRCY,E,2,10,,,10
+2,8,ARCA,C,1,1,,Almost entirely dead.,1
+2,9,PEAI,E,3,9,,,9
+3,1,TROR,C,3,1,,,1
+3,2,VERO,T,2,7,,,7
+3,3,POLE,E,3,0,,,0
+3,4,POLE,T,2,0,,,0
+3,5,HYGL,T,2,0,,,0
+3,6,TROR,T,2,5,,,5
+3,7,TRCY,E,3,8,,Swapped with TRCY C2,8
+3,8,HYGL,E,2,0,,,0
+3,9,TROR,T,1,7,,Swapped with TROR C2,7
+4,1,TROR,C,2,0,,,0
+4,2,PLDE,C,3,5,,,5
+4,3,POLE,E,1,0,,,0
+4,4,POLE,T,1,0,,,0
+4,5,TRCY,C,3,9,,,9
+4,6,VERO,E,1,2,,,2
+4,7,LARO,C,3,6,,,6
+4,8,VERO,C,1,1,,,1
+4,9,PLDE,T,2,*,Swapped with E3 sometime prior. 0 PLDE. Bunch of VERO. Thinned to 1 VERO. 5 VERO germinants,,*
+5,1,VERO,E,2,1,,,1
+5,2,TRCY,E,1,9,,,9
+5,8,POLE,E,2,0,,,0
+5,9,LARO,C,2,4,,"Swapped with 10, 1 LARO T1",4
+6,1,ARCA,C,2,4,,Dodder,4
+6,2,HYGL,E,1,2,Very small. New germinants.,0,2
+6,8,ARCA,T,2,1,,,1
+6,9,VERO,C,3,1,,No neighbours,1
+7,1,HYGL,C,2,0,,,0
+7,2,HYGL,T,1,0,,,0
+7,8,ARCA,E,1,5,,,5
+7,9,ARCA,E,3,2,,0. Swapped with ARCA T1,2
+8,1,PLDE,E,3,2,,,2
+8,2,PEAI,E,2,7,A lot of ambient PEAI. 7 is conservative,,7
+8,3,ARCA,C,3,2,,Dodder,2
+8,4,ARCA,E,2,8,,,8
+8,6,LARO,E,1,1,,,1
+8,7,PEAI,C,3,1,,,1
+8,8,PLDE,C,2,0,,,0
+8,9,TROR,E,2,5,,Swapped with TROR C1,5
+9,1,PLDE,T,1,5,,Swapped with PLDE C2,5
+9,2,PEAI,T,1,0,,,0
+9,3,LARO,C,1,2,,Budding,2
+9,4,POLE,C,2,0,,,0
+9,6,TRCY,T,2,0,,,0
+9,7,LARO,E,3,2,Both very dead,Dead. Swapped with LARO T2,2
+9,8,TROR,E,3,1,,,1
+9,9,TRCY,T,1,14,,Swapped with TRCY C1,14
+10,1,LARO,T,1,4,Dodder,,4
+10,2,HYGL,C,1,0,,,0
+10,3,VERO,T,1,2,,,2
+10,4,TROR,C,1,7,,,7
+10,6,TRCY,C,2,10,,,10
+10,7,PEAI,C,2,0,,Swapped with PEAI T2,0
+10,8,POLE,C,3,0,,,0
+10,9,POLE,C,1,0,,,0
