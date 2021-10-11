@@ -58,6 +58,7 @@ glimpse(soildata)
 soildatavars <- soildata %>% select(Sample, Site, Plot, pH, log_NH4N, log_NO3N, log_Al, B, log_Ca, log_Cu, log_Fe, log_K, Mg,
                                     log_Mn, log_Na, log_P, S, Zn)
 #Margie and John suggested CEC (soil cation exchange capacity), nitrate, pH, P, K.
+#Didn't finish this CEC, John said not to worry about it
 soildataselect <- soildata %>% select(Sample, Site, Plot, pH, log_N, log_P, log_K)
 
 ### Need to make data tidy before I can plot all variables against Site
@@ -87,7 +88,6 @@ ggplot(soildata, aes(x = Site, y = pH))+
 modelph1 <- aov(pH ~ Site, soildata)
 summary(modelph1)
 TukeyHSD(modelph1)
-
 # Site 3 is significantly different from 1, 2, 4, 5 and 6
 
 ########### NH4-N
@@ -98,8 +98,8 @@ ggplot(soildata, aes(x = Site, y = log(`NH4-N`)))+
 
 par(mfrow=c(4, 4))
 
+#Correlations with survival and seed count ####
 #Does this map to survival?
-
 survivalsoil <- merge(soildata, survivalplot)
 
 #pH
@@ -122,7 +122,6 @@ summary(model1)
 
 ### Coming back to this May 2021
 # Merging with seed count data
-
 seedsoil <- merge(seeddata, soildata)
 seedsoiltidy <- merge(seeddata, soildatatidy)
 
@@ -141,20 +140,17 @@ seedsoilmodel1 <- glmer.nb(No_viable_seeds ~ pH + Na + S + (1|Plot), data = seed
 summary(seedsoilmodel1)
 
 ######################### PCA #######################
-### Coming back to this July 2021
-
+### Initial PCA Coming back to this July 2021 ####
 #dataall from full_model_WA script
 soildataall <- left_join(dataall, soildataselect)
 
-abioticpcadata <- soildataall %>% select(plotid, pH, log_N, cc_percentage, log_P, log_K)
-
-abioticpcadata <- as.data.frame(abioticpcadata[,-1])
-rownames(abioticpcadata) <- abioticpcadata$plotid
-
-soil_pca <- princomp(abioticpcadata, cor = TRUE)
-biplot(soil_pca)
-summary(soil_pca)
-loadings(soil_pca)
+#abioticpcadata <- soildataall %>% select(plotid, pH, log_N, cc_percentage, log_P, log_K)
+#abioticpcadata <- as.data.frame(abioticpcadata[,-1])
+#rownames(abioticpcadata) <- abioticpcadata$plotid
+#soil_pca <- princomp(abioticpcadata, cor = TRUE)
+#biplot(soil_pca)
+#summary(soil_pca)
+#loadings(soil_pca)
 #From my interpretation, PCA1 accounts for 57% of total variance, and is mostly described
 # by N, canopy cover, P and K. PCA2 accounts for a further 25% (together a total of 82%)
 # and is mostly described by pH (and K)
@@ -184,3 +180,45 @@ ggplot(soildataselect, aes(x = log_P, y = pH))+
   geom_point()+
   geom_smooth(method="lm")+
   theme_classic()
+
+# PCA with all abiotic environmental variables October 2021 ####
+#PCA with  canopy cover, meeting with John 07/10/21
+source("data_preparation.R")
+soilcanopy <- merge(soildatatidy, canopydatatrim)
+
+#Looking at correlations between soil variables and canopy cover
+ggplot(soilcanopy, aes(x = Values, y = cc_percentage))+
+  geom_point(alpha= 0.3)+
+  theme_classic()+
+  geom_smooth(method = "lm")+
+  facet_wrap(~Variable, scales = "free")
+
+#Selecting variables of interest for PCA
+soilpcadata <- soildata %>% select(Site, Plot, pH, log_NH4N, log_NO3N, log_P, log_K)
+abioticpcadata <- merge(soilpcadata, canopydatatrim)
+abioticpcadata <- abioticpcadata %>% unite("plotid", Site:Plot, remove = "false")
+#Removing Site and Plot
+abioticpcatrim <- abioticpcadata %>% select(-c(Site, Plot))
+
+#This assigns the rowsnames so that the datapoints will 
+#come up as the site/plot names on the plot
+rownames(abioticpcatrim) <- abioticpcatrim$plotid
+#This drops the first column (old rownames/plotid)
+abioticpcatrim <- as.data.frame(abioticpcatrim[,-1])
+
+soil_pca <- princomp(abioticpcatrim, cor = TRUE)
+#Plots it
+biplot(soil_pca)
+#Summary and loadings info
+summary(soil_pca)
+loadings(soil_pca)
+
+#Pulling out the values for each site for each PC axis
+#Looking at them
+soil_pca$scores
+#Assigning a new column to pcadata called PC1 taking data  from
+#first PC component - PC1
+pcadataset$PC1<-soil_pca$scores[,1]
+pcadataset$PC2<-soil_pca$scores[,2]
+pcadataset$PC3<-soil_pca$scores[,3]
+

@@ -1,4 +1,25 @@
-#### 
+#### Functions for WA Watering Perenjori Experiment Analysis
+# Alexandra Catling
+# 2021
+
+####Histogram function for using with and pairs functions
+panel.hist <- function(x, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1.5) )
+  h <- hist(x, plot = FALSE, breaks=seq(min(x, na.rm=T), max(x, na.rm=T), length.out=7))
+  breaks <- h$breaks; nB <- length(breaks)
+  y <- h$counts; y <- y/max(y, na.rm=T)
+  rect(breaks[-nB], 0, breaks[-1], y,...)
+}
+
+#### Theme for plotting
+my_theme <- theme(axis.title.x = element_text(size = 16),
+                  axis.title.y = element_text(size = 16),
+                  axis.text = element_text(size = 16),
+                  strip.text.x = element_text(size = 16),
+                  legend.text = element_text(size = 14),
+                  legend.title = element_blank())
 
 ###function to predict linear curves only
 lm.predict<-function(mod, newdat){ 

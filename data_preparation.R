@@ -161,24 +161,141 @@ surveytrim <- allabundanceseeds %>% select(Site, Plot, Species, C_E_or_T, Rep, N
 #There are 50 rows that say No to neighbours but have a neighbour total abundance >0
 surveytrim <- within(surveytrim, Neighbours[Total_abundance > "0"] <- "Yes")
 surveytrimn <- surveytrim %>% filter(Neighbours == "Yes")
-#### All data together for Full_model_WA sheet ####
+############### Soil/abiotic data #####
+soildata <- read_csv("Data/soil_analysis_2020.csv")
+soildata$Site <- as.factor(soildata$Site)
+soildata <- soildata %>% mutate(log_NH4N = log(`NH4-N`), log_NO3N = log(`NO3-N`), log_Al = log(Al), log_Ca = log(Ca), log_Cu = log(Cu),
+                                log_Fe = log(Fe), log_K = log(K), log_Mn = log(Mn), log_Na = log(Na), log_P = log(P), N = `NH4-N` + `NO3-N`, log_N = log(N))
+soilpcadata <- soildata %>% select(Site, Plot, pH, log_NH4N, log_NO3N, log_P, log_K)
+abioticpcadata <- merge(soilpcadata, canopydatatrim)
+abioticpcadata <- abioticpcadata %>% unite("plotid", Site:Plot, remove = "false")
+abioticpcatrim <- abioticpcadata %>% select(-c(Site, Plot))
+rownames(abioticpcatrim) <- abioticpcatrim$plotid
+abioticpcatrim <- as.data.frame(abioticpcatrim[,-1])
+soil_pca <- princomp(abioticpcatrim, cor = TRUE)
+abioticpcadata$PC1<-soil_pca$scores[,1]
+abioticpcadata$PC2<-soil_pca$scores[,2]
+abioticpcadata$PC3<-soil_pca$scores[,3]
+
+###### Trait data ####
+##Isotope data
+isotopedataraw <- read_csv("Data/leaf_isotope_data.csv")
+IDkey <- read_csv("Data/leaf_isotope_ID_key.csv")
+isotopedata <- cbind(isotopedataraw, IDkey)
+#Transformation that John used to calculate delta from raw values (x):
+# (-8-x)/(1+x/1000). This should probably be in functions
+isotopedata <- isotopedata %>% mutate(delta = (-8-D13C)/(1+D13C/1000))
+##Leaf area, SLA, LDMC -- leaf traits
+leafdataraw <- read_csv("Data/wa_2020_leaf_traits.csv")
+#Calculating LDMC (dry mass/fresh mass)
+leafdata <- leafdataraw %>% filter(!is.na(Dry_mass_mg)) %>% mutate(LDMC = Dry_mass_mg/Fresh_mass_mg)
+#Calculating SLA
+leafdata <- leafdata %>% filter(!is.na(Leaf_area_cm2)) %>% mutate(SLA = Leaf_area_cm2/Dry_mass_mg)
+traitkey <- read_csv("Data/Trait_key.csv")
+coverisotope <- merge(isotopedata, traitkey)
+#Count of sample size by species
+countall <- isotopedata %>% group_by(Species) %>% count()
+#Merging with means and averages
+meanD13C <- isotopedata %>% group_by(Species) %>%
+  summarise(mean_D13C = mean(delta, na.rm= TRUE),
+            sd_D13C = sd(delta, na.rm=TRUE))
+summaryD13C <- merge(meanD13C, countall)
+#### SLA and LDMC
+#Need to summarise data, raw data is three leaves per individual (not independent)
+# Need a mean per individual with standard error/sd
+#Then need to look at distribution of data (probably needs to be logged)
+leafdatamean <- leafdata %>% group_by(Species, Collection_site, Collection_plot, Individual) %>%
+  mutate(mean_SLA = mean(SLA, na.rm= TRUE),
+         sd_SLA = sd(SLA, na.rm=TRUE))
+leafdatamean <- leafdatamean %>% group_by(Species, Collection_site, Collection_plot, Individual) %>%
+  mutate(mean_LDMC = mean(LDMC, na.rm= TRUE),
+         sd_LDMC = sd(LDMC, na.rm=TRUE))
+#Reducing to one row
+leafsimple <- leafdatamean %>% group_by(Species, Collection_site, Collection_plot, 
+                                        Individual, mean_SLA, sd_SLA, mean_LDMC, sd_LDMC) %>%
+  filter(row_number() == 1)
+#Calculating one value for each species, based on average of individual averages
+speciestraits <- leafsimple %>% group_by(Species) %>% summarise(SLA = mean(mean_SLA),
+                                                                sd_SLA = sd(mean_SLA),
+                                                                LDMC = mean(mean_LDMC),
+                                                                sd_LDMC = mean(mean_LDMC))
+#Merging with isotope species summaries
+alltraits <- merge(speciestraits, summaryD13C)
+#This gives a summary value for sun and shade traits per species
+leafsimple2 <- merge(leafsimple, traitkey)
+covertraits <- leafsimple2 %>% group_by(Species, Cover) %>% summarise(SLA = mean(mean_SLA),
+                                                                      sd_SLA = sd(mean_SLA),
+                                                                      LDMC = mean(mean_LDMC),
+                                                                      sd_LDMC = mean(mean_LDMC))
+### This gives info per individual on sun vs shade
+leafsimplecover <- leafsimple2 %>% group_by(Species, Collection_site, Collection_plot, Individual) %>% 
+  summarise(SLA = mean(mean_SLA),
+            sd_SLA = sd(mean_SLA),
+            LDMC = mean(mean_LDMC),
+            sd_LDMC = mean(mean_LDMC))
+#Merge back in Cover info
+leafsimplecover <- merge(leafsimplecover, traitkey)
+#####Vero - can look within plots 
+verotraits <- leafsimple %>% filter(Species == "VERO")
+veroplot <- verotraits %>% group_by(Collection_site, Collection_plot) %>% 
+                          summarise(SLA = mean(mean_SLA),
+                          sd_SLA = sd(mean_SLA),
+                          LDMC = mean(mean_LDMC),
+                          sd_LDMC = mean(mean_LDMC),
+                          area = mean(Leaf_area_cm2),
+                          sd_area = sd(Leaf_area_cm2))
+#Merge back with info on treatments
+verotreatments <- merge(veroplot, traitkey)
+#Plotting traits against canopy cover as continuous variable
+verositeplot <- verotreatments %>% mutate (Site = Collection_site, Plot = Collection_plot)
+verocover <- merge(verositeplot, canopydata)
+#And isotope data
+veroisotope <- isotopedata %>% filter(Species == "VERO") %>% mutate(Site = Collection_site,
+                                                                    Plot = Collection_plot)
+verocoverisotope <- merge(veroisotope, canopydata)
+#### All data together ####
 dataall <- left_join(seedmortality, surveytrimn)
 dataall <- within(dataall, Neighbours[is.na(Total_abundance)] <- "No")
 dataall <- dataall %>% replace(is.na(.), 0)
 dataall$Survival <- as.factor(dataall$Survival)
+#Adding in soil data
+dataall <- left_join(dataall, abioticpcadata)
+#Adding in trait data
+traitdata <- alltraits %>% select(Species, SLA, LDMC, mean_D13C)
+dataall <- left_join(dataall, traitdata)
 datanotscaled <- dataall
 #Standardising continuous explanatory variables to a mean of 0 and SD of 1
 dataall$cc_percentage <- scale(dataall$cc_percentage, center = TRUE, scale = TRUE)
 dataall$Total_abundance <- scale(dataall$Total_abundance, center = TRUE, scale = TRUE)
 dataall$Inter_abundance <- scale(dataall$Inter_abundance, center = TRUE, scale = TRUE)
 dataall$Intra_abundance <- scale(dataall$Intra_abundance, center = TRUE, scale = TRUE)
+dataall$PC1 <- scale(dataall$PC1, center = TRUE, scale = TRUE)
+dataall$PC2 <- scale(dataall$PC2, center = TRUE, scale = TRUE)
+dataall$PC3 <- scale(dataall$PC3, center = TRUE, scale = TRUE)
+dataall$SLA <- scale(dataall$SLA, center = TRUE, scale = TRUE)
+dataall$LDMC <- scale(dataall$LDMC, center = TRUE, scale = TRUE)
+dataall$mean_D13C <- scale(dataall$mean_D13C, center = TRUE, scale = TRUE)
 #Splitting data by species
-arcamortality <- dataall %>% filter(Species == "ARCA")
-hyglmortality <- dataall %>% filter(Species == "HYGL")
-laromortality <- dataall %>% filter(Species == "LARO")
-peaimortality <- dataall %>% filter(Species == "PEAI")
-pldemortality <- dataall %>% filter(Species == "PLDE")
-polemortality <- dataall %>% filter(Species == "POLE")
-trcymortality <- dataall %>% filter(Species == "TRCY")
-trormortality <- dataall %>% filter(Species == "TROR")
-veromortality <- dataall %>% filter(Species == "VERO")
+arcadata <- dataall %>% filter(Species == "ARCA")
+hygldata <- dataall %>% filter(Species == "HYGL")
+larodata <- dataall %>% filter(Species == "LARO")
+peaidata <- dataall %>% filter(Species == "PEAI")
+pldedata <- dataall %>% filter(Species == "PLDE")
+poledata <- dataall %>% filter(Species == "POLE")
+trcydata <- dataall %>% filter(Species == "TRCY")
+trordata <- dataall %>% filter(Species == "TROR")
+verodata <- dataall %>% filter(Species == "VERO")
+
+#Seed production model data, which is filtered to things that produced
+#at least one seed (viable or inviable)
+seedmodeldata <- dataall %>% filter(ProducedSeeds == "1")
+seedarca <- seedmodeldata %>% filter(Species == "ARCA")
+seedhygl <- seedmodeldata %>% filter(Species == "HYGL")
+seedlaro <- seedmodeldata %>% filter(Species == "LARO")
+seedpeai <- seedmodeldata %>% filter(Species == "PEAI")
+seedplde <- seedmodeldata %>% filter(Species == "PLDE")
+seedpole <- seedmodeldata %>% filter(Species == "POLE")
+seedtrcy <- seedmodeldata %>% filter(Species == "TRCY")
+seedtror <- seedmodeldata %>% filter(Species == "TROR")
+seedvero <- seedmodeldata %>% filter(Species == "VERO")
+
