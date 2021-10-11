@@ -10,6 +10,11 @@ Repository for WA Perenjori Watering Experiment
 PhD Research
 Experiment conducted in 2020
 
+data_preparation sheet contains all dataframes needed to run plots and models in other sheets
+WA_questions_analysis is the most up to date analysis of the paper's questions
+dataall is the dataframe containing most of the information: row per individual with Species, Site, Plot, neighbour abundance, survival, abiotic environment info, trait data.
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
