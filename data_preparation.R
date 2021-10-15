@@ -102,7 +102,6 @@ seedmortality <- seedmortality %>% replace(is.na(.),0)
 #Make a new column for ProducedSeeds (1 or 0)
 seedmortality <- seedmortality %>% mutate(ProducedSeeds = case_when(No_viable_seeds_grouped > "0" | No_inviable_seeds_grouped > "0" ~ "1",
                                                                    No_viable_seeds_grouped == "0" & No_inviable_seeds_grouped == "0" ~ "0"))
-seedmortality$ProducedSeeds <- as.factor(seedmortality$ProducedSeeds)
 #It works! 609 produced seeds (at least one inviable or viable), and 534 didn't produce any
 
 ################# Community survey data ################
@@ -134,10 +133,6 @@ seedsurveysfixed <- full_join(surveytest, surveytest2)
 neighbourabundance <- seedsurveysfixed %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
   summarise(Total_abundance = sum(Neighbour_count))
 seedabundance <- merge(neighbourabundance, seedsurveysfixed)
-# PLDE-POLE is actually POLE, changing rep number to 9 and species name to POLE
-seedabundance %>% filter(Species == "PLDE-POLE")
-seedabundance <- within(seedabundance, Rep[Species == "PLDE-POLE"] <- '9')
-seedabundance <- within(seedabundance, Species[Species == "PLDE-POLE"] <- 'POLE')
 #NAs, site 3, plot  - 756 - 759 are NAs. Manually changing them to Unks and removing for now
 ## Will check notes later
 seedabundance %>% filter(Species == "UNK")
@@ -147,17 +142,16 @@ seedabundance <- seedabundance %>% filter(Species != "UNK")
 seedabundance$Matching <- seedabundance$Species == seedabundance$Neighbour_sp
 seedabundance$Matching <- ifelse(seedabundance$Matching == TRUE, 1, 0)
 seedabundance <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
-  mutate(Intra_abundance = sum(Neighbour_count[Matching == "1"]))
+  mutate(Intra_abundance = sum(Neighbour_count[Matching == "1"]),
+         Inter_abundance = sum(Neighbour_count[Matching == "0"]))
+#Making a column for whether or not Dodder was present in subplot (1 = yes, 0 = no)
+#Then filtering to one row per subplot
 seedabundance <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
-  mutate(Inter_abundance = sum(Neighbour_count[Matching == "0"]))
-#Turning into a dataset with one row per subplot
-allabundanceseeds <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep, 
-                                                Total_abundance,Intra_abundance, Inter_abundance)%>%
-  filter(row_number() == 1)
-########### TO DO? - Change this below bit in light of ProducedSeeds
+                  mutate(Dodder01 = case_when(any(Neighbour_sp == "Dodder") ~ "1",
+                         TRUE ~ "0")) %>% filter(row_number() == 1)
 #Trimming down to just what is required to merge with seedmortality
-surveytrim <- allabundanceseeds %>% select(Site, Plot, Species, C_E_or_T, Rep, Neighbours,
-                                           Total_abundance, Intra_abundance, Inter_abundance)
+surveytrim <- seedabundance %>% select(Site, Plot, Species, C_E_or_T, Rep, Neighbours,
+                                           Total_abundance, Intra_abundance, Inter_abundance, Dodder01)
 #There are 50 rows that say No to neighbours but have a neighbour total abundance >0
 surveytrim <- within(surveytrim, Neighbours[Total_abundance > "0"] <- "Yes")
 surveytrimn <- surveytrim %>% filter(Neighbours == "Yes")
@@ -257,24 +251,38 @@ verocoverisotope <- merge(veroisotope, canopydata)
 dataall <- left_join(seedmortality, surveytrimn)
 dataall <- within(dataall, Neighbours[is.na(Total_abundance)] <- "No")
 dataall <- dataall %>% replace(is.na(.), 0)
-dataall$Survival <- as.factor(dataall$Survival)
 #Adding in soil data
 dataall <- left_join(dataall, abioticpcadata)
 #Adding in trait data
 traitdata <- alltraits %>% select(Species, SLA, LDMC, mean_D13C)
 dataall <- left_join(dataall, traitdata)
-datanotscaled <- dataall
+#Distributions of traits and PC1, have to use datanotscaled to log
+#SLA better logged?
+#LDMC still strange logged
+#WUE/D13C better logged but still left-skewed
+#PC1 - right-skewed, logging doesn't help
+with(dataall, pairs(~SLA + LDMC + mean_D13C + PC1, diag.panel = panel.hist))
+with(dataall, pairs(~log(SLA+2) + LDMC + log(mean_D13C+2) + PC1, diag.panel = panel.hist))
+# Transforming explanatory variables
+dataall$logp1_totalabund <- log(dataall$Total_abundance+1)
+dataall$logp1_interabund <- log(dataall$Inter_abundance+1)
+dataall$logp1_intraabund <-log(dataall$Intra_abundance+1)
+dataall$log_SLA <-log(dataall$SLA)
+dataall$log_D13C <-log(dataall$mean_D13C)
 #Standardising continuous explanatory variables to a mean of 0 and SD of 1
-dataall$cc_percentage <- scale(dataall$cc_percentage, center = TRUE, scale = TRUE)
-dataall$Total_abundance <- scale(dataall$Total_abundance, center = TRUE, scale = TRUE)
-dataall$Inter_abundance <- scale(dataall$Inter_abundance, center = TRUE, scale = TRUE)
-dataall$Intra_abundance <- scale(dataall$Intra_abundance, center = TRUE, scale = TRUE)
-dataall$PC1 <- scale(dataall$PC1, center = TRUE, scale = TRUE)
-dataall$PC2 <- scale(dataall$PC2, center = TRUE, scale = TRUE)
-dataall$PC3 <- scale(dataall$PC3, center = TRUE, scale = TRUE)
-dataall$SLA <- scale(dataall$SLA, center = TRUE, scale = TRUE)
-dataall$LDMC <- scale(dataall$LDMC, center = TRUE, scale = TRUE)
-dataall$mean_D13C <- scale(dataall$mean_D13C, center = TRUE, scale = TRUE)
+dataall$std_cc <- scale(dataall$cc_percentage, center = TRUE, scale = TRUE)
+dataall$std_logp1_totalabund <- scale(dataall$logp1_totalabund, center = TRUE, scale = TRUE)
+dataall$std_logp1_interabund <- scale(dataall$logp1_interabund, center = TRUE, scale = TRUE)
+dataall$std_logp1_intraabund <- scale(dataall$logp1_intraabund, center = TRUE, scale = TRUE)
+dataall$std_PC1 <- scale(dataall$PC1, center = TRUE, scale = TRUE)
+dataall$std_PC2 <- scale(dataall$PC2, center = TRUE, scale = TRUE)
+dataall$std_PC3 <- scale(dataall$PC3, center = TRUE, scale = TRUE)
+dataall$std_log_SLA <- scale(dataall$log_SLA, center = TRUE, scale = TRUE)
+dataall$std_LDMC <- scale(dataall$LDMC, center = TRUE, scale = TRUE)
+dataall$std_log_D13C <- scale(dataall$log_D13C, center = TRUE, scale = TRUE)
+
+#Need ProducedSeeds to be numeric, not a factor to plot curves
+dataall$ProducedSeeds <- as.numeric(dataall$ProducedSeeds)
 #Splitting data by species
 arcadata <- dataall %>% filter(Species == "ARCA")
 hygldata <- dataall %>% filter(Species == "HYGL")
@@ -298,4 +306,3 @@ seedpole <- seedmodeldata %>% filter(Species == "POLE")
 seedtrcy <- seedmodeldata %>% filter(Species == "TRCY")
 seedtror <- seedmodeldata %>% filter(Species == "TROR")
 seedvero <- seedmodeldata %>% filter(Species == "VERO")
-

@@ -62,7 +62,7 @@ plot.CI.func<- function(x.for.plot, pred, upper, lower, env.colour, env.trans=NA
 ###function to inverse logits
 inv.logit<-function(x)(exp(x)/(1+exp(x)))
 
-##creates a sequence of values frmo min to max by 100
+##creates a sequence of values from min to max by 100
 seq.func<-function(x)(seq(min(x, na.rm=T), max(x, na.rm=T), length.out=100))
 
 ### plot with 95% CI using lmer  or lme objects
@@ -93,3 +93,28 @@ plot.CI.func<- function(x.for.plot, pred, upper, lower, env.colour, env.trans=NA
   polygon(polygon.coords$x, polygon.coords$y, col=rgb(red=colour.rgb["red",],blue=colour.rgb["blue",], green=colour.rgb["green",] , alpha=env.trans, maxColorValue = 255), border=NA)
   lines(x.for.plot, pred, col=line.colour, lwd=line.weight, lty=line.type)         
 } 
+
+## Function 12/10/21
+glmm.predict<-function(mod, newdat, se.mult, logit_link=NULL, log_link=NULL, glmmTMB=NULL){
+  if(glmmTMB==T){
+    pvar1 <- diag(as.matrix(newdat) %*% tcrossprod(vcov(mod)[[1]],as.matrix(newdat)))
+    newdat$y<- as.matrix(newdat) %*% fixef(mod)[[1]]}
+  else{
+    pvar1 <- diag(as.matrix(newdat) %*% tcrossprod(vcov(mod),as.matrix(newdat)))
+    newdat$y<- as.matrix(newdat) %*% fixef(mod)}
+  
+  newdat <- data.frame(newdat, lower = newdat$y-(se.mult*sqrt(pvar1)), upper = newdat$y+(se.mult*sqrt(pvar1)))
+  
+  ## if you have used binomial errors then this will back transform logits to the probability scale
+  if(logit_link==T) {
+    newdat$y<-plogis(newdat$y); newdat$lower<-plogis(newdat$lower); newdat$upper<-plogis(newdat$upper)
+  } else 
+    
+    ## if you have used poisson errors or have log-transformed your response, then this will back transform to the original scale (e.g. abundance)
+    if(log_link==T) {
+      newdat$y<-exp(newdat$y); newdat$lower<-exp(newdat$lower); newdat$upper<-exp(newdat$upper)
+    } 
+  return(with(newdat, data.frame(y, upper, lower)))
+}
+
+
