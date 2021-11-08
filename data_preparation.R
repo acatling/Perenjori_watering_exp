@@ -1,6 +1,7 @@
 ######### Putting all the data prep and notes here
 
 library(tidyverse)
+source("R_functions/functions.R")
 
 ### Importing a list of each of these to be filtered out
 to_remove_start <- read_csv("Data/subplots_to_remove_start.csv")
@@ -90,7 +91,7 @@ seeddatatrim <- seeddata %>% select(Site, Plot, Species, C_E_or_T, Rep,
 #For the survival dataset, will look at SeedsProduced 1/0.
 mortalitydatatrim <- mortalitydata %>% select(plotid, Site, Plot, Species, C_E_or_T, Rep, Treatment,
                                               Cover, No_germinated,Survival, Neighbours, cc_percentage)
-mortalitydatatrim <- mortalitydatatrim %>% rename(Neighbours01 = "Neighbours")
+names(mortalitydatatrim)[names(mortalitydatatrim) == 'Neighbours'] <- 'Neighbours01'
 mortalitydatatrim$Site <- as.factor(mortalitydatatrim$Site)
 seeddatatrim$Site <- as.factor(seeddatatrim$Site)
 mortalitydatatrim$Rep <- as.factor(mortalitydatatrim$Rep)
@@ -280,6 +281,10 @@ dataall$std_PC3 <- scale(dataall$PC3, center = TRUE, scale = TRUE)
 dataall$std_log_SLA <- scale(dataall$log_SLA, center = TRUE, scale = TRUE)
 dataall$std_LDMC <- scale(dataall$LDMC, center = TRUE, scale = TRUE)
 dataall$std_log_D13C <- scale(dataall$log_D13C, center = TRUE, scale = TRUE)
+
+###Scaling the number of seeds produced across species to a percentage of maximum produced
+#Need these values to be integers for negative binomial models
+dataall <- dataall %>% group_by(Species) %>% mutate(seeds_percent = round(No_viable_seeds_grouped/max(No_viable_seeds_grouped)*100))
 
 #Need ProducedSeeds to be numeric, not a factor to plot curves
 dataall$ProducedSeeds <- as.numeric(dataall$ProducedSeeds)

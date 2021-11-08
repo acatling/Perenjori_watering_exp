@@ -208,7 +208,33 @@ abioticpcatrim <- as.data.frame(abioticpcatrim[,-1])
 
 soil_pca <- princomp(abioticpcatrim, cor = TRUE)
 #Plots it
-biplot(soil_pca)
+biplot(soil_pca, xlabs = "PC1 (53.6%)")
+
+### Renaming columns for nicer plot
+abioticpcaedit <- abioticpcatrim
+colnames(abioticpcaedit) <- c("pH", "NH4N", "NO3N", "P", "K", "canopy cover")
+soil_pca2 <- princomp(abioticpcaedit, cor = TRUE)
+## Trying to make a nicer plot
+#library(ggbiplot)
+#ggbiplot(soil_pca)+
+  xlab("PC1 (53.6%)")+
+  ylab("PC2 (21.2%)")+
+  theme_bw()
+
+library(ggfortify)
+dev.off()
+pdf("Output/pca-2910-4.pdf")
+autoplot(soil_pca2, label = TRUE, shape = TRUE,
+         loadings = TRUE, loadings.colour = 'slateblue', 
+         loadings.label.repel = TRUE, loadings.label.size = 5,
+         loadings.label = TRUE, loadings.label.colour = 'slateblue')+
+  xlab("PC1 (53.6%)")+
+  ylab("PC2 (21.2%)")+
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 16),
+           axis.title.y = element_text(size = 16),
+        axis.text = element_text(size = 16))
+dev.off()
 #Summary and loadings info
 summary(soil_pca)
 loadings(soil_pca)
@@ -221,4 +247,8 @@ soil_pca$scores
 pcadataset$PC1<-soil_pca$scores[,1]
 pcadataset$PC2<-soil_pca$scores[,2]
 pcadataset$PC3<-soil_pca$scores[,3]
+
+#Plotting it in prettier way
+pdf("Output/pca-2910-1.pdf", width=21, height=21)
+
 
