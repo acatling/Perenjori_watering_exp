@@ -1,6 +1,8 @@
 ### Answering my specific questions
-# WA Perenjori Watering Experiment
-#October 2021
+# WA Perenjori 2020 Watering Experiment
+#Updated 22/03/22
+
+#### Loading packages and data ####
 library(ggplot2)
 library(lmerTest)
 library(sjPlot)
@@ -14,12 +16,12 @@ source("R_functions/functions.R")
 source("data_preparation.R")
 #dataall has everything (germination, survival, seed production and neighbour info) combined
 
-specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
+## Note that germination analysis is separate, in germination_analysis.R
 
 #### Question 1 ####
 ##What is the relative importance of abiotic and biotic factors for survival and fecundity?
 #Additive model: response ~ total_abundance + water + PC1 + PC2 + PC3 + RE
-### Survival to produce seeds ####
+### Q1 - Survival to produce seeds ####
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 for (i in 1:length(specieslist)){
   print(specieslist[i])
@@ -85,8 +87,8 @@ survmodels[[4]] <- survmodPEAI
 survmodels[[5]] <- survmodPLDE
 survmodels[[6]] <- survmodPOLE
 survmodels[[7]] <- survmodTRCY
-survmodels[[8]] <- trorsurvmod2
-survmodels[[9]] <- verosurvmod2
+survmodels[[8]] <- survmodTROR
+survmodels[[9]] <- survmodVERO
 tab_model(survmodels, transform = NULL)
 plot_models(survmodels, transform = NULL, vline.color = "grey", legend.title = "Species",
             dot.size = 2, line.size = 1)+
@@ -111,7 +113,7 @@ plot_models(survmodels, transform = NULL, vline.color = "grey", legend.title = "
 species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
 
 dev.off()
-pdf("Output/survival-0311-1.pdf", width=21, height=21)
+pdf("Output/Figures/survival_PC1.pdf", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(4,6,2,1))
 par(pty="s")
@@ -132,9 +134,8 @@ for(i in 1:length(species.list.s)){
 dev.off()
 
 #Simpler version for ESA presentation:
-#03-11-11 is the one we want
 dev.off()
-pdf("Output/survival-0311-12.pdf", width=21, height=21)
+pdf("Output/Figures/survival_PC1_ESA.pdf", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(2,2,6,0.5))
 #Margins: bottom, left, top, right
@@ -157,11 +158,12 @@ for(i in 1:length(species.list.s)){
 dev.off()
 
 ##################################################################
-### Relative importance abiotic and biotic - Viable seeds #####
+### Q1 - Viable seed production #####
 #Using No_viable_seeds_grouped for individual species models
 #and seeds_percent for trait models
 #trcy doesn't converge with No_viable_seeds_grouped
 #Same results both ways
+specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 for (i in 1:length(specieslist)){
   print(specieslist[i])
   fecundity <- glmmTMB(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
@@ -268,13 +270,6 @@ arcapreddata <- with(seedarca, data.frame(1, x_to_plot, 0, 0, 0))
 arcapred <- glmm.predict(mod = arcaseedmod1, newdat = arcapreddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
 
-summary(mod)
-x_to_plot<-seq.func(seedlaro$std_PC1)
-with(seedlaro, plot(No_viable_seeds_grouped ~ seedlaro$std_PC1))
-arcapreddata <- with(seedlaro, data.frame(1, 0, 0, 0, x_to_plot, 0))
-arcapred <- glmm.predict(mod = mod, newdat = arcapreddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
-plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-
 #Trying poleseedmod3 plot, comparing to glmmTMB plot
 summary(poleseedmod3)
 x_to_plot<-seq.func(seedpole$std_PC1)
@@ -283,13 +278,12 @@ polepreddata <- with(seedpole, data.frame(1, 0, 0, 0, x_to_plot, 0, 0))
 polepred <- glmm.predict(mod = poleseedmod3, newdat = polepreddata, se.mult = 1.96, logit_link = FALSE, log_link = TRUE, glmmTMB = TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = polepred$y, upper = polepred$upper, lower = polepred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 
-######### Plotting everything as PDF - fecundity ####
-
+######### Plotting everything as PDF - fecundity ###
 ###create a list of names for figure headings
 species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
 
 dev.off()
-pdf("Output/fecundity-0311-1.pdf", width=21, height=21)
+pdf("Output/Figures/fecundity_PC1", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(4,6,2,1))
 par(pty="s")
@@ -310,23 +304,22 @@ for(i in 1:length(species.list.s)){
 dev.off()
 
 #Creating separate plots for TRCY (won't converge unless with percent seeds) and POLE
-arcaseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 +
-                          (1|Site/Plot), family = nbinom2, data = seedarca)
-arcaseedmod1test <- simulateResiduals(arcaseedmod1)
-plot(arcaseedmod1test)
-summary(arcaseedmod1)
-x_to_plot<-seq.func(seedarca$std_logp1_totalabund)
-with(seedarca, plot(No_viable_seeds_grouped ~ seedarca$std_logp1_totalabund))
-arcapreddata <- with(seedarca, data.frame(1, x_to_plot, 0, 0, 0))
-arcapred <- glmm.predict(mod = arcaseedmod1, newdat = arcapreddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
-plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
+#arcaseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 +
+#                          (1|Site/Plot), family = nbinom2, data = seedarca)
+#arcaseedmod1test <- simulateResiduals(arcaseedmod1)
+#plot(arcaseedmod1test)
+#summary(arcaseedmod1)
+#x_to_plot<-seq.func(seedarca$std_logp1_totalabund)
+#with(seedarca, plot(No_viable_seeds_grouped ~ seedarca$std_logp1_totalabund))
+#arcapreddata <- with(seedarca, data.frame(1, x_to_plot, 0, 0, 0))
+#arcapred <- glmm.predict(mod = arcaseedmod1, newdat = arcapreddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+#plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
 
 
 #Simpler version for ESA presentation:
 #Points for seeds_percent and no_viable seeds in same place!
-#0311-6 is the one
 dev.off()
-pdf("Output/fecundity-0311-13.pdf", width=21, height=21)
+pdf("Output/Figures/fecundity_PC1_ESA", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(2,2,6,0.5))
 #Margins: bottom, left, top, right
@@ -390,6 +383,11 @@ seedD13Cdharma <- simulateResiduals(seedD13Cdharma)
 plot(seedD13Cdharma)
 
 ######## SLA analysis and plotting below! #########
+## Saving the model to load later
+save(seedsla, file = "Output/Models/seedslamodel.RData")
+# Loading in the model from saved output
+load("Output/Models/seedslamodel.RData")
+
 #Trying optimiser to aid convergence
 #control = glmmTMBControl(optCtrl=list(iter.max=1e3,eval.max=1e3))
 #Trying without Treatment and Dodder. Didn't work but did converge with glmer.nb instead of glmmTMB!
@@ -399,6 +397,8 @@ seedsla <- glmer.nb(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 +
 summary(seedsla)
 seedsladharma <- simulateResiduals(seedsla)
 plot(seedsladharma)
+
+#### Need to check if below here was updated after lab retreat, not sure! ###
 
 ### Plotting this with John's Catford script and my amendments
 ### This works!!
@@ -416,7 +416,9 @@ vartot <- varfix+varcm
 traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
 #Calculating the slope values for the response of fecundity to PC1 as modulated by SLA
 # slopes = the slope responses of PC2 for each species + the interaction of PC2:SLA*each species' SLA value
-#Unique value for PC2 slopes per species, one value for PC2:SLA for all species, unique values of SLA per species
+#Unique value for PC2 slopes per species (what's left over), one value for PC2:SLA for all species, unique values of SLA per species
+#This changes the position of each species: PC2:SLA - which is one it's one value
+# This is all because the fixed effects have explained some of the response already
 slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(seedsla)$Species[,5] + coef(seedsla)$Species[,9]*traits_for_model$std_log_SLA,
                                          slope_PC2 = coef(seedsla)$Species[,6] + coef(seedsla)$Species[,11]*traits_for_model$std_log_SLA)
 ### Plotting response of fecundity to PC1 as a function of SLA
@@ -452,8 +454,18 @@ abline(h=0, lty=3, lwd=2)
 #rownames(speciessla) <- speciessla$Species
 ### pch = 19 for plotting makes the data points filled in
 
-###################################
+##THis pulls out the fixed effect values in a table
+#test <- summary(seedsla)$coef
 
+#As a bit of a check, run a model without interaction and these should be the slope values we want ultimately
+# after adding the things, this:
+## slopes = the slope responses of PC2 for each species + the interaction of PC2:SLA*each species' SLA value
+#Very similar - not exactly the same!
+
+## NEED TO UPDATE MY MODIFIERS OF SLOPES FROM MY BIG MODEL 
+# everything that is interacting with SLA!
+
+########### Haven't updated anything below here ###########
 ### Various working out below (what works is above):
 #Creating a dataframe with SLA data, my code;
 speciessla <- seedmodeldata %>% select("Species", "std_log_SLA") %>% filter(row_number() == 1)
@@ -519,8 +531,7 @@ with(slopedata, arrows(std_log_SLA, slope_PC1+slope.SEs, std_log_SLA, slope_PC1-
 #curve(cbind(1,x)%*%fixef(seedsla)[c(9,11)], add=T, lwd=3)
 abline(h=0, lty=3, lwd=2)
 
-
-#Testing a few things with Isis to see if the code is working
+####Testing a few things with Isis to see if the code is working
 # with(slopespsla, plot(slope_PC1 ~ std_log_SLA))
 # test <- slopespsla %>% select(Species, slope_PC1, slope_PC2)
 # test2 <- merge(seedmodeldata, test)
@@ -531,7 +542,7 @@ abline(h=0, lty=3, lwd=2)
 # arcapred <- glmm.predict(mod = seedsla, newdat = arcapreddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 # plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
 
-### cath ####
+### cath ###
 dev.off()
 plot(slopespsla$std_log_SLA, slopespsla$slope_PC2)
 arrows(slopespsla$std_log_SLA, slopespsla$slope_PC2+slopespsla$slope.SEs, slopespsla$std_log_SLA, slopespsla$slope_PC2-slopespsla$slope.SEs, code=3, angle=90, length=0)
@@ -546,9 +557,8 @@ pdf("Output/slapc-0511.pdf", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(4,6,2,1))
 par(pty="s")
+#### End Cath ###
 
-
-#### End Cath ####
 
 #Testing another way; aw man the order of 5/9 or 9/5 matters too...
 # data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
@@ -596,7 +606,5 @@ library(vegan)
 #Get formula for Shannon's index and manually calculate it?
   #will have to multiply neighbour by neighbour_sp
 
-#### How does germination vary with abiotic environment? ####
-#See germination_analysis script
 
 

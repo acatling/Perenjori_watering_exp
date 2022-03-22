@@ -24,6 +24,18 @@ canopydatatrim <- canopydata %>% select(Site, Plot, cc_percentage)
 germinationdata <- merge(germinationdata, canopydatatrim)
 #Create a column for plotid
 germinationdata <- germinationdata %>% unite("plotid", Site:Plot, remove = "false")
+germinationdata$Site <- as.factor(germinationdata$Site)
+#Calculating germination rate.
+## Accounting for February germination. For now, total number germinated / total number seeds
+germinationdata <- germinationdata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
+  mutate(Germination_rate = (February_germination + Number_germinated)/Number_seeds_sown)
+
+#First checking distribution of germination rate
+#Should be logged
+ggplot(germinationdata, aes(x = log(Germination_rate)+1))+
+  geom_histogram()+
+  theme_classic()+
+  facet_wrap(~Species)
 
 ################# Survival/mortality data #############
 #Importing mortality data 
@@ -311,3 +323,27 @@ seedpole <- seedmodeldata %>% filter(Species == "POLE")
 seedtrcy <- seedmodeldata %>% filter(Species == "TRCY")
 seedtror <- seedmodeldata %>% filter(Species == "TROR")
 seedvero <- seedmodeldata %>% filter(Species == "VERO")
+
+#### Adding trait and abiotic data to germination data ####
+#Adding in info on abiotic environment and traits
+germdata <- left_join(germinationdata, abioticpcadata)
+germdata <- left_join(germdata, traitdata)
+#Logging and standardising
+germdata$log_SLA <-log(germdata$SLA)
+germdata$log_D13C <-log(germdata$mean_D13C)
+germdata$log_germ <- log(germdata$Germination_rate+1)
+#Standardising continuous explanatory variables to a mean of 0 and SD of 1
+germdata$std_cc <- scale(germdata$cc_percentage, center = TRUE, scale = TRUE)
+germdata$std_PC1 <- scale(germdata$PC1, center = TRUE, scale = TRUE)
+germdata$std_PC2 <- scale(germdata$PC2, center = TRUE, scale = TRUE)
+germdata$std_PC3 <- scale(germdata$PC3, center = TRUE, scale = TRUE)
+germdata$std_log_SLA <- scale(germdata$log_SLA, center = TRUE, scale = TRUE)
+germdata$std_LDMC <- scale(germdata$LDMC, center = TRUE, scale = TRUE)
+germdata$std_log_D13C <- scale(germdata$log_D13C, center = TRUE, scale = TRUE)
+
+#Want to use cbind for number of successes and failures, using binomial glm.
+#Create a row for total number germinated, total number didn't
+germdata <- germdata %>% mutate(total_germ = sum(Number_germinated+February_germination))
+germdata <- germdata %>% mutate(total_no_germ = Number_seeds_sown-total_germ)
+germdata <- germdata %>% mutate(percent_germ = total_germ/Number_seeds_sown)
+

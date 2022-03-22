@@ -1,5 +1,8 @@
-##################### Analysing germination data
+######## Analysing germination data
+## WA Perenjori 2020 Watering Experiment
+# Script updated 22/03/22
 
+#### Loading packages and data ####
 library(tidyverse)
 library(sjPlot)
 library(ggplot2)
@@ -8,50 +11,18 @@ library(lmerTest)
 library(MuMIn)
 library(DHARMa)
 
-#### Prepping dataset ####
 source("data_preparation.R")
-#germinationdata is the tibble I want to use!
-germinationdata$Site <- as.factor(germinationdata$Site)
-#Calculating germination rate.
-## Accounting for February germination. For now, total number germinated / total number seeds
-germinationdata <- germinationdata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
-  mutate(Germination_rate = (February_germination + Number_germinated)/Number_seeds_sown)
+#germdata is the tibble I want to use!
 
-#First checking distribution of germination rate
-#Should be logged
-ggplot(germinationdata, aes(x = log(Germination_rate)+1))+
-  geom_histogram()+
-  theme_classic()+
-  facet_wrap(~Species)
-
-#Adding in info on abiotic environment and traits
-germdata <- left_join(germinationdata, abioticpcadata)
-germdata <- left_join(germdata, traitdata)
-#Logging and standardising
-germdata$log_SLA <-log(germdata$SLA)
-germdata$log_D13C <-log(germdata$mean_D13C)
-germdata$log_germ <- log(germdata$Germination_rate+1)
-#Standardising continuous explanatory variables to a mean of 0 and SD of 1
-germdata$std_cc <- scale(germdata$cc_percentage, center = TRUE, scale = TRUE)
-germdata$std_PC1 <- scale(germdata$PC1, center = TRUE, scale = TRUE)
-germdata$std_PC2 <- scale(germdata$PC2, center = TRUE, scale = TRUE)
-germdata$std_PC3 <- scale(germdata$PC3, center = TRUE, scale = TRUE)
-germdata$std_log_SLA <- scale(germdata$log_SLA, center = TRUE, scale = TRUE)
-germdata$std_LDMC <- scale(germdata$LDMC, center = TRUE, scale = TRUE)
-germdata$std_log_D13C <- scale(germdata$log_D13C, center = TRUE, scale = TRUE)
-
-#Want to use cbind for number of successes and failures, using binomial glm.
-#Create a row for total number germinated, total number didn't
-germdata <- germdata %>% mutate(total_germ = sum(Number_germinated+February_germination))
-germdata <- germdata %>% mutate(total_no_germ = Number_seeds_sown-total_germ)
-germdata <- germdata %>% mutate(percent_germ = total_germ/Number_seeds_sown)
+# Note: germination rate is accounting for February germination as the total number germinated / total number seeds
+# may want to change this later
 
 #Did any germinate in February and then not later in the year?
 test <- germdata %>% filter(February_germination > 0 & Number_germinated == 0)
-#Yes, 16 of them! Wow. Maybe I remove these plots?
+#Yes, 16 of them! Wow. Maybe I remove these plots? Not sure, keeping for now
 #germinationdata <- germinationdata %>% filter(!(February_germination > 0 & Number_germinated == 0))
 
-## Plotting ####
+#### Exploratory plots ####
 ggplot(germdata, aes(x = Site, y = Germination_rate))+
   geom_boxplot()+
   geom_point(alpha = 0.1)+
@@ -82,13 +53,12 @@ ggplot(germdata, aes(x = PC3, y = Germination_rate))+
 #  mutate(Germinated01 = case_when(Germination_rate > "0" ~ "1",
 #                      Germination_rate == "0" ~ "0"))
 
-
-#Trying to add an individual-level random effect to add overdispersion
+#Trying to add an individual-level random effect to fix overdispersion
 #Creating a column for individual row ID
 #Omg this fixed all of the qqplot residuals!!!
 germdata <- germdata %>% unite("id", Site:Column, remove = "false")
 
-####Creating a dataset for each species ####
+####Creating a dataset and model for each species ####
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 for (i in 1:length(specieslist)){
   nam <- paste0("germ", specieslist[i])
@@ -153,17 +123,18 @@ hist(germPEAI$percent_germ, xlab = "Response", main = "")
 #Some of them are zero-inflated?
 testZeroInflation(PLDEgermdharma)
 
-
-
+############# Plotting germination panels/figures ######
+#Something wrong with this, 22/03/22
 #ARCA
-x_to_plot<-seq.func(germARCA$std_PC1)
-with(germARCA, plot(percent_germ ~ std_PC1))
-arcapreddata <- with(germmodARCA, data.frame(1, x_to_plot, 0, 0))
-arcapred <- glmm.predict(mod = germmodARCA, newdat = arcapreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
+#x_to_plot<-seq.func(germARCA$std_PC1)
+#with(germARCA, plot(percent_germ ~ std_PC1))
+#arcapreddata <- with(germmodARCA, data.frame(1, x_to_plot, 0, 0))
+#arcapred <- glmm.predict(mod = germmodARCA, newdat = arcapreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+#plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
 
+species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
 dev.off()
-pdf("Output/testing2610-3.pdf", width=21, height=21)
+pdf("Output/Figures/germ_PC1.pdf", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(4,6,2,1))
 #Margins: bottom, left, top, right
@@ -185,15 +156,14 @@ for(i in 1:length(species.list)){
 dev.off()
 
 #Simpler version for ESA presentation:
-#0311-3 is the one
 dev.off()
-pdf("Output/germination-0311-3.pdf", width=21, height=21)
+pdf("Output/Figures/germ_PC1_ESA.pdf", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(2,2,6,0.5))
 #Margins: bottom, left, top, right
 par(pty="s")
 species.list<-list(germARCA, germHYGL, germLARO, germPEAI, germPLDE, germPOLE, germTRCY, germTROR, germVERO)
-for(i in 1:length(species.list.s)){
+for(i in 1:length(species.list)){
   plotted.data<-as.data.frame(species.list[i])
   plot(plotted.data$percent_germ~plotted.data$std_PC1, pch=19, col="grey60", ylab="", xlab="", cex = 2, cex.lab=3, cex.axis=3,tck=-0.02, axes = 'FALSE', frame.plot = TRUE,ylim=c(0,1.0))
   title(main=bquote(italic(.(species.name.list[i]))), cex.main=4)
@@ -210,7 +180,7 @@ dev.off()
 
 ## And for PC2
 dev.off()
-pdf("Output/PC2_2610-2.pdf", width=21, height=21)
+pdf("Output/Figures/germ_PC2.pdf", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(4,6,2,1))
 #Margins: bottom, left, top, right
@@ -231,7 +201,9 @@ for(i in 1:length(species.list)){
 }
 dev.off()
 
-# ## Modelling germination rate by species ####
+########### Haven't updated anything below here ##########
+
+### Modelling germination rate by species ###
 # for (i in 1:length(specieslist)){
 #   print(specieslist[i])
 #   print(
@@ -239,8 +211,6 @@ dev.off()
 #     lmer(log_germ ~ std_PC1 + std_PC2 + std_PC3 + (1|Site/Plot), 
 #           data = filter(germdata, Species == specieslist[i]))))
 # }
-
-## Haven't updated anything below here ####
 
 tab_model(germmodelARCA, germmodelHYGL, germmodelLARO, germmodelPLDE, germmodelPOLE, germmodelPEAI, germmodelTRCY, germmodelTROR, germmodelVERO, transform = NULL)
 
@@ -263,7 +233,7 @@ plot_models(allmodels, transform = NULL, vline.color = "grey")+
 #Can't make x axis limits any smaller using sJplot (can use a work around with plot_model in ggplot if I want to)
 
 
-### OLD WORK BELOW ####
+### OLD WORK BELOW ###
 ###### Need to calculate germination rates per subplot (number germinated/total number of seeds)
 # Model by germination rate
 # 
@@ -361,7 +331,7 @@ plot_models(allmodels, transform = NULL, vline.color = "grey")+
 # r.squaredGLMM(germmodelcVERO)
 ####
 
-## Trying Isaac's plots ####
+## Trying Isaac's plots ###
 source("Isaac_functions.R")
 
 ###create a list of the dataframes which only have C data
@@ -371,7 +341,7 @@ species.c.list<-list(germmodARCA, germmodHYGL, germmodLARO, germmodPEAI, germmod
 species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
 
 dev.off()
-pdf("Output/testing2610.pdf", width=21, height=21)
+pdf("Output/Figures/testing2610.pdf", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(2,6,2,1))
 #pty
@@ -428,6 +398,3 @@ with(trordata, plot(log_germ ~ std_PC1))
 trorpreddata <- with(trordata, data.frame(1, x_to_plot, 0, 0, 0, 0, 0))
 trorpred <- glmm.predict(mod = trorsurvmod2, newdat = trorpreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
-
-lmer(log_germ ~ std_PC1 + std_PC2 + std_PC3 + (1|Site/Plot), 
-     data = 

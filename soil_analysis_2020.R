@@ -15,7 +15,6 @@ soildata$Site <- as.factor(soildata$Site)
 str(soildata$Site)
 
 ###################Visualising and transforming distributions of data
-
 panel.hist <- function(x, ...)
 {
   usr <- par("usr"); on.exit(par(usr))
@@ -99,28 +98,29 @@ ggplot(soildata, aes(x = Site, y = log(`NH4-N`)))+
 par(mfrow=c(4, 4))
 
 #Correlations with survival and seed count ####
+#Note that I can't run below code without survival info yet 22/03/22
 #Does this map to survival?
-survivalsoil <- merge(soildata, survivalplot)
+#survivalsoil <- merge(soildata, survivalplot)
 
 #pH
-ggplot(survivalsoil, aes(y = n, x = pH))+
-  geom_point(aes(colour = Site))+
-  geom_smooth(method = "lm")+
-  theme_classic()
+#ggplot(survivalsoil, aes(y = n, x = pH))+
+#  geom_point(aes(colour = Site))+
+#geom_smooth(method = "lm")+
+#  theme_classic()
 
-survivalsoiltidy <- merge(soildatatidy, survivalplot)
+#survivalsoiltidy <- merge(soildatatidy, survivalplot)
 
 #All
-ggplot(survivalsoiltidy, aes(x = Values, y = n))+
-  geom_point()+
-  theme_classic()+
-  geom_smooth(method = "lm")+
-  facet_wrap(~Variable, scales = "free")
+#ggplot(survivalsoiltidy, aes(x = Values, y = n))+
+#  geom_point()+
+#  theme_classic()+
+#  geom_smooth(method = "lm")+
+#  facet_wrap(~Variable, scales = "free")
 
-model1 <- lm(n ~ pH, survivalsoil)
-summary(model1)
+#model1 <- lm(n ~ pH, survivalsoil)
+#summary(model1)
 
-### Coming back to this May 2021
+### Coming back to this May 2021 ####
 # Merging with seed count data
 seedsoil <- merge(seeddata, soildata)
 seedsoiltidy <- merge(seeddata, soildatatidy)
@@ -139,51 +139,11 @@ ggplot(seedsoiltidy, aes(x = Values, y = log1_viable_seeds))+
 seedsoilmodel1 <- glmer.nb(No_viable_seeds ~ pH + Na + S + (1|Plot), data = seedsoil)
 summary(seedsoilmodel1)
 
-######################### PCA #######################
-### Initial PCA Coming back to this July 2021 ####
-#dataall from full_model_WA script
-soildataall <- left_join(dataall, soildataselect)
-
-#abioticpcadata <- soildataall %>% select(plotid, pH, log_N, cc_percentage, log_P, log_K)
-#abioticpcadata <- as.data.frame(abioticpcadata[,-1])
-#rownames(abioticpcadata) <- abioticpcadata$plotid
-#soil_pca <- princomp(abioticpcadata, cor = TRUE)
-#biplot(soil_pca)
-#summary(soil_pca)
-#loadings(soil_pca)
-#From my interpretation, PCA1 accounts for 57% of total variance, and is mostly described
-# by N, canopy cover, P and K. PCA2 accounts for a further 25% (together a total of 82%)
-# and is mostly described by pH (and K)
-
-#Checking correlations (sure there's a better way to do this)
-ggplot(soildataselect, aes(x = log_K, y = log_N))+
-  geom_point()+
-  geom_smooth(method="lm")+
-  theme_classic()
-ggplot(soildataselect, aes(x = log_K, y = log_P))+
-  geom_point()+
-  geom_smooth(method="lm")+
-  theme_classic()
-ggplot(soildataselect, aes(x = log_K, y = pH))+
-  geom_point()+
-  geom_smooth(method="lm")+
-  theme_classic()
-ggplot(soildataselect, aes(x = log_N, y = log_P))+
-  geom_point()+
-  geom_smooth(method="lm")+
-  theme_classic()
-ggplot(soildataselect, aes(x = log_N, y = pH))+
-  geom_point()+
-  geom_smooth(method="lm")+
-  theme_classic()
-ggplot(soildataselect, aes(x = log_P, y = pH))+
-  geom_point()+
-  geom_smooth(method="lm")+
-  theme_classic()
-
-# PCA with all abiotic environmental variables October 2021 ####
+######################### PCA October 2021 #######################
+# PCA with all abiotic environmental variables October 2021 ###
 #PCA with  canopy cover, meeting with John 07/10/21
 source("data_preparation.R")
+# Need soildatatidy from above in this sheet
 soilcanopy <- merge(soildatatidy, canopydatatrim)
 
 #Looking at correlations between soil variables and canopy cover
@@ -215,15 +175,15 @@ abioticpcaedit <- abioticpcatrim
 colnames(abioticpcaedit) <- c("pH", "NH4N", "NO3N", "P", "K", "canopy cover")
 soil_pca2 <- princomp(abioticpcaedit, cor = TRUE)
 ## Trying to make a nicer plot
-#library(ggbiplot)
-#ggbiplot(soil_pca)+
+library(ggbiplot)
+ggbiplot(soil_pca)+
   xlab("PC1 (53.6%)")+
   ylab("PC2 (21.2%)")+
   theme_bw()
 
 library(ggfortify)
 dev.off()
-pdf("Output/pca-2910-4.pdf")
+pdf("Output/Figures/pca-abiotic.pdf")
 autoplot(soil_pca2, label = TRUE, shape = TRUE,
          loadings = TRUE, loadings.colour = 'slateblue', 
          loadings.label.repel = TRUE, loadings.label.size = 5,
@@ -238,6 +198,8 @@ dev.off()
 #Summary and loadings info
 summary(soil_pca)
 loadings(soil_pca)
+
+### Haven't updated below here 22/03/22 ####
 
 #Pulling out the values for each site for each PC axis
 #Looking at them
