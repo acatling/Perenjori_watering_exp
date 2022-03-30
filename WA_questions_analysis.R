@@ -182,6 +182,7 @@ dev.off()
 #### Question 1 relative importance A. and B. factors####
 ##What is the relative importance of abiotic and biotic factors for survival and fecundity?
 #Additive model: response ~ total_abundance + water + PC1 + PC2 + PC3 + RE
+#See Q1 - Survival and Q1 - Viable seed production
 ### Q1 - Survival to produce seeds ####
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 for (i in 1:length(specieslist)){
@@ -638,7 +639,85 @@ abline(h=0, lty=3, lwd=2)
 # everything that is interacting with SLA!
 
 ########### Haven't updated anything below here ###########
-### Various working out below (what works is above):
+#### Calculating species richness and diversity ####
+#Not including dodder because we don't have an abundance count for it so can't calculate diversity inc dodder
+#Species richness
+diversitydata <- seedabundancerows %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
+  add_tally(Neighbour_count > 0, name = "sp_richness")
+#SDI = Simpsons diversity index
+diversitydata <- diversitydata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
+    mutate(SDI_step = Neighbour_count/Total_abundance,
+           SDI_step2 = SDI_step^2,
+          SDI = 1-(sum(SDI_step2)))
+#NAs are where there are no neighbours (or just dodder). Changing SDI to 0
+diversitydata <- within(diversitydata, SDI[is.na(SDI)] <-  '0')
+diversitydata <- diversitydata %>% filter(row_number() == 1)
+diversitytomerge <- diversitydata %>% select(Site, Plot, Species, C_E_or_T, Rep, sp_richness, SDI)
+#dataall 1152 seedmortality
+#diversitytomerge 1130 seedabundance surveytrim
+test <- anti_join(dataall, diversitytomerge)
+#gives 53 rows - None have seeds
+test2 <- anti_join(diversitytomerge, dataall)
+#gives 34 rows - 6 unknowns,
+test3 <- diversitydata %>% filter(Rep == "4")
+
+### John's code to calculate variance components in models ####
+#March 2022
+specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
+##By species for germination
+#Is having (1|id) as a random effect legitimate? Can't remember
+#I have this for my other germination models
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  vca <- glmer(cbind(total_germ, total_no_germ) ~ 1 + (1|Site/Plot), 
+            family = binomial, data = filter(germdata, Species == specieslist[i]))
+  print(summary(vca))
+  print(vca_func(vca))
+}
+#ARCA 90% of variation in germination in among plots within blocks, 10% among blocks
+#HYGL 52% among plots, 48% among blocks
+#LARO 34% among plots, 66% among blocks
+#PEAI 40% among plots, 60% among blocks
+#PLDE 43% among plots, 57% among blocks
+#POLE 65% among plots, 35% among blocks
+#TRCY 69% among plots, 31% among blocks
+#TROR 37% among plots, 63% among blocks
+#VERO 46% among plots, 54% among blocks
+# One failed to converge
+
+##By species for survival
+arcatestmod1 <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, arcadata)
+summary(arcatestmod1)
+vca_func(arcatestmod1)
+#Tells me that 55% of the variation in survival is among plots within blocks. 
+# 45% is among blocks.
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  vca <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]))
+  print(summary(vca))
+  print(vca_func(vca))
+}
+#Something very wrong with HYGL, LARO, POLE and TRCY
+#ARCA, PEAI 55% among plots, 45% among blocks
+#PLDE 11% among plots, 89% among blocks
+#TROR 21% among plots, 79% among blocks
+#VERO 41% among plots, 59% among blocks
+
+## By species for seed production
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  vca <- glmer.nb(seeds_percent ~ 1 + (1|Site/Plot), family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(vca))
+  print(vca_func(vca))
+}
+#vca_func doesn't work for glmmTMB but it does with glmer.nb! :o
+#Something very wrong with ARCA, HYGL, PEAI, PLDE, POLE, TROR
+#LARO 63% variation in seed production among plots, 37% among blocks
+#TRCY 7% among plots, 93% among blocks
+#VERO 51% among plots, 49% among blocks
+#Convergence issues
+
+### Various working out below (what works is above) ######
 #Creating a dataframe with SLA data, my code;
 speciessla <- seedmodeldata %>% select("Species", "std_log_SLA") %>% filter(row_number() == 1)
 speciessla <- as.data.frame(speciessla)
@@ -680,7 +759,7 @@ beta <- coef(seedsla)$Species
 signifbeta <- beta %>% select("std_PC1", "std_PC2")
 signifbeta <- signifbeta %>% rownames_to_column("Species")
 signifbeta <- signifbeta %>% rename(slope_PC1 = std_PC1,
-                              slope_PC2 = std_PC2)
+                                    slope_PC2 = std_PC2)
 #Merging datasets
 slopespsla <- merge(speciessla, signifbeta)
 #Creating a column for SE of slopes
@@ -759,75 +838,4 @@ plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope
 with(slopestest, points(std_log_SLA, slope_PC2, col="grey70", pch=19))
 with(slopestest, arrows(std_log_SLA, slope_PC2+slope.SEs, std_log_SLA, slope_PC2-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
 abline(h=0, lty=3, lwd=2)
-
-#### Calculating species richness and diversity ####
-#Not including dodder because we don't have an abundance
-# count for it so can't calculate diversity inc dodder
-#Species richness
-diversitydata <- seedabundancerows %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
-  add_tally(Neighbour_count > 0, name = "sp_richness")
-#SDI = Simpsons diversity index
-diversitydata <- diversitydata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
-    mutate(SDI_step = Neighbour_count/Total_abundance,
-           SDI_step2 = SDI_step^2,
-          SDI = 1-(sum(SDI_step2)))
-#NAs are where there are no neighbours (or just dodder). Changing SDI to 0
-diversitydata <- within(diversitydata, SDI[is.na(SDI)] <-  '0')
-diversitydata <- diversitydata %>% filter(row_number() == 1)
-
-### John's code to calculate variance components in models ####
-specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
-##By species for germination
-#Is having (1|id) as a random effect legitimate? Can't remember
-#I have this for my other germination models
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  vca <- glmer(cbind(total_germ, total_no_germ) ~ 1 + (1|Site/Plot), 
-            family = binomial, data = filter(germdata, Species == specieslist[i]))
-  print(summary(vca))
-  print(vca_func(vca))
-}
-#ARCA 90% of variation in germination in among plots within blocks, 10% among blocks
-#HYGL 52% among plots, 48% among blocks
-#LARO 34% among plots, 66% among blocks
-#PEAI 40% among plots, 60% among blocks
-#PLDE 43% among plots, 57% among blocks
-#POLE 65% among plots, 35% among blocks
-#TRCY 69% among plots, 31% among blocks
-#TROR 37% among plots, 63% among blocks
-#VERO 46% among plots, 54% among blocks
-# One failed to converge
-
-##By species for survival
-arcatestmod1 <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, arcadata)
-summary(arcatestmod1)
-vca_func(arcatestmod1)
-#Tells me that 55% of the variation in survival is among plots within blocks. 
-# 45% is among blocks.
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  vca <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]))
-  print(summary(vca))
-  print(vca_func(vca))
-}
-#Something very wrong with HYGL, LARO, POLE and TRCY
-#ARCA, PEAI 55% among plots, 45% among blocks
-#PLDE 11% among plots, 89% among blocks
-#TROR 21% among plots, 79% among blocks
-#VERO 41% among plots, 59% among blocks
-
-## By species for seed production
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  vca <- glmer.nb(seeds_percent ~ 1 + (1|Site/Plot), family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
-  print(summary(vca))
-  print(vca_func(vca))
-}
-#vca_func doesn't work for glmmTMB but it does with glmer.nb! :o
-#Something very wrong with ARCA, HYGL, PEAI, PLDE, POLE, TROR
-#LARO 63% variation in seed production among plots, 37% among blocks
-#TRCY 7% among plots, 93% among blocks
-#VERO 51% among plots, 49% among blocks
-#Convergence issues
-
 

@@ -40,9 +40,13 @@ ggplot(germinationdata, aes(x = log(Germination_rate)+1))+
 ################# Survival/mortality data #############
 #Importing mortality data 
 mortalitydataraw <- read_csv("Data/mortalityofgerminated.csv")
-#Removing subplots
-mortalitydata <- anti_join(mortalitydataraw, to_remove_start)
-mortalitydata <- anti_join(mortalitydataraw, to_remove_after_germ)
+#Need to rename 8 C VERO T 1 in mortality data to E1 since note says 'stick says E1'. Already changed in seed data
+mortalitydata <- within(mortalitydataraw, C_E_or_T[Site == '8' & Plot == 'C' & Species == 'VERO' & C_E_or_T == 'T'] <- 'E')
+# From survey notes PEAI T2 became C2 so I am changing this above in the mortality dataset (already changed for survey and seeds)
+#Check this later for the germination data, will have to change it in when I merge all vital rates because has a diff number of seeds sown for T2 and C2
+mortalitydata <- within(mortalitydata, C_E_or_T[Site == '1' & Plot == 'A' & Species == 'PEAI' & C_E_or_T == 'T' & Rep == '2'] <- 'C')
+mortalitydata <- anti_join(mortalitydata, to_remove_start)
+mortalitydata <- anti_join(mortalitydata, to_remove_after_germ)
 #Merging with treatments
 treatments <- read_csv("Data/treatments_meta.csv")
 mortalitydata <- full_join(mortalitydata, treatments)
@@ -109,7 +113,9 @@ mortalitydatatrim$Site <- as.factor(mortalitydatatrim$Site)
 seeddatatrim$Site <- as.factor(seeddatatrim$Site)
 mortalitydatatrim$Rep <- as.factor(mortalitydatatrim$Rep)
 seeddatatrim$Rep <- as.factor(seeddatatrim$Rep)
+#1140 rows if I left_join seed data onto mort data, 1146 rows if I full_join. Those 6 are unknowns
 seedmortality <- left_join(mortalitydatatrim, seeddatatrim)
+#Checked 1 A PEAI E1, no problem, in mortalitydata but not seeddata, no problem because merging seed data into mort
 #Replace all the NAs for seed counts with 0s - below code replaces everything in dataframe
 # that is an NA with 0 - that's okay here, where only No_viable and inviable seeds have NAs
 seedmortality <- seedmortality %>% replace(is.na(.),0)
@@ -124,61 +130,58 @@ surveydataraw$Site <- factor(surveydataraw$Site)
 surveydataraw$Species <- factor(surveydataraw$Species)
 #Removing subplots
 surveydata <- anti_join(surveydataraw, to_remove_start)
-surveydata <- anti_join(surveydataraw, to_remove_after_germ)
+surveydata <- anti_join(surveydata, to_remove_after_germ)
 #test <- surveydataraw %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% filter(row_number() == 1)
 #1065 subplots surveyed
-#Merging with seed count data
-# Probably don't need to merge yet, but keeping it like this
-seedsurveys <- full_join(seeddata, surveydata)
 # Dodder is listed under Neighbour_sp but has a Neighbour_count of NA
 #Replacing Neighbour_count NAs where Neighbour_sp = Dodder with 0. e.g. so Dodder now is counted as 0
 # This is because I can't tally with NAs and treating Dodder as 0 because it is in my no-comp. subplots
-seedsurveys <- within(seedsurveys, Neighbour_count[Neighbour_sp == 'Dodder'] <- '0')
-seedsurveys$Neighbour_count <- as.numeric(seedsurveys$Neighbour_count)
+surveydata <- within(surveydata, Neighbour_count[Neighbour_sp == 'Dodder'] <- '0')
+surveydata$Neighbour_count <- as.numeric(surveydata$Neighbour_count)
 #Renaming E and T Neighbours to Yes that actually have neighbours (neighbour_count >= 1)
-seedsurveys$Neighbours <- ifelse(seedsurveys$Neighbour_count >= 1, "Yes", "No")
+surveydata$Neighbours <- ifelse(surveydata$Neighbour_count >= 1, "Yes", "No")
 #Also want to plot the subplots with 0 neighbour_count, so need NAs to be 0s
 #This filters to subplots without Neighbour_count (currently NAs, same with Neighbours)
 ## Check and fix 3 C PEAI C1 which has Cheilanthes and UNK 8 as NA neighbour count
 ## Also check and fix 7 C PEAI C2 which has UNK 1 as NA neighbour count
-surveytest <- seedsurveys %>% filter(!complete.cases(Neighbour_count)) 
+surveytest <- surveydata %>% filter(!complete.cases(Neighbour_count)) 
 surveytest$Neighbour_count <- "0"
 surveytest$Neighbours <- "No"
-surveytest2 <- seedsurveys %>% filter(complete.cases(Neighbour_count))
-#Checking numbers are right - 2393 lines in seedsurveys, 706 !complete.cases, 1687 complete.cases.
+surveytest2 <- surveydata %>% filter(complete.cases(Neighbour_count))
+#Checking numbers are right - 2157 lines in surveytest, 470 !complete.cases, 1687 complete.cases. Phew
 surveytest$Neighbour_count <- as.numeric(surveytest$Neighbour_count)
-seedsurveysfixed <- full_join(surveytest, surveytest2)
+surveydatafixed <- full_join(surveytest, surveytest2)
 #I shouldn't have to do the below in two steps but I can't figure out one, and it works
-neighbourabundance <- seedsurveysfixed %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
+neighbourabundance <- surveydatafixed %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
   summarise(Total_abundance = sum(Neighbour_count))
-seedabundance <- merge(neighbourabundance, seedsurveysfixed)
+surveyabundance <- merge(neighbourabundance, surveydatafixed)
 #NAs, site 3, plot  - 756 - 759 are NAs. Manually changing them to Unks and removing for now
-## Will check notes later
-seedabundance %>% filter(Species == "UNK")
-seedabundance <- seedabundance %>% filter(Species != "UNK")
-# Separating abundances of intra- and inter-specific neighbours
+## Will check notes later -- note this became irrelevant, I think when I removed an earlier merge with seeddata
+#test <- surveyabundance %>% filter(Species == "UNK")
+#surveyabundance <- surveyabundance %>% filter(Species != "UNK")
+## Separating abundances of intra- and inter-specific neighbours
 #Isaac's code first two lines
-seedabundance$Matching <- seedabundance$Species == seedabundance$Neighbour_sp
-seedabundance$Matching <- ifelse(seedabundance$Matching == TRUE, 1, 0)
-seedabundance <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
+surveyabundance$Matching <- surveyabundance$Species == surveyabundance$Neighbour_sp
+surveyabundance$Matching <- ifelse(surveyabundance$Matching == TRUE, 1, 0)
+surveyabundance <- surveyabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
   mutate(Intra_abundance = sum(Neighbour_count[Matching == "1"]),
          Inter_abundance = sum(Neighbour_count[Matching == "0"]))
 #Making a column for whether or not Dodder was present in subplot (1 = yes, 0 = no)
 #Then filtering to one row per subplot
 #Creating the below dataframe seedabundancerows to use later
-seedabundancerows <- seedabundance
-seedabundance <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
+surveyabundancerows <- surveyabundance
+surveyabundance <- surveyabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
                   mutate(Dodder01 = case_when(any(Neighbour_sp == "Dodder") ~ "1",
                          TRUE ~ "0")) %>% filter(row_number() == 1)
 #Trimming down to just what is required to merge with seedmortality
-surveytrim <- seedabundance %>% select(Site, Plot, Species, C_E_or_T, Rep, Neighbours,
+surveytrim <- surveyabundance %>% select(Site, Plot, Species, C_E_or_T, Rep, Neighbours,
                                            Total_abundance, Intra_abundance, Inter_abundance, Dodder01)
-#There are 87 rows that say No to neighbours but have a neighbour total abundance >0
+#There are 86 rows that say No to neighbours but have a neighbour total abundance >0
 # Check this, why??
 #test <- surveytrim %>% filter(Neighbours == "No" & Total_abundance > 0)
 surveytrim <- within(surveytrim, Neighbours[Total_abundance > "0"] <- "Yes")
 surveytrimn <- surveytrim %>% filter(Neighbours == "Yes")
-#1130 subplots, 516 of which have neighbours
+#1057 subplots, 517 of which have neighbours
 
 ############### Soil/abiotic data #####
 soildata <- read_csv("Data/soil_analysis_2020.csv")
@@ -275,12 +278,16 @@ verocoverisotope <- merge(veroisotope, canopydata)
 
 #### All data together ####
 #test <- anti_join(seedmortality, surveytrim)
-##53 rows that seedmortality has but surveytrim doesn't. None of these plants produced seeds
-# but all did germinate
+##108 rows that seedmortality has but surveytrim doesn't. All germinated, some produced seeds, some didn't
+# CHECK THIS ^
 #test2 <- surveytrim %>% filter(Site == "1", Plot == "A", Species == "PEAI", C_E_or_T == "T", Rep == "2")
 ## Not sure why using surveytrimn before
-dataall <- left_join(seedmortality, surveytrim)
+dataall <- full_join(seedmortality, surveytrim, by = c("Site", "Plot", "Species", "C_E_or_T", "Rep"))
+#1140 rows if we left join- match survey to seedmortality. 1168 if we full join, inner 1032
 dataall <- within(dataall, Neighbours[is.na(Total_abundance)] <- "No")
+#1171 subplots with germination
+#test <- germdata %>% filter(Germination_rate > 0)
+# Still want to update this by adding germination data to dataall but will need to update specific plots
 #Removing this NA thing atm because there are some subplots that weren't surveyed
 # and I don't want to incorrectly give them 0 neighbour abundance
 #dataall <- dataall %>% replace(is.na(.), 0)
