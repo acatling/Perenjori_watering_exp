@@ -9,16 +9,177 @@ library(sjPlot)
 library(MuMIn)
 library(DHARMa)
 library(glmmTMB)
+library(gridExtra)
+library(ggExtra)
+library(cowplot)
 
 #Functions file
 source("R_functions/functions.R")
+#ggplot here for ease of plotting. Use theme_classic()+ my_theme
+my_theme <- theme(axis.title.x = element_text(size = 14, face = 'bold'),
+                  axis.title.y = element_text(size = 14, face = 'bold'),
+                  axis.text = element_text(size = 14),
+                  strip.text.x = element_text(size = 14),
+                  legend.text = element_text(size = 14),
+                  legend.title = element_blank())
 #Data imported from data preparation sheet
 source("data_preparation.R")
 #dataall has everything (germination, survival, seed production and neighbour info) combined
 
 ## Note that germination analysis is separate, in germination_analysis.R
 
-#### Question 1 ####
+#### Is neighbour abundance correlated with abiotic environmental factors? ####
+glimpse(dataall)
+#Worried about neighbour 0 count being assigned to things that weren't surveyed
+# did I survey the plots that never germinated? hm...
+#dataall is only the subplots that germinated
+#dataall has rows for subplots that germinated but died before surveying communities
+#1728 subplots sown.
+#Just need to check why some plots weren't surveyed - I thought I surveyed everything that germinated
+# 53 rows
+#test <- surveydataraw %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
+#  filter(row_number() ==1)
+# everything that died, regardless of when, I went back and surveyed
+# did not survey subplots that never germinated
+hist(dataall$Total_abundance)
+hist(log(dataall$Total_abundance+1))
+#dataset with neighbours only
+datanonly <- dataall %>% filter(Total_abundance > 0)
+hist(datanonly$Total_abundance)
+hist(log(datanonly$Total_abundance+1))
+
+#Trying to plot them side by side as pdf
+# All of the below variables are standardised - I don't think that matters
+#PC1
+pc1plot1 <- ggplot(dataall, aes(x = std_PC1, y = log(Total_abundance+1)))+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  geom_smooth(method="lm")+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()
+pc1plot2 <- ggplot(datanonly, aes(x = std_PC1, y = log(Total_abundance+1)))+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  geom_smooth(method="lm")+
+  ylab("")+
+  theme_classic()
+#Testing marginal histogram plot or marginal density plot
+ggMarginal(pc1plot2)
+ggMarginal(pc1plot2, type = "histogram")
+#PC2
+pc2plot1 <- ggplot(dataall, aes(x = std_PC2, y = log(Total_abundance+1)))+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  geom_smooth(method="lm")+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()
+pc2plot2 <- ggplot(datanonly, aes(x = std_PC2, y = log(Total_abundance+1)))+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  geom_smooth(method="lm")+
+  ylab("")+
+  theme_classic()
+#Water availability
+waterplot1 <- ggplot(dataall, aes(x = Treatment, y = log(Total_abundance+1)))+
+  geom_boxplot()+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()
+waterplot2 <- ggplot(datanonly, aes(x = Treatment, y = log(Total_abundance+1)))+
+  geom_boxplot()+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  ylab("")+
+  theme_classic()
+pdf("Output/Figures/n_abundance_corr.pdf")
+  #grid.arrange(pc1plot1, pc1plot2, pc2plot1, pc2plot2, waterplot1, waterplot2, ncol = 2)
+#hjust adjusts position of label in cowplot
+#Interestingly different position for E and F compared to rest
+plot_grid(pc1plot1, pc1plot2, pc2plot1, pc2plot2, waterplot1, waterplot2, 
+          ncol = 2, labels = c("A", "B", "C", "D", "E", "F"), hjust = -3.5)+
+          theme(plot.margin = unit(c(5,1,1,1), "points"))
+dev.off()
+
+##Plotting only this without thinned neighbourhoods, and not fitting linear relationship
+pc1plot2b <- ggplot(datanonly, aes(x = std_PC1, y = log(Total_abundance+1)))+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()+
+  my_theme
+pc2plot2b <- ggplot(datanonly, aes(x = std_PC2, y = log(Total_abundance+1)))+
+  geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  ylab("")+
+  theme_classic()+
+  my_theme
+pdf("Output/Figures/n_abund_corr_smooth.pdf")
+plot_grid(pc1plot2b, pc2plot2b, labels = c("A", "B"))+
+  theme(plot.margin = unit(c(5,1,1,1), "points"))
+dev.off()
+
+#Models
+modelabundpc1 <- lm(log(Total_abundance+1) ~ std_PC1, datanonly)
+summary(modelabundpc1)
+modelabundpc2 <- lm(log(Total_abundance+1) ~ std_PC2, datanonly)
+summary(modelabundpc2)
+modelabundwater <- aov(log(Total_abundance+1) ~ Treatment, datanonly)
+summary(modelabundwater)
+TukeyHSD(modelabundwater)
+
+## More plots
+#Rename Control watering treatment to Ambient
+datanonly <- datanonly %>% mutate(Treatment = recode(Treatment, Control = 'Ambient'))
+#Reorder watering treatments to  Dry, Ambient, Wet
+datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
+
+#Plotting PC1 vs abund for watering treatments
+waterpc1plot <- ggplot(datanonly, aes(x = std_PC1, y = logp1_totalabund))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  ylab("log(neighbour abundance + 1)")+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Treatment)
+#Plotting PC2 vs abund for watering treatments
+waterpc2plot <- ggplot(datanonly, aes(x = std_PC2, y = logp1_totalabund))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  ylab("log(neighbour abundance + 1)")+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Treatment)
+pdf("Output/Figures/PCs_abund_by_watering.pdf")
+plot_grid(waterpc1plot, waterpc2plot, ncol = 1, labels = c("A", "B")) + 
+  theme(plot.margin = unit(c(1,50,1,50), "points"))
+dev.off()
+
+### Are PC1 and PC2 correlated? ####
+#Only want one data point per plot
+plotvar <- dataall %>% group_by(Site, Plot) %>% filter(row_number() == 1)
+ggplot(plotvar, aes(x = std_PC1, y = std_PC2))+
+  geom_jitter(width = 0.05, height = 0.05)+
+  geom_smooth(method="lm")+
+  theme_classic()
+modpc1pc2 <- lm(std_PC2 ~ std_PC1, plotvar)
+summary(modpc1pc2)
+### How is neighbour abundance distributed across species across abiotic env? ####
+sppc1abund <- ggplot(dataall, aes(x = std_PC1, y = logp1_totalabund))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()+
+  facet_wrap(~Species)
+sppc2abund <- ggplot(dataall, aes(x = std_PC2, y = logp1_totalabund))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()+
+  facet_wrap(~Species)
+# Most species don't have data for high neighbour abundance at low values of PC2
+# POLE doesn't have much coverage for low values of PC2 or PC1 (lesser extent)
+# All in all it's great coverage!
+#Try cowplot for plotting
+#The order of edges for plot.margin is unit(c(top, right, bottom, left), units)
+pdf("Output/Figures/nbh_coverage.pdf")
+plot_grid(sppc1abund, sppc2abund, ncol = 1, labels = c("A", "B")) + 
+  theme(plot.margin = unit(c(1,50,1,50), "points"))
+dev.off()
+
+#### Question 1 relative importance A. and B. factors####
 ##What is the relative importance of abiotic and biotic factors for survival and fecundity?
 #Additive model: response ~ total_abundance + water + PC1 + PC2 + PC3 + RE
 ### Q1 - Survival to produce seeds ####
@@ -109,9 +270,7 @@ plot_models(survmodels, transform = NULL, vline.color = "grey", legend.title = "
 # plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
 
 ### Plotting with all species together
-
 species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
-
 dev.off()
 pdf("Output/Figures/survival_PC1.pdf", width=21, height=21)
 par(mfrow=c(3,3))
@@ -156,6 +315,19 @@ for(i in 1:length(species.list.s)){
   Axis(side=2, labels=TRUE)
 }
 dev.off()
+
+### Surv - Quantify variance in vital rates explained by abiotic only vs biotic only ####
+## Another way of this answering this question, instead of just looking at # of significant interactions
+specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
+#Abiotic only
+#Need optimiser for convergence
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalabiotic <- glmer(ProducedSeeds ~ Treatment + std_PC1 + std_PC2 +
+                      (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  print(summary(survivalabiotic))
+}
+
 
 ##################################################################
 ### Q1 - Viable seed production #####
@@ -339,8 +511,8 @@ for(i in 1:length(species.list.s)){
   }
 dev.off()
 
-##### Question 2 ####
-## Do species-level leaf traits explain responses to abiotic environment?
+##### Question 2 traits explaining responses ####
+## Do species-level leaf traits explain responses to environment?
 ##Starting with simple example. Does SLA modulate the respones of survival to PC1?
 ### Survival models
 survpc1sla <- glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_SLA + 
@@ -588,23 +760,74 @@ with(slopestest, points(std_log_SLA, slope_PC2, col="grey70", pch=19))
 with(slopestest, arrows(std_log_SLA, slope_PC2+slope.SEs, std_log_SLA, slope_PC2-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
 abline(h=0, lty=3, lwd=2)
 
-#### Calculating species richness ####
-# Column for the number of neighbouring species that each focal has
+#### Calculating species richness and diversity ####
+#Not including dodder because we don't have an abundance
+# count for it so can't calculate diversity inc dodder
+#Species richness
+diversitydata <- seedabundancerows %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
+  add_tally(Neighbour_count > 0, name = "sp_richness")
+#SDI = Simpsons diversity index
+diversitydata <- diversitydata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
+    mutate(SDI_step = Neighbour_count/Total_abundance,
+           SDI_step2 = SDI_step^2,
+          SDI = 1-(sum(SDI_step2)))
+#NAs are where there are no neighbours (or just dodder). Changing SDI to 0
+diversitydata <- within(diversitydata, SDI[is.na(SDI)] <-  '0')
+diversitydata <- diversitydata %>% filter(row_number() == 1)
 
-#sp_richness = count of number of rows? but dodder. tally of neighbour sp?
-#How to consider dodder?
-#vegan - specnumber
-library(vegan)
+### John's code to calculate variance components in models ####
+specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
+##By species for germination
+#Is having (1|id) as a random effect legitimate? Can't remember
+#I have this for my other germination models
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  vca <- glmer(cbind(total_germ, total_no_germ) ~ 1 + (1|Site/Plot), 
+            family = binomial, data = filter(germdata, Species == specieslist[i]))
+  print(summary(vca))
+  print(vca_func(vca))
+}
+#ARCA 90% of variation in germination in among plots within blocks, 10% among blocks
+#HYGL 52% among plots, 48% among blocks
+#LARO 34% among plots, 66% among blocks
+#PEAI 40% among plots, 60% among blocks
+#PLDE 43% among plots, 57% among blocks
+#POLE 65% among plots, 35% among blocks
+#TRCY 69% among plots, 31% among blocks
+#TROR 37% among plots, 63% among blocks
+#VERO 46% among plots, 54% among blocks
+# One failed to converge
 
-#Not working yet
-#test <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep)
-#  diversity(seedabundance$Neighbour_sp, index = "shannon")
-#specnumber(seedabundance$Neighbour_sp)
-#Let's calculate Shannon's Index rather than just species number
-#Neighbour count is the number of neighbours in that row.
-#Neighbour_sp is the species.
-#Get formula for Shannon's index and manually calculate it?
-  #will have to multiply neighbour by neighbour_sp
+##By species for survival
+arcatestmod1 <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, arcadata)
+summary(arcatestmod1)
+vca_func(arcatestmod1)
+#Tells me that 55% of the variation in survival is among plots within blocks. 
+# 45% is among blocks.
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  vca <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]))
+  print(summary(vca))
+  print(vca_func(vca))
+}
+#Something very wrong with HYGL, LARO, POLE and TRCY
+#ARCA, PEAI 55% among plots, 45% among blocks
+#PLDE 11% among plots, 89% among blocks
+#TROR 21% among plots, 79% among blocks
+#VERO 41% among plots, 59% among blocks
 
+## By species for seed production
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  vca <- glmer.nb(seeds_percent ~ 1 + (1|Site/Plot), family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(vca))
+  print(vca_func(vca))
+}
+#vca_func doesn't work for glmmTMB but it does with glmer.nb! :o
+#Something very wrong with ARCA, HYGL, PEAI, PLDE, POLE, TROR
+#LARO 63% variation in seed production among plots, 37% among blocks
+#TRCY 7% among plots, 93% among blocks
+#VERO 51% among plots, 49% among blocks
+#Convergence issues
 
 

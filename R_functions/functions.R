@@ -117,4 +117,10 @@ glmm.predict<-function(mod, newdat, se.mult, logit_link=NULL, log_link=NULL, glm
   return(with(newdat, data.frame(y, upper, lower)))
 }
 
-
+### John's code to calculate variance components in models ####
+## variance components from lmer model
+vca_func<-function(mod) {
+  var_comps<-as.data.frame(summary(mod)$varcor)$vcov / sum(as.data.frame(summary(mod)$varcor)$vcov) * 100
+  groups<-gsub(":", "_", as.data.frame(summary(mod)$varcor)$grp)
+  return(data.frame(groups, var_comps))
+}

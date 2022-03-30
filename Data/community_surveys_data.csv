@@ -1,4 +1,4 @@
-Date_surveyed,Site,Plot,Species,C_E_or_T,Rep,Phenology,Neighbour_sp,Neighbour_count,No_neighbours_flowering_or_seeding,Notes_surveys
+Date surveyed,Site,Plot,Species,C_E_or_T,Rep,"Phenology (I, B, F, S)",Neighbour_sp,Neighbour_count,Number neighbours flowering or seeding,Notes
 15/09/2020,1,C,PLDE,C,2,S,WAAC,2,2,
 15/09/2020,1,C,PLDE,C,2,S,POLE,1,0,
 15/09/2020,1,C,PLDE,C,2,S,BUSI,1,0,
@@ -201,7 +201,7 @@ Date_surveyed,Site,Plot,Species,C_E_or_T,Rep,Phenology,Neighbour_sp,Neighbour_co
 14/09/2020,1,A,ARCA,C,3,B,CAER,1,0,
 14/09/2020,1,A,ARCA,C,3,B,CRCO,15,0,Red dot - flower?
 14/09/2020,1,A,ARCA,C,3,B,POLE,1,1,
-14/09/2020,1,A,ARCA,E,2,B,NA,NA,NA,Dodder. Check flower not closed
+14/09/2020,1,A,ARCA,E,2,B,Dodder,NA,NA,Dodder. Check flower not closed
 14/09/2020,1,A,PLDE,C,2,S,Dodder,NA,F,Dodder on focal
 14/09/2020,1,A,PLDE,C,2,S,WAAC,1,1,
 14/09/2020,1,A,PLDE,C,2,S,POCA,1,0,
@@ -236,8 +236,8 @@ Date_surveyed,Site,Plot,Species,C_E_or_T,Rep,Phenology,Neighbour_sp,Neighbour_co
 14/09/2020,1,A,VERO,C,3,S,CAER,1,0,
 14/09/2020,1,A,VERO,C,3,S,PEAI,1,0,
 14/09/2020,1,A,VERO,C,3,S,POCA?,2,0,Two POCA seedlings? Check
-14/09/2020,1,A,LARO,E,2,I,NA,NA,NA,"Dodder. Flower dead, no seeds"
-14/09/2020,1,A,VERO,T,4,S,NA,NA,NA,"It's VERO, used to be called PLDE T2 but misplanted. Renamed"
+14/09/2020,1,A,LARO,E,2,I,Dodder,NA,NA,"Dodder. Flower dead, no seeds"
+14/09/2020,1,A,VERO,T,4,S,NA,NA,NA,"It's VERO -- used to be PLDE T2, renamed because misplanted"
 14/09/2020,1,A,VERO,C,1,S,Dodder,NA,F,Dodder on focal
 14/09/2020,1,A,VERO,C,1,S,PEAI,20,20,
 14/09/2020,1,A,VERO,C,1,S,CAER,3,0,
@@ -266,7 +266,7 @@ Date_surveyed,Site,Plot,Species,C_E_or_T,Rep,Phenology,Neighbour_sp,Neighbour_co
 14/09/2020,1,A,TRCY,C,2,S,Dodder,NA,F,Dodder on focal
 14/09/2020,1,A,TROR,T,2,S,NA,NA,NA,Dying
 14/09/2020,1,A,PEAI,E,3,S,NA,NA,NA,Bag soon
-15/09/2020,1,A,TRCY,E,2,S,NA,NA,NA,Dodder
+15/09/2020,1,A,TRCY,E,2,S,Dodder,NA,NA,Dodder
 15/09/2020,1,A,HYGL,C,3,S,ANTO,1,0,
 15/09/2020,1,A,HYGL,C,3,S,VERO,1,1,
 15/09/2020,1,A,HYGL,C,3,S,PEAI,10,6,
@@ -336,7 +336,7 @@ Date_surveyed,Site,Plot,Species,C_E_or_T,Rep,Phenology,Neighbour_sp,Neighbour_co
 14/09/2020,1,A,TRCY,C,3,S,CAER,3,0,
 14/09/2020,1,A,TRCY,C,3,S,UNK 22,2,0,
 14/09/2020,1,A,TRCY,C,3,S,Dodder,NA,F,Dodder on focal
-14/09/2020,1,A,VERO,E,2,S,NA,NA,NA,Dodder
+14/09/2020,1,A,VERO,E,2,S,Dodder,NA,NA,Dodder
 14/09/2020,1,A,ARCA,C,2,F,Dodder,NA,F,Dodder on focal
 14/09/2020,1,A,ARCA,C,2,F,PEAI,37,30,
 14/09/2020,1,A,ARCA,C,2,F,CAER,4,0,
@@ -747,103 +747,103 @@ Date_surveyed,Site,Plot,Species,C_E_or_T,Rep,Phenology,Neighbour_sp,Neighbour_co
 30/09/2020,6,C,TROR,T,2,NA,CHPS,9,NA,
 30/09/2020,6,C,TROR,T,2,NA,UNK Z,1,1,Have a small drawing if helpful
 30/09/2020,6,C,TRCY,T,1,NA,POMU,6,6,"3, 6"
-PAGE 3,7,C,PEAI,C,2,I,VERO,6,6,
-,7,C,PEAI,C,2,I,CHPS,16,0,
-,7,C,PEAI,C,2,I,POMU,1,0,
-,7,C,PEAI,C,2,I,CRCO,4,0,
-,7,C,PEAI,C,2,I,UNK 1,NA,NA,Very spiky bud
-,7,C,TROR,E,1,S,NA,NA,NA,Accidentally broke off seeds while trying to bag
-,7,C,HYGL,C,1,I,VERO,14,14,"Focal almost dead, has white fluff at base"
-,7,C,HYGL,C,1,I,CHPS,10,0,
-,7,C,HYGL,C,1,I,Dodder,NA,F,Dodder not on focal
-,7,C,ARCA,E,1,B,NA,NA,NA,
-,7,C,POLE,T,2,B,NA,NA,NA,
-,7,C,POLE,E,3,F,NA,NA,NA,
-,7,A,PEAI,T,1,I,NA,NA,NA,
-,7,A,ARCA,E,1,B,NA,NA,NA,
-,7,A,PEAI,E,1,B,NA,NA,NA,
-,7,A,PEAI,E,2,B,NA,NA,NA,
-,7,A,VERO,E,1,S,NA,NA,NA,
-,7,A,ARCA,E,3,B,NA,NA,NA,Dodder not on focal
-,7,A,POLE,E,1,F,NA,NA,NA,
-,7,A,TROR,E,2,S,NA,NA,NA,
-,7,A,LARO,C,2,F,Dodder,NA,F,"Dodder on focal, a lot"
-,7,A,LARO,C,2,F,POMU,7,1,
-,7,A,LARO,C,2,F,VERO,4,4,
-,7,A,LARO,C,2,F,CRCO,4,0,
-,7,A,VERO,C,1,S,POMU,9,0,
-,7,A,VERO,C,1,S,Dodder,NA,F,Dodder not on focal
-,7,A,VERO,C,1,S,VERO,6,6,
-,7,A,VERO,C,1,S,CHPS,11,0,
-,7,A,PEAI,C,2,I,VERO,4,3,
-,7,A,PEAI,C,2,I,Dodder,NA,F,Dodder not on focal
-,7,A,PEAI,C,2,I,POMU,3,0,
-,7,A,ARCA,C,1,I,VERO,10,8,
-,7,A,ARCA,C,1,I,POMU,3,0,
-,7,A,ARCA,C,1,I,Dodder,NA,F,Dodder on focal
-,7,A,PEAI,E,3,I,NA,NA,NA,
-,7,A,HYGL,C,2,S,POMU,5,0,
-,7,A,HYGL,C,2,S,VERO,3,3,
-,7,A,HYGL,C,2,S,Dodder,NA,F,Dodder not on focal
-,7,A,HYGL,C,2,S,CHPS,4,0,
-,7,A,HYGL,C,2,S,CRCO,9,0,
-,7,A,TROR,T,1,S,NA,NA,NA,
-,7,A,HYGL,C,3,F,VERO,5,5,
-,7,A,HYGL,C,3,F,POMU,6,0,
-,7,A,HYGL,C,3,F,HYGL,1,1,
-,7,A,HYGL,C,3,F,Dodder,NA,F,Dodder on focal
-,7,A,TRCY,C,1,S,VERO,8,8,
-,7,A,TRCY,C,1,S,POMU,7,0,
-,7,A,TRCY,C,1,S,CRCO,1,0,
-,7,A,TRCY,C,1,S,Dodder,NA,F,Dodder not on focal
-PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
-,7,A,VERO,C,3,S,VERO,2,2,
-,7,A,VERO,C,3,S,Dodder,NA,F,Dodder not on focal
-,7,A,VERO,C,3,S,POMU,1,0,
-,7,A,VERO,C,3,S,CRCO,1,0,
-,7,A,LARO,C,1,I,POMU,2,0,Top gone
-,7,A,LARO,C,1,I,VERO,3,2,
-,7,A,LARO,C,1,I,Dodder,NA,F,Dodder on focal
-,7,A,VERO,E,2,S,NA,NA,NA,
-,7,A,LARO,E,2,S,NA,NA,NA,
-,7,A,TRCY,E,1,S,NA,NA,NA,Dodder
-,7,A,TROR,C,1,B,Dodder,NA,F,Dodder not on focal
-,7,A,TROR,C,1,B,VERO,8,7,
-,7,A,TRCY,C,3,S,Dodder,NA,F,Dodder on focal. Covered in dodder flowers
-,7,A,TRCY,C,3,S,POMU,1,0,
-,7,A,TRCY,C,3,S,VERO,11,5,
-,7,A,TRCY,C,3,S,CRCO,4,0,
-,7,A,TROR,C,2,S,VERO,13,9,Accidentally came up with dodder. Almost dead anyway. Collected
-,7,A,TROR,C,2,S,Dodder,NA,F,Dodder on focal
-,7,A,TROR,C,2,S,POMU,1,0,
-,7,A,TRCY,C,2,T,VERO,11,8,
-,7,A,TRCY,C,2,T,Dodder,NA,F,Dodder on focal
-,7,A,TRCY,C,2,T,POMU,1,0,
-,7,A,VERO,E,3,S,NA,NA,NA,
-,7,A,TRCY,E,3,S,NA,NA,NA,
-,7,A,PEAI,C,3,S,VERO,12,12,
-,7,A,VERO,T,1,S,NA,NA,NA,Dodder
-,7,A,TROR,C,3,S,Dodder,NA,F,Dodder on focal
-,7,A,TROR,C,3,S,VERO,6,6,
-,7,A,TROR,C,3,S,CHPS,1,0,
-,7,A,TROR,C,3,S,CRCO,2,0,
-,7,A,TROR,E,3,S,NA,NA,NA,
-,7,A,PEAI,C,1,NA,VERO,9,9,Dead focal
-,7,A,PEAI,C,1,NA,POMU,4,1,
-,7,A,PEAI,C,1,NA,CRCO,3,0,
-,7,A,PEAI,C,1,NA,Dodder,NA,F,
-,7,A,LARO,T,2,S,NA,NA,NA,
-,7,A,VERO,C,2,NA,VERO,3,3,Old T2
-,7,A,VERO,C,2,NA,Dodder,NA,F,Dodder on focal
-,7,A,VERO,C,2,NA,POMU,6,0,
-,7,A,LARO,E,3,F,NA,NA,NA,
-,7,A,HYGL,E,1,B,NA,NA,NA,Dodder
-,7,A,TROR,E,1,S,NA,NA,NA,
-,7,A,TROR,E,2,S,NA,NA,NA,
-,7,A,LARO,E,1,F,NA,NA,NA,
-,7,A,PEAI,E,2,I,NA,NA,NA,
-,7,A,HYGL,C,1,I,Dodder,NA,F,Dodder on focal
-,7,A,HYGL,C,1,I,VERO,12,12,
+11/09/2020,7,C,PEAI,C,2,I,VERO,6,6,"Page 3, assuming 11/09"
+11/09/2020,7,C,PEAI,C,2,I,CHPS,16,0,
+11/09/2020,7,C,PEAI,C,2,I,POMU,1,0,
+11/09/2020,7,C,PEAI,C,2,I,CRCO,4,0,
+11/09/2020,7,C,PEAI,C,2,I,UNK 1,NA,NA,Very spiky bud
+11/09/2020,7,C,TROR,E,1,S,NA,NA,NA,Accidentally broke off seeds while trying to bag
+11/09/2020,7,C,HYGL,C,1,I,VERO,14,14,"Focal almost dead, has white fluff at base"
+11/09/2020,7,C,HYGL,C,1,I,CHPS,10,0,
+11/09/2020,7,C,HYGL,C,1,I,Dodder,NA,F,Dodder not on focal
+11/09/2020,7,C,ARCA,E,1,B,NA,NA,NA,
+11/09/2020,7,C,POLE,T,2,B,NA,NA,NA,
+11/09/2020,7,C,POLE,E,3,F,NA,NA,NA,
+11/09/2020,7,A,PEAI,T,1,I,NA,NA,NA,
+11/09/2020,7,A,ARCA,E,1,B,NA,NA,NA,
+11/09/2020,7,A,PEAI,E,1,B,NA,NA,NA,
+11/09/2020,7,A,PEAI,E,2,B,NA,NA,NA,
+11/09/2020,7,A,VERO,E,1,S,NA,NA,NA,
+11/09/2020,7,A,ARCA,E,3,B,Dodder,NA,NA,Dodder not on focal
+11/09/2020,7,A,POLE,E,1,F,NA,NA,NA,
+11/09/2020,7,A,TROR,E,2,S,NA,NA,NA,
+11/09/2020,7,A,LARO,C,2,F,Dodder,NA,F,"Dodder on focal, a lot"
+11/09/2020,7,A,LARO,C,2,F,POMU,7,1,
+11/09/2020,7,A,LARO,C,2,F,VERO,4,4,
+11/09/2020,7,A,LARO,C,2,F,CRCO,4,0,
+11/09/2020,7,A,VERO,C,1,S,POMU,9,0,
+11/09/2020,7,A,VERO,C,1,S,Dodder,NA,F,Dodder not on focal
+11/09/2020,7,A,VERO,C,1,S,VERO,6,6,
+11/09/2020,7,A,VERO,C,1,S,CHPS,11,0,
+11/09/2020,7,A,PEAI,C,2,I,VERO,4,3,
+11/09/2020,7,A,PEAI,C,2,I,Dodder,NA,F,Dodder not on focal
+11/09/2020,7,A,PEAI,C,2,I,POMU,3,0,
+11/09/2020,7,A,ARCA,C,1,I,VERO,10,8,
+11/09/2020,7,A,ARCA,C,1,I,POMU,3,0,
+11/09/2020,7,A,ARCA,C,1,I,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,PEAI,E,3,I,NA,NA,NA,
+11/09/2020,7,A,HYGL,C,2,S,POMU,5,0,
+11/09/2020,7,A,HYGL,C,2,S,VERO,3,3,
+11/09/2020,7,A,HYGL,C,2,S,Dodder,NA,F,Dodder not on focal
+11/09/2020,7,A,HYGL,C,2,S,CHPS,4,0,
+11/09/2020,7,A,HYGL,C,2,S,CRCO,9,0,
+11/09/2020,7,A,TROR,T,1,S,NA,NA,NA,
+11/09/2020,7,A,HYGL,C,3,F,VERO,5,5,
+11/09/2020,7,A,HYGL,C,3,F,POMU,6,0,
+11/09/2020,7,A,HYGL,C,3,F,HYGL,1,1,
+11/09/2020,7,A,HYGL,C,3,F,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,TRCY,C,1,S,VERO,8,8,
+11/09/2020,7,A,TRCY,C,1,S,POMU,7,0,
+11/09/2020,7,A,TRCY,C,1,S,CRCO,1,0,
+11/09/2020,7,A,TRCY,C,1,S,Dodder,NA,F,Dodder not on focal
+11/09/2020,7,A,TRCY,E,2,S,NA,NA,NA,"Page 4, 11/09"
+11/09/2020,7,A,VERO,C,3,S,VERO,2,2,
+11/09/2020,7,A,VERO,C,3,S,Dodder,NA,F,Dodder not on focal
+11/09/2020,7,A,VERO,C,3,S,POMU,1,0,
+11/09/2020,7,A,VERO,C,3,S,CRCO,1,0,
+11/09/2020,7,A,LARO,C,1,I,POMU,2,0,Top gone
+11/09/2020,7,A,LARO,C,1,I,VERO,3,2,
+11/09/2020,7,A,LARO,C,1,I,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,VERO,E,2,S,NA,NA,NA,
+11/09/2020,7,A,LARO,E,2,S,NA,NA,NA,
+11/09/2020,7,A,TRCY,E,1,S,NA,NA,NA,Dodder
+11/09/2020,7,A,TROR,C,1,B,Dodder,NA,F,Dodder not on focal
+11/09/2020,7,A,TROR,C,1,B,VERO,8,7,
+11/09/2020,7,A,TRCY,C,3,S,Dodder,NA,F,Dodder on focal. Covered in dodder flowers
+11/09/2020,7,A,TRCY,C,3,S,POMU,1,0,
+11/09/2020,7,A,TRCY,C,3,S,VERO,11,5,
+11/09/2020,7,A,TRCY,C,3,S,CRCO,4,0,
+11/09/2020,7,A,TROR,C,2,S,VERO,13,9,Accidentally came up with dodder. Almost dead anyway. Collected
+11/09/2020,7,A,TROR,C,2,S,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,TROR,C,2,S,POMU,1,0,
+11/09/2020,7,A,TRCY,C,2,T,VERO,11,8,
+11/09/2020,7,A,TRCY,C,2,T,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,TRCY,C,2,T,POMU,1,0,
+11/09/2020,7,A,VERO,E,3,S,NA,NA,NA,
+11/09/2020,7,A,TRCY,E,3,S,NA,NA,NA,
+11/09/2020,7,A,PEAI,C,3,S,VERO,12,12,
+11/09/2020,7,A,VERO,T,1,S,Dodder,NA,NA,Dodder
+11/09/2020,7,A,TROR,C,3,S,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,TROR,C,3,S,VERO,6,6,
+11/09/2020,7,A,TROR,C,3,S,CHPS,1,0,
+11/09/2020,7,A,TROR,C,3,S,CRCO,2,0,
+11/09/2020,7,A,TROR,E,3,S,NA,NA,NA,
+11/09/2020,7,A,PEAI,C,1,NA,VERO,9,9,Dead focal
+11/09/2020,7,A,PEAI,C,1,NA,POMU,4,1,
+11/09/2020,7,A,PEAI,C,1,NA,CRCO,3,0,
+11/09/2020,7,A,PEAI,C,1,NA,Dodder,NA,F,
+11/09/2020,7,A,LARO,T,2,S,NA,NA,NA,
+11/09/2020,7,A,VERO,C,2,NA,VERO,3,3,Old T2
+11/09/2020,7,A,VERO,C,2,NA,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,VERO,C,2,NA,POMU,6,0,
+11/09/2020,7,A,LARO,E,3,F,NA,NA,NA,
+11/09/2020,7,A,HYGL,E,1,B,Dodder,NA,NA,Dodder
+11/09/2020,7,A,TROR,E,1,S,NA,NA,NA,
+11/09/2020,7,A,TROR,E,2,S,NA,NA,NA,
+11/09/2020,7,A,LARO,E,1,F,NA,NA,NA,
+11/09/2020,7,A,PEAI,E,2,I,NA,NA,NA,
+11/09/2020,7,A,HYGL,C,1,I,Dodder,NA,F,Dodder on focal
+11/09/2020,7,A,HYGL,C,1,I,VERO,12,12,
 11/09/2020,7,C,TROR,T,1,S,NA,NA,NA,
 11/09/2020,7,C,TROR,T,2,S,NA,NA,NA,
 11/09/2020,7,C,TRCY,T,2,S,NA,NA,NA,
@@ -879,7 +879,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 11/09/2020,7,C,HYGL,C,2,NA,CHPS,1,0,
 11/09/2020,7,C,HYGL,C,2,NA,POMU,2,0,
 11/09/2020,7,C,HYGL,C,2,NA,UNK GRASS 2,1,0,
-11/09/2020,7,C,HYGL,E,1,F,NA,NA,NA,Dodder
+11/09/2020,7,C,HYGL,E,1,F,Dodder,NA,NA,Dodder
 11/09/2020,7,C,VERO,C,3,S,VERO,11,10,
 11/09/2020,7,C,VERO,C,3,S,Dodder,NA,F,Dodder on focal
 11/09/2020,7,C,VERO,C,3,S,CHPS,4,0,
@@ -907,7 +907,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 11/09/2020,7,C,VERO,C,1,S,CRCL,1,0,
 11/09/2020,7,C,PEAI,E,2,I,NA,NA,NA,
 11/09/2020,7,C,PEAI,T,2,F,NA,NA,NA,
-11/09/2020,7,C,HYGL,T,2,S,NA,NA,NA,Dodder
+11/09/2020,7,C,HYGL,T,2,S,Dodder,NA,NA,Dodder
 11/09/2020,7,C,ARCA,C,3,B,Dodder,NA,F,Dodder on focal
 11/09/2020,7,C,ARCA,C,3,B,CHPS,3,0,
 11/09/2020,7,C,ARCA,C,3,B,VERO,5,5,
@@ -986,13 +986,13 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 12/09/2020,6,B,ARCA,C,2,B,POMU,5,0,
 12/09/2020,6,B,ARCA,C,2,B,Dodder,NA,F,Dodder not on focal
 12/09/2020,6,B,ARCA,C,2,B,CHPS,2,NA,
-12/09/2020,6,B,LARO,E,1,F,NA,NA,NA,Dodder
+12/09/2020,6,B,LARO,E,1,F,Dodder,NA,NA,Dodder
 12/09/2020,6,B,PEAI,C,3,NA,VERO,19,18,Old T2
 12/09/2020,6,B,PEAI,C,3,NA,CHPS,5,0,
 12/09/2020,6,B,PEAI,C,3,NA,POMU,3,0,
 12/09/2020,6,B,PEAI,C,3,NA,Dodder,NA,F,Dodder not on focal
 12/09/2020,6,B,PEAI,E,1,I,NA,NA,NA,
-12/09/2020,6,B,TROR,E,3,S,NA,NA,NA,Dodder
+12/09/2020,6,B,TROR,E,3,S,Dodder,NA,NA,Dodder
 12/09/2020,6,B,ARCA,C,3,B,VERO,11,11,Old T2
 12/09/2020,6,B,ARCA,C,3,B,PEAI,1,NA,
 12/09/2020,6,B,ARCA,C,3,B,Dodder,NA,F,Dodder not on focal
@@ -1042,7 +1042,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 12/09/2020,6,B,VERO,C,3,S,VERO,6,6,
 12/09/2020,6,B,VERO,C,3,S,POMU,5,0,
 12/09/2020,6,B,VERO,C,3,S,CHPS,1,0,
-12/09/2020,6,B,TRCY,T,1,S,NA,NA,NA,Dodder
+12/09/2020,6,B,TRCY,T,1,S,Dodder,NA,NA,Dodder
 12/09/2020,6,B,ARCA,E,1,B,NA,NA,NA,
 12/09/2020,6,B,TROR,E,1,S,NA,NA,NA,
 12/09/2020,6,B,TROR,C,3,I,Dodder,NA,F,Dodder not on focal
@@ -1114,7 +1114,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 12/09/2020,6,B,POLE,C,3,I,POMU,6,0,
 12/09/2020,6,B,POLE,C,3,I,CHPS,6,0,
 12/09/2020,6,B,POLE,C,3,I,CRCO,7,0,
-12/09/2020,6,B,HYGL,E,3,S,NA,NA,NA,Dodder. Leaves lost trying to remove dodder
+12/09/2020,6,B,HYGL,E,3,S,Dodder,NA,NA,Dodder. Leaves lost trying to remove dodder
 12/09/2020,6,B,HYGL,C,2,F,Dodder,NA,F,Dodder on focal
 12/09/2020,6,B,HYGL,C,2,F,POMU,6,0,
 12/09/2020,6,B,HYGL,C,2,F,VERO,8,7,
@@ -1125,7 +1125,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 12/09/2020,6,B,TROR,T,1,S,NA,NA,NA,Dying
 12/09/2020,6,B,TRCY,E,1,S,NA,NA,NA,
 12/09/2020,6,B,ARCA,E,3,B,NA,NA,NA,
-12/09/2020,6,B,POLE,E,3,F,NA,NA,NA,Dodder
+12/09/2020,6,B,POLE,E,3,F,Dodder,NA,NA,Dodder
 12/09/2020,6,B,HYGL,C,1,B,ARCO,1,1,Old T2
 12/09/2020,6,B,HYGL,C,1,B,VERO,16,13,
 12/09/2020,6,B,HYGL,C,1,B,CHPS,11,0,
@@ -1198,7 +1198,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 12/09/2020,2,C,HYGL,E,3,S,NA,NA,NA,
 12/09/2020,2,C,TRCY,E,3,S,NA,NA,NA,
 12/09/2020,2,C,LARO,E,3,B,NA,NA,NA,Dead
-12/09/2020,2,C,PLDE,E,3,I,NA,NA,NA,Dodder
+12/09/2020,2,C,PLDE,E,3,I,Dodder,NA,NA,Dodder
 12/09/2020,2,C,PEAI,E,2,B,NA,NA,NA,
 12/09/2020,2,C,LARO,C,2,F,ARCO,1,1,"Dead focal, flower open and no seeds visible"
 12/09/2020,2,C,LARO,C,2,F,POMU,12,3,
@@ -1210,7 +1210,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 12/09/2020,2,C,PLDE,C,2,S,CRCO,1,0,
 12/09/2020,2,C,PLDE,C,2,S,POMU,7,0,
 12/09/2020,2,C,PLDE,C,2,S,CHPS,1,0,
-12/09/2020,2,C,POLE,C,4,F,POMU,6,1,"Not thinned, actually POLE; accidental POLE planted so renamed"
+12/09/2020,2,C,PLDE-POLE,T,2,F,POMU,6,1,"Not thinned, actually POLE"
 12/09/2020,2,C,ARCA,C,3,B,Dodder,NA,NA,Dodder on focal
 12/09/2020,2,C,ARCA,C,3,B,POMU,4,0,
 12/09/2020,2,C,TROR,T,2,I,NA,NA,NA,
@@ -1250,10 +1250,10 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 12/09/2020,3,A,ARCA,E,3,B,NA,NA,NA,
 12/09/2020,3,A,TROR,E,3,I,NA,NA,NA,Dead
 12/09/2020,3,A,ARCA,E,2,B,NA,,,
-12/09/2020,3,A,UNK,UNK,UNK,UNK,VERO,4,4,
-12/09/2020,3,A,UNK,UNK,UNK,UNK,WAAC,1,1,
-12/09/2020,3,A,UNK,UNK,UNK,UNK,BRCI,2,1,
-12/09/2020,3,A,UNK,UNK,UNK,UNK,Erodium,1,1,
+12/09/2020,3,A,,,,,VERO,4,4,Not sure which plot this is
+12/09/2020,3,A,,,,,WAAC,1,1,Not sure which plot this is
+12/09/2020,3,A,,,,,BRCI,2,1,Not sure which plot this is
+12/09/2020,3,A,,,,,Erodium,1,1,Not sure which plot this is
 12/09/2020,3,A,PLDE,C,3,S,VERO,1,1,
 12/09/2020,3,A,PLDE,C,3,S,BRCI,1,0,
 12/09/2020,3,A,TRCY,C,1,S,Dodder,NA,F,Dodder on focal. Focal broken in half and collected
@@ -1344,9 +1344,9 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 13/09/2020,2,B,ARCA,C,2,F,VERO,2,2,
 13/09/2020,2,B,ARCA,C,2,F,ARCO,1,1,
 13/09/2020,2,B,ARCA,E,1,B,NA,NA,NA,
-13/09/2020,2,B,TRCY,E,1,S,NA,NA,NA,Dodder
+13/09/2020,2,B,TRCY,E,1,S,Dodder,NA,NA,Dodder
 13/09/2020,2,B,LARO,T,1,B,NA,NA,NA,Almost dead
-13/09/2020,2,B,PLDE,E,3,S,NA,NA,NA,Dodder
+13/09/2020,2,B,PLDE,E,3,S,Dodder,NA,NA,Dodder
 13/09/2020,2,B,ARCA,C,3,I,Dodder,NA,F,"Dodder on focal, a lot"
 13/09/2020,2,B,ARCA,C,3,I,POMU,5,2,
 13/09/2020,2,B,ARCA,C,3,I,VERO,3,0,
@@ -1387,7 +1387,7 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 13/09/2020,2,B,VERO,C,1,F,Dodder,NA,F,Dodder on focal
 13/09/2020,2,B,VERO,C,1,F,VERO,2,1,
 13/09/2020,2,B,VERO,C,1,F,POMU,2,0,
-13/09/2020,2,B,LARO,E,3,F,NA,NA,NA,Dodder. Bag soon
+13/09/2020,2,B,LARO,E,3,F,Dodder,NA,NA,Dodder. Bag soon
 13/09/2020,2,B,PEAI,T,2,I,VERO,7,5,Not thinned. Focal dead or almost
 13/09/2020,2,B,PEAI,T,2,I,WAAC,1,1,
 13/09/2020,2,B,PEAI,T,2,I,Dodder,NA,F,Dodder not on focal
@@ -1404,8 +1404,8 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 13/09/2020,2,B,TRCY,C,3,I,Dodder,NA,F,Dodder on focal
 13/09/2020,2,B,TRCY,C,3,I,VERO,1,1,
 13/09/2020,2,B,TROR,E,1,S,NA,NA,NA,
-13/09/2020,2,B,POLE,E,2,F,NA,NA,NA,Old T. Dodder
-13/09/2020,2,B,VERO,T,2,S,NA,NA,NA,Dodder
+13/09/2020,2,B,POLE,E,2,F,Dodder,NA,NA,Old T. Dodder
+13/09/2020,2,B,VERO,T,2,S,Dodder,NA,NA,Dodder
 13/09/2020,2,B,PEAI,C,1,I,POMU,8,1,
 13/09/2020,2,B,PEAI,C,1,I,Dodder,NA,NA,Dodder not on focal
 13/09/2020,2,B,PEAI,C,1,I,VERO,2,0,
@@ -1421,4 +1421,750 @@ PAGE 4,7,A,TRCY,E,2,S,NA,NA,NA,
 13/09/2020,2,B,LARO,C,2,S,VERO,5,5,"Flowers open, seeds visible. Collected plant"
 13/09/2020,2,B,LARO,C,2,S,Dodder,NA,F,Dodder on focal
 13/09/2020,2,B,LARO,C,2,S,POMU,3,2,
-13/09/2020,2,B,VERO,E,1,S,NA,NA,NA,Dodder
+13/09/2020,2,B,VERO,E,1,S,Dodder,NA,NA,Dodder
+12/09/2020,6,C,POLE,C,2,F,VERO,3,3,Old T2
+12/09/2020,6,C,POLE,C,2,F,POMU,11,1,
+12/09/2020,6,C,POLE,C,2,F,CHPS,11,0,
+12/09/2020,6,C,TRCY,E,3,S,NA,NA,NA,
+12/09/2020,6,C,TROR,C,1,S,CHPS,9,0,
+12/09/2020,6,C,TROR,C,1,S,POMU,12,2,
+12/09/2020,6,C,TROR,C,1,S,VERO,1,1,
+12/09/2020,6,C,TROR,C,1,S,CRCO,1,0,
+12/09/2020,6,C,LARO,E,1,I,NA,NA,NA,No top
+12/09/2020,6,C,VERO,E,2,S,NA,NA,NA,
+12/09/2020,6,C,VERO,E,1,S,NA,NA,NA,Some herbivory to buds and seeds
+12/09/2020,6,C,PEAI,C,1,F,POMU,7,2,
+12/09/2020,6,C,PEAI,C,1,F,CHPS,23,0,
+12/09/2020,6,C,PEAI,C,1,F,VERO,1,1,
+12/09/2020,6,C,PEAI,C,1,F,CRCO,11,0,
+12/09/2020,6,C,PEAI,C,1,F,PEAI,2,0,
+12/09/2020,6,C,TROR,E,1,S,NA,NA,NA,
+12/09/2020,6,C,PEAI,E,1,B,NA,NA,NA,
+12/09/2020,6,C,PEAI,C,2,I,POMU,8,0,
+12/09/2020,6,C,PEAI,C,2,I,VERO,2,2,
+12/09/2020,6,C,PEAI,C,2,I,PEAI,1,0,
+12/09/2020,6,C,PEAI,C,2,I,CHPS,9,0,
+12/09/2020,6,C,PEAI,C,2,I,CRCO,1,0,
+12/09/2020,6,C,VERO,C,1,S,POMU,17,3,
+12/09/2020,6,C,VERO,C,1,S,VERO,4,3,
+12/09/2020,6,C,ARCA,C,3,NA,VERO,2,2,Focal died
+12/09/2020,6,C,ARCA,C,3,NA,CHPS,3,0,
+12/09/2020,6,C,ARCA,C,3,NA,POMU,2,0,
+12/09/2020,6,C,LARO,C,2,I,VERO,4,2,Almost dead. No top
+12/09/2020,6,C,LARO,C,2,I,CHPS,3,0,
+12/09/2020,6,C,LARO,C,2,I,POMU,3,0,
+12/09/2020,6,C,ARCA,E,3,B,NA,NA,NA,
+12/09/2020,6,C,TRCY,E,2,S,NA,NA,NA,
+12/09/2020,6,C,VERO,E,3,S,NA,NA,NA,
+12/09/2020,6,C,VERO,T,1,S,NA,NA,NA,Broke off 1 seed bud by accident
+12/09/2020,6,C,ARCA,C,2,B,VERO,1,1,
+12/09/2020,6,C,ARCA,C,2,B,POMU,3,2,
+12/09/2020,6,C,LARO,C,3,F,VERO,2,2,
+12/09/2020,6,C,LARO,C,3,F,POMU,4,0,
+12/09/2020,6,C,LARO,C,3,F,CHPS,1,0,
+12/09/2020,6,C,ARCA,E,2,B,NA,NA,NA,
+12/09/2020,6,C,TRCY,E,1,S,NA,NA,NA,
+12/09/2020,6,C,VERO,T,2,F,NA,NA,NA,
+12/09/2020,6,C,TROR,C,2,S,POMU,13,3,
+12/09/2020,6,C,PEAI,C,3,I,POMU,11,0,Focal almost dead?
+12/09/2020,6,C,VERO,C,3,B,POMU,4,0,
+12/09/2020,6,C,VERO,C,3,B,VERO,1,1,
+12/09/2020,6,C,TROR,E,3,S,NA,NA,NA,
+12/09/2020,6,C,LARO,E,2,B,NA,NA,NA,
+11/09/2020,6,A,PEAI,E,3,B,Dodder,NA,NA,"Dodder; page 7, sure it's 11/09"
+11/09/2020,6,A,TROR,T,1,S,Dodder,NA,NA,Dodder
+11/09/2020,6,A,TRCY,C,1,S,Dodder,NA,F,Dodder on focal
+11/09/2020,6,A,TRCY,C,1,S,POMU,7,0,Not counting dead plants
+11/09/2020,6,A,TRCY,C,1,S,VERO,5,5,
+11/09/2020,6,A,TRCY,C,1,S,UNK 2,1,0,
+11/09/2020,6,A,TRCY,C,1,S,CRCO,15,0,
+11/09/2020,6,A,TRCY,C,1,S,CHPS,1,0,
+11/09/2020,6,A,VERO,E,3,S,NA,NA,NA,
+11/09/2020,6,A,VERO,C,2,F,Dodder,NA,F,"Dodder on focal, smothered"
+11/09/2020,6,A,VERO,C,2,F,PEAI,2,1,
+11/09/2020,6,A,VERO,C,2,F,VERO,2,1,
+11/09/2020,6,A,VERO,C,2,F,POMU,8,0,
+11/09/2020,6,A,VERO,C,2,F,CRCO,30,,
+11/09/2020,6,A,VERO,C,2,F,Waitzia,1,1,
+11/09/2020,6,A,VERO,C,2,F,UNK 2,1,1,
+11/09/2020,6,A,VERO,C,2,F,CHPS,2,0,
+11/09/2020,6,A,TROR,C,1,S,CAER,5,5,Calindrinia eramea
+11/09/2020,6,A,TROR,C,1,S,ARCA,1,1,
+11/09/2020,6,A,TROR,C,1,S,Dodder,NA,F,"Dodder on focal, heaps"
+11/09/2020,6,A,TROR,C,1,S,VERO,3,3,
+11/09/2020,6,A,TROR,C,1,S,POMU,2,0,
+11/09/2020,6,A,TROR,C,1,S,UNK 2,1,0,
+11/09/2020,6,A,TROR,C,1,S,CHPS,1,0,
+11/09/2020,6,A,TROR,C,1,S,CRCO,1,0,
+11/09/2020,6,A,TROR,C,1,S,PEAI,15,10,Is it all PEAI? Check
+11/09/2020,6,A,TROR,C,1,S,PLDE,1,0,
+11/09/2020,6,A,VERO,C,1,F,Dodder,NA,F,"Dodder on focal, heaps"
+11/09/2020,6,A,VERO,C,1,F,CRCO,17,0,
+11/09/2020,6,A,VERO,C,1,F,CHPS,16,0,
+11/09/2020,6,A,VERO,C,1,F,ARCO,1,1,
+11/09/2020,6,A,VERO,C,1,F,VERO,1,1,
+11/09/2020,6,A,VERO,C,1,F,BRCI,2,1,
+11/09/2020,6,A,VERO,C,1,F,POMU,2,0,
+11/09/2020,6,A,VERO,C,1,F,UNK 2,1,1,
+11/09/2020,6,A,TRCY,E,3,S,Dodder,NA,NA,Dodder
+11/09/2020,6,A,POLE,E,1,F,NA,NA,NA,Dead. 'Seed'/flower open but no seeds
+11/09/2020,6,A,POLE,C,2,F,POMU,4,0,
+11/09/2020,6,A,POLE,C,2,F,Dodder,NA,F,"Dodder on focal, smothered"
+11/09/2020,6,A,POLE,C,2,F,VERO,4,4,
+11/09/2020,6,A,POLE,C,2,F,ARCA,1,1,
+11/09/2020,6,A,POLE,C,2,F,CAER,2,0,"2 photos, diff leaf colours"
+11/09/2020,6,A,POLE,C,2,F,CRCO,3,0,
+11/09/2020,6,A,POLE,C,2,F,UNK 3,1,0,
+11/09/2020,6,A,ARCA,T,1,I,NA,NA,NA,Dead
+11/09/2020,6,A,VERO,T,1,S,NA,NA,NA,
+11/09/2020,6,A,PEAI,T,2,F,NA,NA,NA,
+11/09/2020,6,A,LARO,C,1,S,Dodder,NA,F,Dodder on focal. Most seeds had released. Collected remaining. Inviable?
+11/09/2020,6,A,LARO,C,1,S,VERO,5,5,
+11/09/2020,6,A,LARO,C,1,S,POMU,3,0,
+13/09/2020,2,B,TROR,E,2,S,NA,NA,NA,
+13/09/2020,2,B,ARCA,C,1,I,POMU,4,1,
+13/09/2020,2,B,ARCA,C,1,I,Dodder,NA,F,Dodder on focal
+13/09/2020,2,B,ARCA,C,1,I,VERO,2,0,
+13/09/2020,2,B,TRCY,C,1,S,Dodder,NA,F,"Dodder on focal. Old T1. One small seed, can't bag, photo"
+13/09/2020,2,B,TRCY,C,1,S,POMU,4,3,
+13/09/2020,2,B,TRCY,C,1,S,VERO,1,0,
+13/09/2020,2,B,TRCY,C,1,S,POCA,1,1,
+13/09/2020,2,A,LARO,T,1,S,Dodder,NA,NA,Dodder
+13/09/2020,2,A,ARCA,C,1,I,VERO,14,10,
+13/09/2020,2,A,ARCA,C,1,I,Dodder,NA,F,Dodder not on focal
+13/09/2020,2,A,LARO,T,2,B,NA,NA,NA,"Dead, no seeds"
+13/09/2020,2,A,VERO,E,3,S,Dodder,NA,NA,Dodder
+13/09/2020,2,A,HYGL,E,1,I,NA,NA,NA,"Dead, or almost"
+13/09/2020,2,A,HYGL,E,3,S?,NA,NA,NA,"Dead, flower open, no seeds. Actually, seeds! Collected"
+13/09/2020,2,A,TROR,T,2,F,NA,NA,NA,
+13/09/2020,2,A,LARO,E,1,B,NA,NA,NA,Dead
+13/09/2020,2,A,TRCY,E,2,S,Dodder,NA,NA,Dodder
+13/09/2020,2,A,PEAI,C,3,I,VERO,10,4,
+13/09/2020,2,A,PEAI,C,3,I,Dodder,NA,F,Dodder not on focal
+13/09/2020,2,A,PLDE,E,3,S,NA,NA,NA,Old T1. Dying? Not bagged
+13/09/2020,2,A,ARCA,E,1,B,NA,NA,NA,
+13/09/2020,2,A,TROR,C,1,NA,VERO,7,4,"Dead, gone (focal)"
+13/09/2020,2,A,TROR,C,1,NA,Dodder,NA,F,
+13/09/2020,2,A,HYGL,E,2,F,Dodder,NA,NA,Dodder
+13/09/2020,2,A,ARCA,E,2,B,Dodder,NA,NA,Dodder
+13/09/2020,2,A,LARO,C,1,F,Dodder,NA,F,Dodder on focal. Focal dead. Harvested for biomass. Flower dead.
+13/09/2020,2,A,LARO,C,1,F,VERO,7,7,
+13/09/2020,2,A,ARCA,E,3,I,NA,NA,NA,
+13/09/2020,2,A,TRCY,E,1,S,Dodder,NA,NA,"Dodder, Needs small bag"
+13/09/2020,2,A,VERO,E,1,S,NA,NA,NA,
+13/09/2020,2,A,ARCA,T,1,B,Dodder,NA,NA,Dodder
+13/09/2020,2,A,PLDE,C,2,S,NA,NA,NA,Tiny focal. Can't bag. Dead or almost.
+13/09/2020,2,A,PEAI,C,1,I,Dodder,NA,F,Dodder on focal. Old T2
+13/09/2020,2,A,PEAI,C,1,I,VERO,4,1,
+13/09/2020,2,A,TRCY,C,1,S,Dodder,NA,F,Dodder on focal. Focal tiny
+13/09/2020,2,A,TRCY,C,1,S,VERO,7,7,
+13/09/2020,2,A,TRCY,C,1,S,POMU,1,0,
+13/09/2020,2,A,TRCY,C,3,F,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,TRCY,C,3,F,VERO,8,5,
+13/09/2020,2,A,TRCY,C,2,S,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,TRCY,C,2,S,VERO,7,4,
+13/09/2020,2,A,TRCY,C,2,S,POMU,1,0,
+13/09/2020,2,A,PLDE,E,1,S,NA,NA,NA,
+13/09/2020,2,A,VERO,C,3,F,Dodder,NA,F,"Dodder on focal, smothered"
+13/09/2020,2,A,VERO,C,3,F,POMU,1,0,
+13/09/2020,2,A,VERO,C,3,F,VERO,10,10,
+13/09/2020,2,A,VERO,C,3,F,PEAI,1,0,
+13/09/2020,2,A,HYGL,C,1,S,POMU,2,0,"Flower open, plant dead and collected"
+13/09/2020,2,A,HYGL,C,1,S,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,HYGL,C,1,S,VERO,2,0,
+13/09/2020,2,A,POLE,C,3,B,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,POLE,C,3,B,VERO,4,4,
+13/09/2020,2,A,VERO,C,2,S,VERO,3,3,
+13/09/2020,2,A,VERO,C,2,S,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,VERO,E,2,S,NA,NA,NA,
+13/09/2020,2,A,LARO,E,3,F,NA,NA,NA,Needs bagging soon
+13/09/2020,2,A,PEAI,C,2,I,VERO,8,8,Focal dead
+13/09/2020,2,A,PEAI,C,2,I,Dodder,NA,F,Dodder not on focal
+13/09/2020,2,A,HYGL,C,2,F,VERO,2,2,
+13/09/2020,2,A,HYGL,C,2,F,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,PEAI,E,3,I,NA,NA,NA,Dead
+13/09/2020,2,A,TRCY,E,3,S,Dodder,NA,NA,Dodder
+13/09/2020,2,A,TROR,C,3,S,VERO,9,9,
+13/09/2020,2,A,TROR,C,3,S,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,PEAI,E,3,I,NA,NA,NA,
+13/09/2020,2,A,LARO,E,2,F,Dodder,NA,NA,Dodder
+13/09/2020,2,A,LARO,C,3,I,Dodder,NA,F,"Dodder on focal, smothered"
+13/09/2020,2,A,LARO,C,3,I,VERO,6,5,
+13/09/2020,2,A,TRCY,T,2,S,Dodder,NA,NA,Dodder. Needs small bag
+13/09/2020,2,A,PEAI,T,1,F,NA,NA,NA,
+13/09/2020,2,A,TROR,C,2,S,VERO,6,6,
+13/09/2020,2,A,TROR,C,2,S,Dodder,NA,F,Dodder on focal
+13/09/2020,2,A,HYGL,C,3,F,VERO,10,10,
+13/09/2020,2,A,HYGL,C,3,F,Dodder,NA,F,Dodder not on focal
+13/09/2020,2,A,HYGL,C,3,F,POMU,3,0,
+13/09/2020,2,A,ARCA,C,2,I,VERO,9,9,Focal dead
+13/09/2020,2,A,POLE,C,1,F,VERO,9,8,
+13/09/2020,2,A,POLE,C,1,F,Dodder,NA,F,Dodder on focal
+13/09/2020,8,B,LARO,E,3,F,NA,NA,NA,Needs to be bagged soon
+13/09/2020,8,B,TRCY,T,2,I,NA,NA,NA,Is that a TRCY?
+13/09/2020,8,B,LARO,C,1,F,Cheilanthes,5,0,"Some seed predation, bagged"
+13/09/2020,8,B,LARO,C,1,F,VERO,1,1,
+13/09/2020,8,B,LARO,C,1,F,BRCI,1,0,
+13/09/2020,8,B,LARO,C,1,F,UNK 12,1,1,WAAC?
+13/09/2020,8,B,LARO,C,2,F,Dodder,NA,F,Dodder on focal
+13/09/2020,8,B,LARO,C,2,F,VERO,2,1,
+13/09/2020,8,B,TROR,T,1,S,NA,NA,NA,
+13/09/2020,8,B,ARCA,E,2,B,NA,NA,NA,
+13/09/2020,8,B,TROR,C,2,S,VERO,1,1,
+13/09/2020,8,B,TROR,C,2,S,Unk grass 5,1,0,UG5
+13/09/2020,8,B,ARCA,E,1,B,NA,NA,NA,
+13/09/2020,8,B,TRCY,C,1,S,VERO,3,2,
+13/09/2020,8,B,HYGL,E,2,F,Dodder,NA,NA,Dodder. One dead flower
+13/09/2020,8,B,ARCA,C,3,F,WAAC,1,1,
+13/09/2020,8,B,ARCA,C,3,F,POCA,1,0,
+13/09/2020,8,B,LARO,E,2,F,NA,NA,NA,
+13/09/2020,8,B,PEAI,E,1,B,NA,NA,NA,
+13/09/2020,8,B,TROR,T,2,S,NA,NA,NA,
+13/09/2020,8,B,TROR,E,1,S,Dodder,NA,NA,Dodder. Accidentally removed 2 healthy/viable seeds
+13/09/2020,8,B,TROR,C,3,NA,NA,NA,NA,"Can't find plant, some disturbance to plot."
+13/09/2020,8,B,POLE,E,3,NA,NA,NA,NA,"Wrong ID, POCA."
+13/09/2020,8,B,PEAI,C,3,B,VERO,1,1,
+13/09/2020,8,B,PEAI,E,3,B,NA,NA,NA,
+13/09/2020,8,B,LARO,E,1,F,NA,NA,NA,
+13/09/2020,8,C,ARCA,E,1,B,NA,NA,NA,
+13/09/2020,8,C,ARCA,E,3,I,NA,NA,NA,Dead
+13/09/2020,8,C,TRCY,C,3,S,CAER,1,1,
+13/09/2020,8,C,TRCY,C,3,S,GOBE,1,1,
+13/09/2020,8,C,TRCY,C,3,S,WAAC,1,1,
+13/09/2020,8,C,TRCY,C,3,S,PTGA,1,1,
+13/09/2020,8,C,TRCY,C,3,S,TRCY,1,0,
+13/09/2020,8,C,LARO,T,1,I,NA,NA,NA,"Flower dead, looks strange. Bagged"
+13/09/2020,8,C,VERO,E,1,S,NA,NA,NA,
+13/09/2020,8,C,LARO,C,1,S,VERO,3,3,
+13/09/2020,8,C,HYGL,E,2,S,NA,NA,NA,
+13/09/2020,8,C,PEAI,C,1,S,VERO,1,1,Bag soon
+13/09/2020,8,C,PEAI,C,1,S,GOBE,1,1,
+13/09/2020,8,C,LARO,E,3,B,NA,NA,NA,"Dead buds, almost dead plant"
+13/09/2020,8,C,LARO,C,2,S,WAAC,2,2,
+13/09/2020,8,C,LARO,C,2,S,PTGA,1,1,Bag soon
+13/09/2020,8,C,LARO,E,1,I,NA,NA,NA,Dead
+13/09/2020,8,C,VERO,E,2,F,NA,NA,NA,
+13/09/2020,8,C,TROR,C,3,S,NA,NA,NA,No neighbours. Old T2
+13/09/2020,8,C,LARO,E,2,F,NA,NA,NA,
+13/09/2020,8,C,LARO,C,3,F,Erodium,1,1,
+13/09/2020,8,C,VERO,C,1,S,CAER,1,1,
+13/09/2020,8,C,PEAI,E,3,B,NA,NA,NA,
+13/09/2020,8,C,HYGL,C,1,S,CAER,1,1,
+13/09/2020,8,C,PEAI,E,3,B,NA,NA,NA,
+13/09/2020,8,C,HYGL,C,1,S,NA,NA,NA,No neighbours
+13/09/2020,8,C,TRCY,E,3,S,NA,NA,NA,
+13/09/2020,8,C,TRCY,T,2,S,NA,NA,NA,One big CAER removed
+13/09/2020,8,C,TRCY,C,1,S,GOBE,1,1,
+13/09/2020,8,C,TRCY,C,1,S,TROR,1,1,
+13/09/2020,8,C,TRCY,C,1,S,Medicago,1,1,Medicago sp.
+13/09/2020,8,C,LARO,T,2,F,NA,NA,NA,
+13/09/2020,8,C,TRCY,C,2,S,TRCY,1,1,
+13/09/2020,8,C,PEAI,C,3,B,ARCA,1,1,
+13/09/2020,8,C,PEAI,E,1,S,NA,NA,NA,
+13/09/2020,8,C,PEAI,E,2,F,NA,NA,NA,
+13/09/2020,8,C,TRCY,E,1,S,NA,NA,NA,
+13/09/2020,8,C,ARCA,C,2,B,GOBE,1,1,
+13/09/2020,8,A,LARO,T,2,F,NA,NA,NA,
+13/09/2020,8,A,PEAI,C,2,I,ARCA,8,1,
+13/09/2020,8,A,PEAI,C,2,I,Dodder,NA,F,Dodder not on focal
+13/09/2020,8,A,PEAI,C,2,I,Erodium,1,1,Erodium sp.
+13/09/2020,8,A,PEAI,C,2,I,CAER,1,0,
+13/09/2020,8,A,PEAI,C,2,I,UNK 13,1,1,"Check these, and one more, not sure if same as 14"
+13/09/2020,8,A,PEAI,C,2,I,UNK 14,1,0,"Check these, and one more, not sure if same as 14"
+13/09/2020,8,A,LARO,E,3,F,NA,NA,NA,Bag soon
+13/09/2020,8,A,LARO,C,3,F,Erodium,1,1,Erodium sp.
+13/09/2020,8,A,LARO,C,3,F,Dodder,NA,F,Dodder on focal
+13/09/2020,8,A,VERO,E,1,S,NA,NA,NA,
+13/09/2020,8,A,ARCA,E,3,I,NA,NA,NA,
+13/09/2020,8,A,VERO,E,2,S,NA,NA,NA,
+13/09/2020,8,A,ARCA,C,3,I,MOMO,1,1,
+13/09/2020,8,A,ARCA,C,3,I,PTGA,1,1,
+13/09/2020,8,A,VERO,E,3,F,NA,NA,NA,
+13/09/2020,8,A,HYGL,E,3,I,NA,NA,NA,Dead
+13/09/2020,8,A,TROR,C,2,S,Dodder,NA,F,Dodder on focal. No other neighbours
+13/09/2020,8,A,HYGL,E,2,I,Dodder,NA,NA,Dodder - barely alive
+13/09/2020,8,A,LARO,C,2,S,PTGA,1,1,Bag soon
+13/09/2020,8,A,LARO,C,2,S,VERO,1,0,
+13/09/2020,8,A,LARO,C,2,S,Dodder,NA,F,Dodder on focal
+13/09/2020,8,A,PEAI,C,1,S,POCA,1,0,Bag soon
+13/09/2020,8,A,PEAI,C,1,S,PTGA,1,1,
+13/09/2020,8,A,VERO,C,1,S,Dodder,NA,F,Dodder on focal
+13/09/2020,8,A,VERO,C,1,S,VERO,1,1,
+13/09/2020,8,A,ARCA,E,1,I,NA,NA,NA,White fluff/fungus
+13/09/2020,8,A,ARCA,E,2,B,Dodder,NA,NA,Dodder
+13/09/2020,8,A,LARO,E,1,F,NA,NA,NA,Bag soon
+13/09/2020,8,A,PEAI,E,3,F,NA,NA,NA,Bag soon
+13/09/2020,8,A,PEAI,E,1,S,NA,NA,NA,
+13/09/2020,8,A,ARCA,T,1,B,NA,NA,NA,
+13/09/2020,8,A,HYGL,E,1,I,NA,NA,NA,Old T2
+13/09/2020,8,A,PEAI,E,2,I,NA,NA,NA,
+13/09/2020,8,A,HYGL,C,3,I,PTGA,2,2,
+13/09/2020,8,A,HYGL,C,3,I,VERO,3,3,
+13/09/2020,8,A,PEAI,T,2,NA,NA,NA,NA,"Dead, gone"
+13/09/2020,8,A,TRCY,E,3,S,NA,NA,NA,"Almost dead, collect soon"
+13/09/2020,8,A,ARCA,C,1,B,PTGA,1,1,
+13/09/2020,8,A,ARCA,C,1,B,Medicago,2,2,
+13/09/2020,8,A,ARCA,C,1,B,UNK 12,1,,
+13/09/2020,8,A,ARCA,C,1,B,Dodder,NA,NA,Dodder not on focal
+14/09/2020,4,B,ARCA,T,1,B,PTGA,1,1,Focal dead
+14/09/2020,4,B,ARCA,T,1,B,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,ARCA,T,1,B,POMU,22,15,
+14/09/2020,4,B,PLDE,C,1,S,POMU,16,4,"Focal dead, collected"
+14/09/2020,4,B,PLDE,C,1,S,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,B,PEAI,C,1,I,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,B,PEAI,C,1,I,UNK 15,1,0,Haloragis?!
+14/09/2020,4,B,PEAI,C,1,I,POMU,28,10,
+14/09/2020,4,B,TRCY,E,3,S,NA,NA,NA,
+14/09/2020,4,B,LARO,E,2,S,NA,NA,NA,"Flower open, collected seeds and entire plant. Presumably missed some"
+14/09/2020,4,B,ARCA,E,2,B,Dodder,NA,NA,Dodder
+14/09/2020,4,B,TRCY,E,1,F,Dodder,NA,NA,Dodder
+14/09/2020,4,B,ARCA,C,2,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,ARCA,C,2,I,POMU,28,8,
+14/09/2020,4,B,PLDE,E,2,S,Dodder,NA,NA,"One seed pod removed, collected. Dodder"
+14/09/2020,4,B,TROR,E,2,F,Dodder,NA,NA,Dodder
+14/09/2020,4,B,HYGL,C,1,I,POMU,25,10,Focal dead
+14/09/2020,4,B,HYGL,C,1,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,HYGL,C,1,I,VERO,2,1,
+14/09/2020,4,B,TRCY,T,1,I,Dodder,NA,NA,Dead. Dodder
+14/09/2020,4,B,ARCA,C,3,I,Dodder,NA,F,Dodder on focal. Focal dead
+14/09/2020,4,B,ARCA,C,3,I,POMU,15,5,
+14/09/2020,4,B,ARCA,T,1,I,POMU,30,5,Not thinned. Almost dead.
+14/09/2020,4,B,ARCA,T,1,I,ARCO,1,1, 'ARCO'
+14/09/2020,4,B,ARCA,T,1,I,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,B,VERO,C,2,B,Dodder,NA,F,"Dodder on focal, smothered"
+14/09/2020,4,B,VERO,C,2,B,POMU,20,15,
+14/09/2020,4,B,VERO,C,2,B,VERO,1,1,
+14/09/2020,4,B,PLDE,C,3,S,POMU,22,15,"Focal dead, collceted"
+14/09/2020,4,B,PLDE,C,3,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,LARO,E,3,F,Dodder,NA,NA,"Dead, collected. Dodder"
+14/09/2020,4,B,VERO,E,3,S,Dodder,NA,NA,"Dodder. Old seed bag broken off, collected"
+14/09/2020,4,B,VERO,E,1,S,Dodder,NA,NA,"Dodder, a lot."
+14/09/2020,4,B,ARCA,T,2,B,Dodder,NA,NA,Dodder
+14/09/2020,4,B,ARCA,E,1,I,Dodder,NA,NA,Dodder. Dead
+14/09/2020,4,B,LARO,E,1,F,Dodder,NA,NA,Dodder. Dead flower
+14/09/2020,4,B,TRCY,C,1,I,Dodder,NA,F,Dodder on focal. Focal dead
+14/09/2020,4,B,TRCY,C,1,I,POMU,25,18,
+14/09/2020,4,B,TROR,C,3,F,POMU,18,13,
+14/09/2020,4,B,TROR,C,3,F,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,TRCY,C,3,S,POMU,11,8,
+14/09/2020,4,B,TRCY,C,3,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,PEAI,T,1,I,NA,NA,NA,Dead or almost
+14/09/2020,4,B,VERO,C,1,S,POMU,13,10,
+14/09/2020,4,B,VERO,C,1,S,Dodder,NA,F,"Dodder on focal, smothered"
+14/09/2020,4,B,VERO,C,1,S,VERO,1,1,
+14/09/2020,4,B,PEAI,E,3,I,NA,NA,NA,Dead
+14/09/2020,4,B,HYGL,E,1,S,Dodder,NA,NA,"Dodder, a lot. One flower open, collected"
+14/09/2020,4,B,LARO,T,2,F,Dodder,NA,NA,Dead plant and flower. Dodder
+14/09/2020,4,B,HYGL,E,2,I,Dodder,NA,NA,Dodder
+14/09/2020,4,B,LARO,C,1,F,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,LARO,C,1,F,POMU,12,3,
+14/09/2020,4,B,HYGL,E,3,B,NA,NA,NA,Dead
+14/09/2020,4,B,TRCY,E,2,S,NA,NA,NA,
+14/09/2020,4,B,PLDE,E,1,I,Dodder,NA,NA,Dodder
+14/09/2020,4,B,PLDE,E,3,S,Dodder,NA,NA,"Dead, almost. Not bagged, collect soon. Dodder"
+14/09/2020,4,B,PEAI,C,3,I,POMU,16,10,
+14/09/2020,4,B,PEAI,C,3,I,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,B,PEAI,C,3,I,PTGA,1,1,
+14/09/2020,4,B,TROR,E,1,S,Dodder,NA,NA,Dodder
+14/09/2020,4,B,HYGL,C,2,I,Dodder,NA,F,Dodder on focal. Focal dead
+14/09/2020,4,B,HYGL,C,2,I,CRCL,1,0,Crassula closiana
+14/09/2020,4,B,HYGL,C,2,I,POMU,50,25,
+14/09/2020,4,B,PLDE,C,2,S,POMU,24,20,"Focal dead, collected"
+14/09/2020,4,B,PLDE,C,2,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,HYGL,C,3,F,POMU,21,20,Focal almost dead
+14/09/2020,4,B,HYGL,C,3,F,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,PEAI,E,3,I,Dodder,NA,NA,Dodder
+14/09/2020,4,B,TROR,E,3,I,Dodder,NA,NA,Dead. Dodder
+14/09/2020,4,B,TROR,C,1,I,Dodder,NA,F,Dodder on focal. Focal dead
+14/09/2020,4,B,TROR,C,1,I,PTGA,2,2,
+14/09/2020,4,B,TROR,C,1,I,POMU,26,26,
+14/09/2020,4,B,TROR,C,1,I,UNK 15,1,0,Red clumpy buds
+14/09/2020,4,B,VERO,E,2,B,NA,NA,NA,Dead
+14/09/2020,4,B,VERO,C,3,I,Dodder,NA,F,Dodder on focal. Focal dead
+14/09/2020,4,B,VERO,C,3,I,POMU,24,20,
+14/09/2020,4,B,VERO,C,3,I,VERO,1,1,
+14/09/2020,4,B,TRCY,C,2,B,POMU,25,20,Focal dead
+14/09/2020,4,B,TRCY,C,2,B,Dodder,NA,F,Dodder on focal
+14/09/2020,4,B,PEAI,E,1,I,NA,NA,NA,Dead
+14/09/2020,4,A,POLE,E,2,I,Dodder,NA,NA,Dodder
+14/09/2020,4,A,LARO,E,2,S?,Dodder,NA,NA,"Dead, flower open. May have missed seeds. Dodder"
+14/09/2020,4,A,TROR,E,1,I,NA,NA,NA,Dead. Dodder
+14/09/2020,4,A,VERO,E,1,I,NA,NA,NA,Dead. Dodder
+14/09/2020,4,A,TRCY,E,1,I,Dodder,NA,NA,Dodder
+14/09/2020,4,A,VERO,C,2,I,ARCO,2,2,May be wrong ID ARCO. 'ARCO'
+14/09/2020,4,A,VERO,C,2,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,A,VERO,C,2,I,POMU,11,2,
+14/09/2020,4,A,VERO,C,2,I,CRCO,4,0,
+14/09/2020,4,A,VERO,C,2,I,CHPS,2,0,
+14/09/2020,4,A,HYGL,E,1,I,Dodder,NA,NA,Dead. Dodder
+14/09/2020,4,A,LARO,E,1,I,NA,NA,NA,Dead. Dodder
+14/09/2020,4,A,PEAI,C,1,B,Dodder,NA,F,Dodder on focal
+14/09/2020,4,A,PEAI,C,1,B,POMU,17,7,
+14/09/2020,4,A,LARO,C,2,B,Dodder,NA,F,Dodder on focal. Focal dead
+14/09/2020,4,A,LARO,C,2,B,POMU,12,5,
+14/09/2020,4,A,TROR,E,4,I,NA,NA,NA,Dead
+14/09/2020,4,A,LARO,E,3,F,NA,NA,NA,Bag soon
+14/09/2020,4,A,TRCY,C,1,I,POMU,12,4,Focal dead
+14/09/2020,4,A,TRCY,C,1,I,Dodder,NA,NA,Dodder on focal
+14/09/2020,4,A,TRCY,T,1,S,Dodder,NA,NA,Dodder
+14/09/2020,4,A,TROR,T,1,B,NA,NA,NA,
+14/09/2020,4,A,ARCA,E,1,I,Dodder,NA,NA,Dodder
+14/09/2020,4,A,POLE,E,3,B,Dodder,NA,NA,Dodder
+14/09/2020,4,A,PEAI,C,2,I,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,A,PEAI,C,2,I,ARCO,2,2, 'ARCO'
+14/09/2020,4,A,PEAI,C,2,I,POMU,16,5,
+14/09/2020,4,A,PEAI,C,2,I,CRCO,20,0,
+14/09/2020,4,A,PLDE,T,1,S,NA,NA,NA,
+14/09/2020,4,A,PEAI,C,3,B,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,A,PEAI,C,3,B,POMU,11,5,
+14/09/2020,4,A,PEAI,C,3,B,VERO,1,1,
+14/09/2020,4,A,VERO,E,3,I,Dodder,NA,NA,Dead. Dodder
+14/09/2020,4,A,TROR,C,2,F,Dodder,NA,F,Dodder on focal
+14/09/2020,4,A,TROR,C,2,F,ARCO,1,1,"Accidentally removed, 'ARCO'"
+14/09/2020,4,A,TROR,C,2,F,POMU,14,12,
+14/09/2020,4,A,TROR,C,2,F,UNK 16,1,0,
+14/09/2020,4,A,TRCY,C,2,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,A,TRCY,C,2,S,POMU,11,2,
+14/09/2020,4,A,TRCY,C,2,S,VERO,1,0,
+14/09/2020,4,A,TRCY,E,3,S,Dodder,NA,NA,Dodder
+14/09/2020,4,A,PLDE,E,3,S,NA,NA,NA,
+14/09/2020,4,A,LARO,C,3,F,Dodder,NA,F,"Dodder on focal. Focal dead, collected"
+14/09/2020,4,A,LARO,C,3,F,POMU,16,5,
+14/09/2020,4,A,HYGL,C,2,I,POMU,16,2,Focal dead
+14/09/2020,4,A,HYGL,C,2,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,A,HYGL,C,2,I,VERO,5,0,
+14/09/2020,4,A,PEAI,T,1,I,NA,NA,NA,
+14/09/2020,4,A,PLDE,C,2,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,A,PLDE,C,2,I,POMU,4,1,
+14/09/2020,4,A,PEAI,E,3,B,Dodder,NA,NA,Dodder
+14/09/2020,4,A,TROR,C,1,I,Dodder,NA,F,"Dodder on focal, focal dead"
+14/09/2020,4,A,TROR,C,1,I,VERO,2,0,
+14/09/2020,4,A,TROR,C,1,I,POMU,4,0,
+14/09/2020,4,A,TROR,C,1,I,CHPS,2,0,
+14/09/2020,4,A,TROR,C,3,I,Dodder,NA,F,"Dodder on focal, smothered"
+14/09/2020,4,A,TROR,C,3,I,POMU,21,3,
+14/09/2020,4,A,VERO,E,2,I,Dodder,NA,NA,"Dodder, some leaves damaged with dodder"
+14/09/2020,4,A,PLDE,E,2,S,NA,NA,NA,"Almost dead, collect soon"
+14/09/2020,4,A,HYGL,C,1,I,POMU,16,10,Focal dead
+14/09/2020,4,A,HYGL,C,1,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,A,HYGL,E,3,I,NA,NA,NA,Dead
+14/09/2020,4,A,PLDE,E,1,S,Dodder,NA,NA,Dodder
+14/09/2020,4,A,TROR,T,2,S,Dodder,NA,NA,Dodder
+14/09/2020,4,A,ARCA,E,3,F,Dodder,NA,NA,Dodder
+14/09/2020,4,A,PLDE,C,1,I,Dodder,NA,F,"Dodder on focal, dead"
+14/09/2020,4,A,PLDE,C,1,I,VERO,2,1,
+14/09/2020,4,A,PLDE,C,1,I,POMU,15,10,
+14/09/2020,4,A,HYGL,E,2,S,Dodder,NA,NA,"Dodder. Two flowers open, missed all seed of one. Dead plant, collected"
+14/09/2020,4,A,VERO,C,1,I,Dodder,NA,F,"Dodder on focal, smothered"
+14/09/2020,4,A,VERO,C,1,I,POMU,9,0,
+14/09/2020,4,A,VERO,C,1,I,CRCO,5,0,
+14/09/2020,4,A,PEAI,E,2,I,NA,NA,NA,
+14/09/2020,4,A,VERO,C,3,I,POMU,15,2,
+14/09/2020,4,A,VERO,C,3,I,Dodder,NA,F,"Dodder on focal, smothered"
+14/09/2020,4,A,TRCY,E,2,B,Dodder,NA,NA,Dodder
+14/09/2020,4,A,VERO,T,1,I,Dodder,NA,NA,Dodder
+14/09/2020,4,A,PEAI,T,2,I,NA,NA,NA,
+14/09/2020,4,A,ARCA,E,2,B,NA,NA,NA,
+14/09/2020,4,A,TRCY,T,2,F,Dodder,NA,NA,Dodder
+14/09/2020,4,C,PEAI,E,2,I,NA,NA,NA,
+14/09/2020,4,C,ARCA,T,1,B,Dodder,NA,NA,Dodder. Check this - is flower closed? After flowering?
+14/09/2020,4,C,TROR,C,2,F,Dodder,NA,NA,Dodder on focal
+14/09/2020,4,C,TROR,C,2,F,POMU,40,30,
+14/09/2020,4,C,TRCY,C,3,B,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,TRCY,C,3,B,POMU,35,30,
+14/09/2020,4,C,TRCY,C,3,B,ARCO,1,1, 'ARCO'
+14/09/2020,4,C,LARO,E,3,I,Dodder,NA,NA,Dodder. Dead. Collected
+14/09/2020,4,C,TROR,C,1,I,Dodder,NA,F,Dodder on focal. Focal dead
+14/09/2020,4,C,TROR,C,1,I,VERO,2,1,
+14/09/2020,4,C,TROR,C,1,I,POMU,9,3,
+14/09/2020,4,C,HYGL,C,1,I,VERO,1,1,Old T2
+14/09/2020,4,C,HYGL,C,1,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,HYGL,C,1,I,POMU,40,35,
+14/09/2020,4,C,PEAI,E,1,I,NA,NA,NA,
+14/09/2020,4,C,VERO,C,1,I,POMU,11,5,Focal dead
+14/09/2020,4,C,VERO,C,1,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,TROR,T,1,S,NA,NA,NA,
+14/09/2020,4,C,PEAI,C,2,I,POMU,23,18,
+14/09/2020,4,C,PEAI,C,2,I,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,C,PEAI,C,2,I,VERO,1,1,
+14/09/2020,4,C,PEAI,C,2,I,ARCO,1,1, 'ARCO'
+14/09/2020,4,C,ARCA,C,2,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,ARCA,C,2,I,POMU,33,25,
+14/09/2020,4,C,ARCA,C,2,I,CHPS,2,0,
+14/09/2020,4,C,LARO,E,2,S,NA,NA,NA,Flower quite dead. Bagged
+14/09/2020,4,C,TROR,T,2,I,Dodder,NA,NA,Dodder
+14/09/2020,4,C,TRCY,E,1,S,NA,NA,NA,Need small bag. Accidentally removed entire plant
+14/09/2020,4,C,TRCY,T,1,S,Dodder,NA,NA,Dodder
+14/09/2020,4,C,ARCA,E,2,B,NA,NA,NA,
+14/09/2020,4,C,PLDE,E,2,S,Dodder,NA,NA,Dodder
+14/09/2020,4,C,VERO,E,3,S,NA,NA,NA,
+14/09/2020,4,C,PLDE,E,2,S,NA,NA,NA,
+14/09/2020,4,C,HYGL,C,2,I,Dodder,NA,F,Dodder on focal. Old T1
+14/09/2020,4,C,HYGL,C,2,I,ARCO,1,1, 'ARCO'
+14/09/2020,4,C,HYGL,C,2,I,POMU,22,18,
+14/09/2020,4,C,TROR,E,1,S,Dodder,NA,NA,Dodder
+14/09/2020,4,C,TROR,E,2,F,Dodder,NA,NA,Dodder
+14/09/2020,4,C,PLDE,C,2,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,PLDE,C,2,S,POMU,11,3,
+14/09/2020,4,C,PLDE,C,2,S,BRCI,2,1,"Tiny germ, think it's BRCI"
+14/09/2020,4,C,PEAI,E,3,B,Dodder,NA,NA,Dodder
+14/09/2020,4,C,PLDE,E,1,S,Dodder,NA,NA,Dodder
+14/09/2020,4,C,HYGL,E,2,F,Dodder,NA,NA,Dodder. Accidentally removed flowering stem
+14/09/2020,4,C,TRCY,E,2,S,NA,NA,NA,
+14/09/2020,4,C,TRCY,C,1,S,POMU,18,18,
+14/09/2020,4,C,TRCY,C,1,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,TRCY,C,1,S,CHPS,1,0,
+14/09/2020,4,C,POLE,E,2,F,NA,NA,NA,
+14/09/2020,4,C,ARCA,C,1,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,ARCA,C,1,I,POMU,26,8,
+14/09/2020,4,C,ARCA,C,1,I,CRCL,1,0,closiana
+14/09/2020,4,C,ARCA,C,1,I,VERO,1,1,
+14/09/2020,4,C,ARCA,E,1,I,NA,NA,NA,
+14/09/2020,4,C,TROR,C,3,S,POMU,20,18,
+14/09/2020,4,C,TROR,C,3,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,VERO,C,2,S,POMU,35,25,
+14/09/2020,4,C,VERO,C,2,S,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,PEAI,T,2,I,NA,NA,NA,
+14/09/2020,4,C,TROR,E,3,S,Dodder,NA,NA,Dodder
+14/09/2020,4,C,PLDE,C,1,I,POMU,30,25,Focal dead
+14/09/2020,4,C,PLDE,C,1,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,PLDE,C,1,I,VERO,1,1,
+14/09/2020,4,C,ARCA,C,3,I,POMU,40,30,
+14/09/2020,4,C,ARCA,C,3,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,PLDE,C,3,S,Dodder,NA,NA,"Dodder on focal, focal dead, collected"
+14/09/2020,4,C,PLDE,C,3,S,BRCI,1,1,
+14/09/2020,4,C,PLDE,C,3,S,VERO,1,1,
+14/09/2020,4,C,PLDE,C,3,S,POMU,27,12,
+14/09/2020,4,C,POLE,C,3,I,POMU,45,15,
+14/09/2020,4,C,POLE,C,3,I,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,LARO,C,3,S?,POMU,50,35,"Focal dead, flower open. No visible seeds, collected"
+14/09/2020,4,C,LARO,C,3,S?,Dodder,NA,NA,Dodder on focal
+14/09/2020,4,C,LARO,C,3,S?,CRCO,10,0,
+14/09/2020,4,C,ARCA,E,2,B,Dodder,NA,NA,Dodder
+14/09/2020,4,C,ARCA,T,2,B,NA,NA,NA,
+14/09/2020,4,C,POLE,C,1,F,Dodder,NA,NA,Dodder not on focal
+14/09/2020,4,C,POLE,C,1,F,POMU,40,30,
+14/09/2020,4,C,POLE,C,1,F,VERO,1,1,
+14/09/2020,4,C,LARO,E,1,F,NA,NA,NA,"Flower dead, plant maybe too"
+14/09/2020,4,C,PEAI,C,1,I,Dodder,NA,F,Dodder not on focal
+14/09/2020,4,C,PEAI,C,1,I,POMU,45,40,
+14/09/2020,4,C,ARCA,E,3,F,Dodder,NA,NA,Dodder
+14/09/2020,4,C,TRCY,E,3,S,NA,NA,NA,
+14/09/2020,4,C,LARO,C,2,B,Dodder,NA,F,Dodder on focal
+14/09/2020,4,C,LARO,C,2,B,POMU,45,40,
+14/09/2020,4,C,TRCY,T,2,S,NA,NA,NA,
+14/09/2020,4,C,PEAI,C,3,S,VERO,2,2,"Focal almost dead, collect soon"
+14/09/2020,4,C,PEAI,C,3,S,Dodder,NA,NA,Dodder not on focal
+14/09/2020,4,C,PEAI,C,3,S,POMU,60,40,
+14/09/2020,4,C,PEAI,T,1,I,Dodder,NA,NA,Dodder
+14/09/2020,4,C,TRCY,C,2,I,Dodder,NA,NA,Dodder on focal. Focal dead
+14/09/2020,4,C,TRCY,C,2,I,POMU,50,40,
+15/09/2020,5,A,TROR,C,2,S,HYGL,1,0,Focal almost dead
+15/09/2020,5,A,HYGL,E,3,F,NA,NA,NA,
+15/09/2020,5,A,LARO,E,2,F,NA,NA,NA,Flowers don't have yellow bits… bagged
+15/09/2020,5,A,TRCY,C,3,S,WAAC,1,1,
+15/09/2020,5,A,TRCY,C,3,S,CAER,2,0,
+15/09/2020,5,A,PEAI,C,1,I,WAAC,2,2,I accidentally removed
+15/09/2020,5,A,VERO,E,1,S,NA,NA,NA,
+15/09/2020,5,A,ARCA,E,2,B,NA,NA,NA,Tiny
+15/09/2020,5,A,HYGL,C,1,B,CAER,1,0,
+15/09/2020,5,A,TRCY,E,1,NA,NA,NA,NA,"Dead, gone"
+15/09/2020,5,A,TRCY,C,2,S,CAER,1,0,
+15/09/2020,5,A,TRCY,C,2,S,HYGL,1,1,
+15/09/2020,5,A,VERO,E,2,S,NA,NA,NA,
+15/09/2020,5,A,HYGL,C,3,S,HYGL,3,1,
+15/09/2020,5,A,LARO,E,1,S,NA,NA,NA,
+15/09/2020,5,A,TRCY,E,2,S,NA,NA,NA,
+15/09/2020,5,A,PEAI,C,2,F,NA,NA,NA,No neighbours. Almost dead focal.
+15/09/2020,5,A,HYGL,C,3,I,CAER,2,0,Focal dead
+15/09/2020,5,A,HYGL,C,3,I,CRCO,2,0,
+15/09/2020,5,A,HYGL,C,3,I,HYGL,1,1,
+15/09/2020,5,A,HYGL,C,3,I,WAAC,2,2,
+15/09/2020,5,A,POLE,C,2,F,HYGL,4,2,
+15/09/2020,5,A,POLE,C,2,F,VERO,1,1,
+15/09/2020,5,A,POLE,C,2,F,CAER,1,0,
+15/09/2020,5,A,PEAI,T,1,I,NA,NA,NA,
+15/09/2020,5,A,TROR,C,1,S,PTGA,1,1,
+15/09/2020,5,A,TROR,C,1,S,WAAC,1,0,
+15/09/2020,5,A,TROR,C,1,S,CAER,7,0,
+15/09/2020,5,A,TROR,C,1,S,POLE,1,0,
+15/09/2020,5,A,TROR,C,1,S,UG7,1,1,
+15/09/2020,5,A,LARO,C,1,S,HYGL,3,3,
+15/09/2020,5,A,LARO,C,1,S,CAHI,1,1,
+15/09/2020,5,A,TROR,C,3,S,WAAC,1,1,
+15/09/2020,5,A,TROR,C,3,S,BRCI,1,0,
+15/09/2020,5,A,TROR,C,3,S,CAER,1,0,
+15/09/2020,5,A,PEAI,E,2,I,NA,NA,NA,
+15/09/2020,5,A,HYGL,C,2,F,TROR,1,1,
+15/09/2020,5,A,HYGL,C,2,F,PTGA,1,1,
+15/09/2020,5,A,HYGL,C,2,F,CAER,1,0,
+15/09/2020,5,A,HYGL,C,2,F,HYGL,1,1,
+15/09/2020,5,A,VERO,C,1,S,PEAI,2,2,
+15/09/2020,5,A,VERO,C,1,S,HYGL,2,2,
+15/09/2020,5,A,VERO,C,1,S,WAAC,1,1,
+15/09/2020,5,A,VERO,C,1,S,CAER,1,1,
+15/09/2020,5,A,VERO,C,1,S,CRCO,2,0,
+15/09/2020,5,A,LARO,C,2,F,CAER,1,0,Bag soon
+15/09/2020,5,A,LARO,C,2,F,POLE,1,1,
+15/09/2020,5,A,LARO,C,2,F,HYGL,1,1,
+15/09/2020,5,A,PEAI,E,3,I,NA,NA,NA,
+15/09/2020,5,A,POLE,E,1,F,NA,NA,NA,
+15/09/2020,5,B,TRCY,T,1,S,NA,NA,NA,
+15/09/2020,5,B,PEAI,E,3,F,NA,NA,NA,
+15/09/2020,5,B,PEAI,E,1,I,NA,NA,NA,
+15/09/2020,5,B,PEAI,E,2,NA,NA,NA,NA,"Dead, gone"
+15/09/2020,5,B,LARO,T,1,F,NA,NA,NA,Flower dead. No seeds
+15/09/2020,5,B,TRCY,C,1,S,PEAI,8,6,
+15/09/2020,5,B,TRCY,C,1,S,MECY,2,1,
+15/09/2020,5,B,TRCY,C,1,S,PTGA,1,1,
+15/09/2020,5,B,TRCY,C,1,S,POCA,1,0,
+15/09/2020,5,B,TRCY,C,1,S,CAER,13,0,
+15/09/2020,5,B,POLE,C,1,S,POLE,1,1,"Dying. One flower open, all seeds gone. Crisp, breaking"
+15/09/2020,5,B,POLE,C,1,S,PEAI,1,1,
+15/09/2020,5,B,POLE,C,1,S,CAER,3,3,
+15/09/2020,5,B,TROR,C,3,S,WAAC,1,1,
+15/09/2020,5,B,TROR,C,3,S,PTGA,2,1,
+15/09/2020,5,B,LARO,E,2,S,NA,NA,NA,Almost dead
+15/09/2020,5,B,LARO,C,3,F,PTGA,1,1,
+15/09/2020,5,B,LARO,C,3,F,CAER,1,0,
+15/09/2020,5,B,VERO,C,2,F,WAAC,2,2,
+15/09/2020,5,B,VERO,C,2,F,Saltbush,1,0,
+15/09/2020,5,B,VERO,C,2,F,CAER,1,0,
+15/09/2020,5,B,TRCY,E,1,S,NA,NA,NA,
+15/09/2020,5,B,ARCA,C,2,B,MECY,1,1,
+15/09/2020,5,B,ARCA,C,2,B,POLE,1,1,
+15/09/2020,5,B,ARCA,C,2,B,CAER,3,0,
+15/09/2020,5,B,TRCY,E,2,S,NA,NA,NA,
+15/09/2020,5,B,VERO,E,3,S,NA,NA,NA,
+15/09/2020,5,C,HYGL,E,1,B,NA,NA,NA,
+15/09/2020,5,C,VERO,C,2,F,POLE,2,0,
+15/09/2020,5,C,ARCA,E,3,I,NA,NA,NA,
+15/09/2020,5,C,TRCY,C,3,F,POLE,7,0,
+15/09/2020,5,C,TRCY,C,3,F,MECY,1,0,
+15/09/2020,5,C,HYGL,C,1,B,POLE,3,0,
+15/09/2020,5,C,HYGL,C,1,B,HYGL,1,0,
+15/09/2020,5,C,HYGL,C,1,B,CAER,1,0,
+15/09/2020,5,C,TROR,E,2,I,NA,NA,NA,Dead
+15/09/2020,5,C,HYGL,C,2,I,NA,NA,NA,No neighbours
+15/09/2020,5,C,HYGL,C,3,I,UNK 27,1,0,
+15/09/2020,5,C,TROR,C,2,NA,NA,NA,NA,"Dead, gone"
+15/09/2020,5,C,POLE,T,1,I,NA,NA,NA,
+15/09/2020,5,C,TRCY,E,1,I,NA,NA,NA,
+15/09/2020,5,C,TROR,E,3,I,NA,NA,NA,
+15/09/2020,5,C,PEAI,T,1,I,NA,NA,NA,Almost dead
+15/09/2020,5,C,ARCA,E,1,I,NA,NA,NA,No neighbours.  Almost dead focal. Swapped with belo
+15/09/2020,5,C,ARCA,C,1,POLE,7,0,,Not thinned
+15/09/2020,5,C,HYGL,E,2,I,NA,NA,NA,
+15/09/2020,5,B,ARCA,E,1,B,NA,NA,NA,
+15/09/2020,5,B,VERO,C,1,F,WAAC,1,1,
+15/09/2020,5,B,PEAI,C,1,B,WAAC,3,3,Old T2. Focal almost dead
+15/09/2020,5,B,PEAI,C,1,B,CAER,3,0,
+15/09/2020,5,B,PEAI,C,2,F,WAAC,7,7,Bag soon
+15/09/2020,5,B,PEAI,C,2,F,POCA,1,1,
+15/09/2020,5,B,PEAI,C,2,F,CAER,8,0,
+15/09/2020,5,B,PEAI,C,2,F,CRCO,4,0,
+15/09/2020,5,B,PEAI,C,2,F,PTGA,3,2,
+15/09/2020,5,B,LARO,C,2,S,PTGA,2,2,
+15/09/2020,5,B,LARO,C,2,S,WAAC,1,1,
+15/09/2020,5,B,LARO,C,2,S,PEAI,1,1,
+15/09/2020,5,B,LARO,C,2,S,CAER,1,1,
+15/09/2020,5,B,LARO,C,2,S,Erodium,1,1,
+15/09/2020,5,B,ARCA,C,3,F,PEAI,1,1,
+15/09/2020,5,B,ARCA,C,3,F,WAAC,4,4,
+15/09/2020,5,B,ARCA,C,3,F,POCA,1,1,
+15/09/2020,5,B,ARCA,C,3,F,POLE,1,1,
+15/09/2020,5,B,ARCA,C,3,F,CAER,1,0,
+15/09/2020,5,B,ARCA,C,3,F,CRCO,1,0,
+15/09/2020,5,B,ARCA,C,3,F,PTGA,3,2,
+15/09/2020,5,B,TRCY,C,3,S,WAAC,3,3,
+15/09/2020,5,B,TRCY,C,3,S,POLE,2,1,
+15/09/2020,5,B,TRCY,C,3,S,PTGA,1,1,
+15/09/2020,5,B,TRCY,C,3,S,CAER,2,2,
+15/09/2020,5,B,VERO,E,2,S,NA,NA,NA,
+15/09/2020,5,B,TROR,C,1,S,POCA,4,3,
+15/09/2020,5,B,TROR,C,1,S,PTGA,2,2,
+15/09/2020,5,B,TROR,C,1,S,WAAC,3,3,
+15/09/2020,5,B,TROR,C,1,S,CAER,1,0,
+15/09/2020,5,B,ARCA,E,2,B,NA,NA,NA,
+15/09/2020,5,B,ARCA,C,1,F,WAAC,3,3,
+15/09/2020,5,B,ARCA,C,1,F,CAER,2,0,
+15/09/2020,5,B,ARCA,C,1,F,GOBE,1,1,
+15/09/2020,5,B,LARO,C,1,S,WAAC,3,3,"Flower open, missed some seed. White fluff. Collect soon, plant almost dead"
+15/09/2020,5,B,LARO,C,1,S,GOBE,2,2,
+15/09/2020,5,B,LARO,C,1,S,CAER,4,0,
+15/09/2020,5,B,LARO,C,1,S,PTGA,1,1,
+15/09/2020,5,B,TROR,T,2,F,NA,NA,NA,Almost dead
+15/09/2020,5,B,TROR,C,2,S,PTGA,2,2,
+15/09/2020,5,B,TROR,C,2,S,WAAC,2,1,
+15/09/2020,5,B,TROR,C,2,S,GOBE,4,4,
+15/09/2020,5,B,TROR,C,2,S,Cheilanthes,3,0,
+15/09/2020,5,B,TROR,C,2,S,CAER,2,0,
+15/09/2020,5,B,ARCA,T,2,B,NA,NA,NA,
+15/09/2020,5,B,PEAI,C,3,F,PTGA,1,1,
+15/09/2020,5,B,PEAI,C,3,F,POLE,1,1,
+15/09/2020,5,B,PEAI,C,3,F,PEAI,1,1,
+15/09/2020,5,B,PEAI,C,3,F,CAER,5,0,
+15/09/2020,5,B,PEAI,C,3,F,MECY,1,1,
+11/09/2020,6,A,VERO,T,2,S,NA,NA,NA,
+11/09/2020,6,A,TRCY,T,1,S,NA,NA,NA,
+11/09/2020,6,A,TRCY,E,1,S,NA,NA,NA,
+11/09/2020,6,A,PEAI,T,1,I,NA,NA,NA,
+11/09/2020,6,A,TRCY,T,2,S,Dodder,NA,NA,Dodder. Bit damaged (leaves) because of dodder
+11/09/2020,6,A,HYGL,C,3,F,Dodder,NA,F,Dodder on focal. Old T1
+11/09/2020,6,A,HYGL,C,3,F,VERO,6,5,
+11/09/2020,6,A,LARO,T,2,F,NA,NA,NA,Has some white fluff
+11/09/2020,6,A,LARO,E,1,B,NA,NA,NA,Has some white fluff
+11/09/2020,6,A,PEAI,C,3,I,VERO,7,7,
+11/09/2020,6,A,PEAI,C,3,I,POMU,1,0,
+11/09/2020,6,A,PEAI,C,3,I,BRCI,1,1,Brachyscome cilaris
+11/09/2020,6,A,PEAI,C,3,I,Dodder,NA,F,Dodder not on focal
+11/09/2020,6,A,LARO,C,3,F,Dodder,NA,F,Dodder on focal
+11/09/2020,6,A,LARO,C,3,F,VERO,3,3,
+11/09/2020,6,A,LARO,C,3,F,POMU,2,0,
+11/09/2020,6,A,LARO,C,3,F,BRCI,1,1,
+11/09/2020,6,A,TROR,C,2,S,Dodder,NA,F,Dodder on focal
+11/09/2020,6,A,TROR,C,2,S,VERO,5,5,
+11/09/2020,6,A,TROR,C,2,S,POMU,2,0,
+11/09/2020,6,A,TROR,C,2,S,ARCO,1,1,
+11/09/2020,6,A,TROR,C,2,S,CHPS,2,NA,Not recorded
+11/09/2020,6,A,ARCA,T,2,I,NA,NA,NA,Dead
+11/09/2020,6,A,HYGL,E,2,F,NA,NA,NA,Dodder. Old C2.
+11/09/2020,6,A,HYGL,C,2,F,VERO,10,10,Flower open. No seed visible. Smothered in dodder flowers
+11/09/2020,6,A,HYGL,C,2,F,BRCI,1,1,
+11/09/2020,6,A,LARO,E,3,F,NA,NA,NA,Old T1
+11/09/2020,6,A,ARCA,E,1,F,NA,NA,NA,
+11/09/2020,6,A,TROR,E,1,S,Dodder,NA,NA,Dodder
+11/09/2020,6,A,ARCA,C,3,B,VERO,13,13,
+11/09/2020,6,A,ARCA,C,3,B,Dodder,NA,F,Dodder not on focal
+11/09/2020,6,A,ARCA,C,3,B,POMU,2,0,
+11/09/2020,6,A,ARCA,C,3,B,ARCO,1,1,
+11/09/2020,6,A,PEAI,C,2,I,POMU,1,0,
+11/09/2020,6,A,PEAI,C,2,I,Dodder,NA,F,Dodder not on focal
+11/09/2020,6,A,PEAI,C,2,I,ARCO,1,1,
+11/09/2020,6,A,PEAI,C,2,I,VERO,10,10,
+11/09/2020,6,A,PEAI,C,2,I,PEAI,1,0,
+11/09/2020,6,A,VERO,E,2,B,NA,NA,NA,
+11/09/2020,6,A,TRCY,C,2,S,VERO,3,2,
+11/09/2020,6,A,TRCY,C,2,S,BRCI,1,1,
+11/09/2020,6,A,TRCY,C,2,S,ARCO,1,1,
+11/09/2020,6,A,TRCY,E,2,S,NA,NA,NA,
+11/09/2020,6,A,TROR,C,3,I,VERO,6,5,
+11/09/2020,6,A,TROR,C,3,I,Dodder,NA,F,Dodder on focal
+11/09/2020,6,A,ARCA,C,1,NA,POMU,2,0,Didn't record phenology
+11/09/2020,6,A,ARCA,C,1,NA,BRCI,1,1,
+11/09/2020,6,A,ARCA,C,1,NA,VERO,8,7,
+11/09/2020,6,A,ARCA,C,1,NA,ARCO,1,1,
+11/09/2020,6,A,ARCA,C,1,NA,Dodder,NA,F,Dodder not on focal
+11/09/2020,6,A,TROR,T,2,S,NA,NA,NA,"Page 8, sure it's the 11/09"
+11/09/2020,6,A,PEAI,E,2,I,NA,NA,NA,
+11/09/2020,6,A,ARCA,E,3,B,NA,NA,NA,
+11/09/2020,6,A,HYGL,E,3,F,NA,NA,NA,
+11/09/2020,6,A,PEAI,E,1,I,NA,NA,NA,
+11/09/2020,6,A,HYGL,E,1,S,NA,NA,NA,
+11/09/2020,6,A,ARCA,E,2,I,NA,NA,NA,Dead
+11/09/2020,6,A,HYGL,C,1,F,VERO,6,6,
+11/09/2020,6,A,HYGL,C,1,F,ARCO,1,1,
+11/09/2020,6,A,HYGL,C,1,F,POMU,1,0,
+11/09/2020,6,A,LARO,E,2,F,NA,NA,NA,
+11/09/2020,6,A,TRCY,C,3,S,VERO,2,2,
+11/09/2020,6,A,TRCY,C,3,S,POMU,3,0,

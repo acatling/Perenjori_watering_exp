@@ -57,10 +57,10 @@ mortalitydata <- merge(mortalitydata, canopydatatrim)
 #Create a column for plotid
 mortalitydata <- mortalitydata %>% unite("plotid", Site:Plot, remove = "false")
 
-######## CHECK THIS: Plots that were never thinned:
-#Site 4 A PEAI E1; Site 7 B VERO T 2; Site 2 C POLE T 9 (not thinned, actually POLE);
-#Site 5 C ARCA T1 (died before thinning); Site 2 A VERO T 2; Site 2 B PEAI T 2; Site 4 A PEAI E 1
-#Site 4 B ARCA T1
+######## Plots that were never thinned, checked:
+#Site 4 A PEAI E1 (yes neighbours, all good); Site 7 B VERO T 2 (no neighbours, all good); Site 2 C POLE T 9 (not thinned, actually POLE; can't find this, must have renamed);
+#Site 5 C ARCA T1 (died before thinning, all good); Site 2 A VERO T 2; Site 2 B PEAI T 2 (yes neighbours, all good); Site 4 A PEAI E 1 (yes neighbours, all good)
+#Site 4 B ARCA T1 (no neighbours, all good)
 
 ################# Seed count data ################
 ##DO THIS - 
@@ -104,6 +104,7 @@ seeddatatrim <- seeddata %>% select(Site, Plot, Species, C_E_or_T, Rep,
 mortalitydatatrim <- mortalitydata %>% select(plotid, Site, Plot, Species, C_E_or_T, Rep, Treatment,
                                               Cover, No_germinated,Survival, Neighbours, cc_percentage)
 names(mortalitydatatrim)[names(mortalitydatatrim) == 'Neighbours'] <- 'Neighbours01'
+# I don't think Neighbours01 is the most meaningful or up to date. Neighbours Yes or No should be used
 mortalitydatatrim$Site <- as.factor(mortalitydatatrim$Site)
 seeddatatrim$Site <- as.factor(seeddatatrim$Site)
 mortalitydatatrim$Rep <- as.factor(mortalitydatatrim$Rep)
@@ -124,10 +125,13 @@ surveydataraw$Species <- factor(surveydataraw$Species)
 #Removing subplots
 surveydata <- anti_join(surveydataraw, to_remove_start)
 surveydata <- anti_join(surveydataraw, to_remove_after_germ)
+#test <- surveydataraw %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% filter(row_number() == 1)
+#1065 subplots surveyed
 #Merging with seed count data
 # Probably don't need to merge yet, but keeping it like this
 seedsurveys <- full_join(seeddata, surveydata)
-#Replacing Neighbour_count NAs where Neighbour = Yes with 0. e.g. so Dodder now is counted as 0
+# Dodder is listed under Neighbour_sp but has a Neighbour_count of NA
+#Replacing Neighbour_count NAs where Neighbour_sp = Dodder with 0. e.g. so Dodder now is counted as 0
 # This is because I can't tally with NAs and treating Dodder as 0 because it is in my no-comp. subplots
 seedsurveys <- within(seedsurveys, Neighbour_count[Neighbour_sp == 'Dodder'] <- '0')
 seedsurveys$Neighbour_count <- as.numeric(seedsurveys$Neighbour_count)
@@ -135,11 +139,13 @@ seedsurveys$Neighbour_count <- as.numeric(seedsurveys$Neighbour_count)
 seedsurveys$Neighbours <- ifelse(seedsurveys$Neighbour_count >= 1, "Yes", "No")
 #Also want to plot the subplots with 0 neighbour_count, so need NAs to be 0s
 #This filters to subplots without Neighbour_count (currently NAs, same with Neighbours)
+## Check and fix 3 C PEAI C1 which has Cheilanthes and UNK 8 as NA neighbour count
+## Also check and fix 7 C PEAI C2 which has UNK 1 as NA neighbour count
 surveytest <- seedsurveys %>% filter(!complete.cases(Neighbour_count)) 
 surveytest$Neighbour_count <- "0"
 surveytest$Neighbours <- "No"
 surveytest2 <- seedsurveys %>% filter(complete.cases(Neighbour_count))
-#Checking numbers are right - 1740 lines in seedsurveys, 633 !complete.cases, 1107 complete.cases. Phew!
+#Checking numbers are right - 2393 lines in seedsurveys, 706 !complete.cases, 1687 complete.cases.
 surveytest$Neighbour_count <- as.numeric(surveytest$Neighbour_count)
 seedsurveysfixed <- full_join(surveytest, surveytest2)
 #I shouldn't have to do the below in two steps but I can't figure out one, and it works
@@ -159,15 +165,21 @@ seedabundance <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) 
          Inter_abundance = sum(Neighbour_count[Matching == "0"]))
 #Making a column for whether or not Dodder was present in subplot (1 = yes, 0 = no)
 #Then filtering to one row per subplot
+#Creating the below dataframe seedabundancerows to use later
+seedabundancerows <- seedabundance
 seedabundance <- seedabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
                   mutate(Dodder01 = case_when(any(Neighbour_sp == "Dodder") ~ "1",
                          TRUE ~ "0")) %>% filter(row_number() == 1)
 #Trimming down to just what is required to merge with seedmortality
 surveytrim <- seedabundance %>% select(Site, Plot, Species, C_E_or_T, Rep, Neighbours,
                                            Total_abundance, Intra_abundance, Inter_abundance, Dodder01)
-#There are 50 rows that say No to neighbours but have a neighbour total abundance >0
+#There are 87 rows that say No to neighbours but have a neighbour total abundance >0
+# Check this, why??
+#test <- surveytrim %>% filter(Neighbours == "No" & Total_abundance > 0)
 surveytrim <- within(surveytrim, Neighbours[Total_abundance > "0"] <- "Yes")
 surveytrimn <- surveytrim %>% filter(Neighbours == "Yes")
+#1130 subplots, 516 of which have neighbours
+
 ############### Soil/abiotic data #####
 soildata <- read_csv("Data/soil_analysis_2020.csv")
 soildata$Site <- as.factor(soildata$Site)
@@ -260,10 +272,18 @@ verocover <- merge(verositeplot, canopydata)
 veroisotope <- isotopedata %>% filter(Species == "VERO") %>% mutate(Site = Collection_site,
                                                                     Plot = Collection_plot)
 verocoverisotope <- merge(veroisotope, canopydata)
+
 #### All data together ####
-dataall <- left_join(seedmortality, surveytrimn)
+#test <- anti_join(seedmortality, surveytrim)
+##53 rows that seedmortality has but surveytrim doesn't. None of these plants produced seeds
+# but all did germinate
+#test2 <- surveytrim %>% filter(Site == "1", Plot == "A", Species == "PEAI", C_E_or_T == "T", Rep == "2")
+## Not sure why using surveytrimn before
+dataall <- left_join(seedmortality, surveytrim)
 dataall <- within(dataall, Neighbours[is.na(Total_abundance)] <- "No")
-dataall <- dataall %>% replace(is.na(.), 0)
+#Removing this NA thing atm because there are some subplots that weren't surveyed
+# and I don't want to incorrectly give them 0 neighbour abundance
+#dataall <- dataall %>% replace(is.na(.), 0)
 #Adding in soil data
 dataall <- left_join(dataall, abioticpcadata)
 #Adding in trait data
