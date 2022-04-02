@@ -12,30 +12,23 @@ to_remove_after_germ <- read_csv("Data/to_remove_after_germination.csv")
 germinationdataraw <- read_csv("Data/final_germination_data.csv")
 #Remove blank subplots
 germinationdata <- germinationdataraw %>% filter(!Rep == "Blank")
-germinationdata$Rep <- as.numeric(germinationdata$Rep)
 ######## To be removed for various reasons:
+to_remove_start$Rep <- as.factor(to_remove_start$Rep)
 germinationdata <- anti_join(germinationdata, to_remove_start)
+### Fixing some duplication and other individual subplot issues
+# 1 A PLDE T 2 is actually a vero. at 4, 9. It's in the mortalitydata set but not listsubplots. In listsubplots it's down as VERO T4, 4, 9.
+germinationdata <- within(germinationdata, Rep[Site == '1' & Plot == 'A' & Species == 'PLDE' & C_E_or_T == 'T' & Rep == '2'] <- '4')
+germinationdata <- within(germinationdata, Species[Site == '1' & Plot == 'A' & Species == 'PLDE' & C_E_or_T == 'T' & Rep == '4'] <- 'VERO')
+#Accidentally swapped two things to become 1 C VERO C2. One of these didn't germinate at all, position 9, 6 (E 1), so renaming this one C 4
+germinationdata <- within(germinationdata, Rep[Site == '1' & Plot == 'C' & Species == 'VERO' & C_E_or_T == 'C' & Rep == '2' & Number_germinated == '0'] <- '4')
+
 #Merge with canopy data
 canopylitterdata <- read_csv("Data/canopy_litter_2020.csv")
 canopydata <- canopylitterdata  %>% rowwise() %>%
   mutate(meancc = mean(c(`Measurement 1`, `Measurement 2`, `Measurement 3`, `Measurement 4`, `Measurement 5`)),
          cc_percentage = meancc/24*100)
 canopydatatrim <- canopydata %>% select(Site, Plot, cc_percentage)
-germinationdata <- merge(germinationdata, canopydatatrim)
-#Create a column for plotid
-germinationdata <- germinationdata %>% unite("plotid", Site:Plot, remove = "false")
 germinationdata$Site <- as.factor(germinationdata$Site)
-#Calculating germination rate.
-## Accounting for February germination. For now, total number germinated / total number seeds
-germinationdata <- germinationdata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
-  mutate(Germination_rate = (February_germination + Number_germinated)/Number_seeds_sown)
-
-#First checking distribution of germination rate
-#Should be logged
-ggplot(germinationdata, aes(x = log(Germination_rate)+1))+
-  geom_histogram()+
-  theme_classic()+
-  facet_wrap(~Species)
 
 ################# Survival/mortality data #############
 #Importing mortality data 
@@ -45,26 +38,40 @@ mortalitydata <- within(mortalitydataraw, C_E_or_T[Site == '8' & Plot == 'C' & S
 # From survey notes PEAI T2 became C2 so I am changing this above in the mortality dataset (already changed for survey and seeds)
 #Check this later for the germination data, will have to change it in when I merge all vital rates because has a diff number of seeds sown for T2 and C2
 mortalitydata <- within(mortalitydata, C_E_or_T[Site == '1' & Plot == 'A' & Species == 'PEAI' & C_E_or_T == 'T' & Rep == '2'] <- 'C')
+### Fixing some duplication and other individual subplot issues
+#1 A LARO C 2 is two separate subplots! 1, 3 and 10, 1. Accidentally renamed E2 and T1 both to C2. Renaming the T1 (10, 1) one to C 4 instead, but remember it was imported as C 2.
+mortalitydata <- within(mortalitydata, Rep[Site == '1' & Plot == 'A' & Species == 'LARO' & Row == '10' & Column == '1'] <- '4')
+#There are two VERO T 2s because the focal died before thinning but then there was another germinant which also died with no seeds
+#pseudo replication if I include them both from one subplot? Might just remove the second line for now and check this/make a decision later**
+dup_to_remove <- mortalitydata %>% filter(Notes == "Swap. One new germ after recorded death, plot never thinned. Next germ died as well with no seeds, from checklist. See duplication below")
+mortalitydata <- anti_join(mortalitydata, dup_to_remove)
+#8 C LARO T 1 mislabelled row, position 7,1 is meant to be E 2 (not second T 1)
+mortalitydata <- within(mortalitydata, C_E_or_T[Notes == "Check what this is labelled as. T1? No seeds. Notes say 'swapped with VERO T1'. Also from 29/9 - or was I looking at wrong plot first time? +1g"] <- 'E')
+mortalitydata <- within(mortalitydata, Rep[Notes == "Check what this is labelled as. T1? No seeds. Notes say 'swapped with VERO T1'. Also from 29/9 - or was I looking at wrong plot first time? +1g"] <- '2')
+# 1 A PLDE T 2 is actually a vero, recorded as VERO T4, 4, 9.
+mortalitydata <- within(mortalitydata, Rep[Site == '1' & Plot == 'A' & Species == 'PLDE' & C_E_or_T == 'T' & Rep == '2'] <- '4')
+mortalitydata <- within(mortalitydata, Species[Site == '1' & Plot == 'A' & Species == 'PLDE' & C_E_or_T == 'T' & Rep == '4'] <- 'VERO')
+
+mortalitydata$Site <- as.factor(mortalitydata$Site)
+to_remove_start$Site <- as.factor(to_remove_start$Site)
+to_remove_after_germ$Site <- as.factor(to_remove_after_germ$Site)
+to_remove_after_germ$Rep <- as.factor(to_remove_after_germ$Rep)
 mortalitydata <- anti_join(mortalitydata, to_remove_start)
 mortalitydata <- anti_join(mortalitydata, to_remove_after_germ)
-#Merging with treatments
-treatments <- read_csv("Data/treatments_meta.csv")
-mortalitydata <- full_join(mortalitydata, treatments)
 #Assigning Neighbour values to C, E and T NAs
 #Test: 2 A 9, 1 VERO T1 has Neighbours (1) --> should stay one
 mortalitydata <- within(mortalitydata, Neighbours[C_E_or_T == 'C' & is.na(Neighbours)] <- '1')
 mortalitydata <- within(mortalitydata, Neighbours[C_E_or_T == 'T' & is.na(Neighbours)] <- '0')
 mortalitydata <- within(mortalitydata, Neighbours[C_E_or_T == 'E' & is.na(Neighbours)] <- '0')
 #CHECK THIS: Should I assign Site 1 C TROR C 1 a 0 for survival? Died
-#Merge with canopy data cleaned above
-mortalitydata <- merge(mortalitydata, canopydatatrim)
-#Create a column for plotid
-mortalitydata <- mortalitydata %>% unite("plotid", Site:Plot, remove = "false")
-
-######## Plots that were never thinned, checked:
-#Site 4 A PEAI E1 (yes neighbours, all good); Site 7 B VERO T 2 (no neighbours, all good); Site 2 C POLE T 9 (not thinned, actually POLE; can't find this, must have renamed);
-#Site 5 C ARCA T1 (died before thinning, all good); Site 2 A VERO T 2; Site 2 B PEAI T 2 (yes neighbours, all good); Site 4 A PEAI E 1 (yes neighbours, all good)
-#Site 4 B ARCA T1 (no neighbours, all good)
+#Where no_viable_seeds and no_viable_seeds > 0, SeedsProduced = 1, otherwise 0.
+#For the survival dataset, will look at SeedsProduced 1/0.
+mortalitydatatrim <- mortalitydata %>% select(Site, Plot, Species, C_E_or_T, Rep,
+                                              No_germinated,Survival, Neighbours)
+names(mortalitydatatrim)[names(mortalitydatatrim) == 'Neighbours'] <- 'Neighbours01'
+# I don't think Neighbours01 is the most meaningful or up to date. Neighbours Yes or No should be used
+mortalitydatatrim$Site <- as.factor(mortalitydatatrim$Site)
+mortalitydatatrim$Rep <- as.factor(mortalitydatatrim$Rep)
 
 ################# Seed count data ################
 ##DO THIS - 
@@ -77,14 +84,10 @@ seeddataraw <- read_csv("Data/seed_count_2020.csv")
 seeddatarawgrouped <- seeddataraw %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
   mutate(No_viable_seeds_grouped = sum(No_viable_seeds), 
          No_inviable_seeds_grouped = sum(No_inviable_seeds)) %>% filter(row_number() == 1)
-#Merging with treatments
-seeddata <- merge(treatments, seeddatarawgrouped)
-#Reordering in order of dry, control, wet.
-level = c("Dry", "Control", "Wet")
-seeddata$Treatment <- factor(seeddata$Treatment, level = c("Dry", "Control", "Wet"))
+seeddata <- seeddatarawgrouped
 #Need Site, Treatment and Species to be factors
 seeddata$Site <- factor(seeddata$Site)
-seeddata$Treatment <- factor(seeddata$Treatment)
+#seeddata$Treatment <- factor(seeddata$Treatment)
 seeddata$Species <- factor(seeddata$Species)
 #Removing subplots
 to_remove_start$Rep <- factor(to_remove_start$Rep)
@@ -101,28 +104,8 @@ seeddata$Neighbours <- factor(seeddata$Neighbours)
 seeddata <- seeddata %>% mutate(log1_viable_seeds = log(No_viable_seeds_grouped+1))
 seeddatatrim <- seeddata %>% select(Site, Plot, Species, C_E_or_T, Rep,
                                     No_viable_seeds_grouped, No_inviable_seeds_grouped)
-
-##### Merging mortality data and seed count data ####
-#Where no_viable_seeds and no_viable_seeds > 0, SeedsProduced = 1, otherwise 0.
-#For the survival dataset, will look at SeedsProduced 1/0.
-mortalitydatatrim <- mortalitydata %>% select(plotid, Site, Plot, Species, C_E_or_T, Rep, Treatment,
-                                              Cover, No_germinated,Survival, Neighbours, cc_percentage)
-names(mortalitydatatrim)[names(mortalitydatatrim) == 'Neighbours'] <- 'Neighbours01'
-# I don't think Neighbours01 is the most meaningful or up to date. Neighbours Yes or No should be used
-mortalitydatatrim$Site <- as.factor(mortalitydatatrim$Site)
-seeddatatrim$Site <- as.factor(seeddatatrim$Site)
-mortalitydatatrim$Rep <- as.factor(mortalitydatatrim$Rep)
 seeddatatrim$Rep <- as.factor(seeddatatrim$Rep)
-#1140 rows if I left_join seed data onto mort data, 1146 rows if I full_join. Those 6 are unknowns
-seedmortality <- left_join(mortalitydatatrim, seeddatatrim)
-#Checked 1 A PEAI E1, no problem, in mortalitydata but not seeddata, no problem because merging seed data into mort
-#Replace all the NAs for seed counts with 0s - below code replaces everything in dataframe
-# that is an NA with 0 - that's okay here, where only No_viable and inviable seeds have NAs
-seedmortality <- seedmortality %>% replace(is.na(.),0)
-#Make a new column for ProducedSeeds (1 or 0)
-seedmortality <- seedmortality %>% mutate(ProducedSeeds = case_when(No_viable_seeds_grouped > "0" | No_inviable_seeds_grouped > "0" ~ "1",
-                                                                   No_viable_seeds_grouped == "0" & No_inviable_seeds_grouped == "0" ~ "0"))
-#It works! 609 produced seeds (at least one inviable or viable), and 534 didn't produce any
+seeddatatrim$Site <- as.factor(seeddatatrim$Site)
 
 ################# Community survey data ################
 surveydataraw <- read_csv("Data/community_surveys_data.csv")
@@ -133,6 +116,22 @@ surveydata <- anti_join(surveydataraw, to_remove_start)
 surveydata <- anti_join(surveydata, to_remove_after_germ)
 #test <- surveydataraw %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% filter(row_number() == 1)
 #1065 subplots surveyed
+#Fixing where subplot names don't match other datasets
+#1 A LARO T1 - this is where I accidentally named two things C 2. Changed mort and germ data such that T1 (10, 1) became C 4 and 1, 3 was C 2.
+#Changing names in surveys to match. Note that names and positions don't match up so going off position in notes.
+surveydata <- within(surveydata, Rep[Site == '1' & Plot == 'A' & Species == 'LARO' & C_E_or_T == "C" & Rep == '2'] <- '4')
+surveydata <- within(surveydata, Rep[Site == '1' & Plot == 'A' & Species == 'LARO' & C_E_or_T == "T" & Rep == '1'] <- '123')
+surveydata <- within(surveydata, C_E_or_T[Site == '1' & Plot == 'A' & Species == 'LARO' & C_E_or_T == "T" & Rep == '123'] <- 'C')
+surveydata <- within(surveydata, Rep[Site == '1' & Plot == 'A' & Species == 'LARO' & C_E_or_T == "C" & Rep == '123'] <- '2')
+# 2 B HYGL T? 1? is indeed T 1
+surveydata <- within(surveydata, Rep[Site == '2' & Plot == 'B' & Species == 'HYGL' & C_E_or_T == "T?" & Rep == '1?'] <- '1')
+surveydata <- within(surveydata, C_E_or_T[Site == '2' & Plot == 'B' & Species == 'HYGL' & C_E_or_T == "T?" & Rep == '1'] <- 'T')
+#2 C PLDE-POLE T 2 was renamed to POLE C4
+surveydata <- within(surveydata, C_E_or_T[Site == '2' & Plot == 'C' & Species == 'PLDE-POLE' & C_E_or_T == "T" & Rep == '2'] <- 'C')
+surveydata <- within(surveydata, Rep[Site == '2' & Plot == 'C' & Species == 'PLDE-POLE' & C_E_or_T == "C" & Rep == '2'] <- '4')
+surveydata <- within(surveydata, Species[Site == '2' & Plot == 'C' & Species == 'PLDE-POLE' & C_E_or_T == "C" & Rep == '4'] <- 'POLE')
+#Check this later - where 3 A NA NA NA data belongs 'not sure which plot this is', does not merge into vitaldata
+#Not sure what TROR E 4 is, check this later, does not merge into vitaldata
 # Dodder is listed under Neighbour_sp but has a Neighbour_count of NA
 #Replacing Neighbour_count NAs where Neighbour_sp = Dodder with 0. e.g. so Dodder now is counted as 0
 # This is because I can't tally with NAs and treating Dodder as 0 because it is in my no-comp. subplots
@@ -155,10 +154,6 @@ surveydatafixed <- full_join(surveytest, surveytest2)
 neighbourabundance <- surveydatafixed %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
   summarise(Total_abundance = sum(Neighbour_count))
 surveyabundance <- merge(neighbourabundance, surveydatafixed)
-#NAs, site 3, plot  - 756 - 759 are NAs. Manually changing them to Unks and removing for now
-## Will check notes later -- note this became irrelevant, I think when I removed an earlier merge with seeddata
-#test <- surveyabundance %>% filter(Species == "UNK")
-#surveyabundance <- surveyabundance %>% filter(Species != "UNK")
 ## Separating abundances of intra- and inter-specific neighbours
 #Isaac's code first two lines
 surveyabundance$Matching <- surveyabundance$Species == surveyabundance$Neighbour_sp
@@ -173,7 +168,7 @@ surveyabundancerows <- surveyabundance
 surveyabundance <- surveyabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
                   mutate(Dodder01 = case_when(any(Neighbour_sp == "Dodder") ~ "1",
                          TRUE ~ "0")) %>% filter(row_number() == 1)
-#Trimming down to just what is required to merge with seedmortality
+#Trimming down to just what is required to merge
 surveytrim <- surveyabundance %>% select(Site, Plot, Species, C_E_or_T, Rep, Neighbours,
                                            Total_abundance, Intra_abundance, Inter_abundance, Dodder01)
 #There are 86 rows that say No to neighbours but have a neighbour total abundance >0
@@ -277,70 +272,118 @@ veroisotope <- isotopedata %>% filter(Species == "VERO") %>% mutate(Site = Colle
 verocoverisotope <- merge(veroisotope, canopydata)
 
 #### All data together ####
-#test <- anti_join(seedmortality, surveytrim)
-##108 rows that seedmortality has but surveytrim doesn't. All germinated, some produced seeds, some didn't
-# CHECK THIS ^
-#test2 <- surveytrim %>% filter(Site == "1", Plot == "A", Species == "PEAI", C_E_or_T == "T", Rep == "2")
-## Not sure why using surveytrimn before
-dataall <- full_join(seedmortality, surveytrim, by = c("Site", "Plot", "Species", "C_E_or_T", "Rep"))
-#1140 rows if we left join- match survey to seedmortality. 1168 if we full join, inner 1032
-dataall <- within(dataall, Neighbours[is.na(Total_abundance)] <- "No")
-#1171 subplots with germination
-#test <- germdata %>% filter(Germination_rate > 0)
-# Still want to update this by adding germination data to dataall but will need to update specific plots
-#Removing this NA thing atm because there are some subplots that weren't surveyed
-# and I don't want to incorrectly give them 0 neighbour abundance
-#dataall <- dataall %>% replace(is.na(.), 0)
-#Adding in soil data
-dataall <- left_join(dataall, abioticpcadata)
-#Adding in trait data
+#### Trying to merge germ, surv and mort data onto complete list of subplots 
+#1614 rows with germination data
+#1139 rows with survival data
+#653 rows with seed production data
+listsubplots <- germinationdata %>% select(Site, Plot, Species, C_E_or_T, Rep, Number_seeds_sown, February_germination, Number_germinated, Notes_germination)
+#1614 subplots with seeds sown, after excluding blanks and things that were to be removed at start
+### Merge in survival data, mortalitydatatrim which has 1139 rows
+mortalitydatatrim$Site <- as.factor(mortalitydatatrim$Site)
+listsubplots$Rep <- as.factor(listsubplots$Rep)
+survtomerge <- mortalitydatatrim %>% select(Site, Plot, Species, C_E_or_T, Rep, Survival, Neighbours01)
+germsurv <- left_join(listsubplots, survtomerge, by = c("Site", "Plot", "Species", "C_E_or_T", "Rep"))
+
+## Looking into why there are discrepancies more closely:
+#So basically I want to use left join to keep all the rows from listsubplots,
+# but then I also need to check which rows were missed from the dataframe I am adding in, and fix that
+#library(arsenal)
+#test <- comparedf(listsubplots, survtomerge, by = c("Site", "Plot", "Species", "C_E_or_T", "Rep"), factor.as.char = TRUE)
+#summary(test)
+# The 'observations not shared' table shows rows in data frame x (listsubplots) that aren't in y (mortalitydatatrim) and vice versa. y is at the bottom
+
+### Adding in seed production data, seeddatatrim which has 653 rows
+germsurv$Rep <- as.factor(germsurv$Rep)
+vitaldata <- left_join(germsurv, seeddatatrim)
+# Note that it is not merging in the six unknown plots in seeddatatrim, fine for now
+### Adding in info on abiotic environment and traits
+vitaldata <- left_join(vitaldata, abioticpcadata)
 traitdata <- alltraits %>% select(Species, SLA, LDMC, mean_D13C)
-dataall <- left_join(dataall, traitdata)
+vitaldata <- left_join(vitaldata, traitdata)
+
+### Adding in survey data
+#1057 rows with neighbourhood surveys done
+vitaldata <- left_join(vitaldata, surveytrim)
+# Subplots in surveytrim that aren't in vitaldata: 1 A LARO T1 (fixed, check), 2 B HYGL T? 1? (fixed), 2 C PLDE-POLE T 2 (fixed), 3 A NA NA NA (check later), 4 A TROR E 4 (check later)
+
+## Want to calculate the relevant things, e.g. Total_abundance and ProducedSeeds
+# But don't want to override NAs for subplots where it's not relevant - i.e. those that never germinated
+# So going to calculate them separately and then merge it back in
+### Germination relevant calculations ##
+#For subplots that germinated, replace all the NAs for seed counts with 0s - below code replaces everything in dataframe
+# that is an NA with 0 - that's okay here, where only No_viable and inviable seeds have NAs
+germinatedsubplots <- vitaldata %>% filter(Number_germinated > 0 | February_germination > 0)
+#1171 subplots germinated
+germcalcs <- germinatedsubplots %>% select(Site, Plot, Species, C_E_or_T, Rep, Number_seeds_sown, February_germination, Number_germinated, No_viable_seeds_grouped, No_inviable_seeds_grouped)
+germcalcs <- germcalcs %>% replace(is.na(.),0)
+#Make a new column for ProducedSeeds (1 or 0)
+germcalcs <- germcalcs %>% mutate(surv_to_produce_seeds = case_when(No_viable_seeds_grouped > "0" | No_inviable_seeds_grouped > "0" ~ "1",
+                                                                    No_viable_seeds_grouped == "0" & No_inviable_seeds_grouped == "0" ~ "0"))
+#604 produced seeds (at least one inviable or viable), and 551 didn't produce any
+#Want to use cbind for number of successes and failures, using binomial glm.
+#Create a row for total number germinated, total number didn't
+germcalcs <- germcalcs %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
+  mutate(total_germ = sum(Number_germinated+February_germination),
+         total_no_germ = Number_seeds_sown-total_germ,
+         percent_germ = total_germ/Number_seeds_sown)
+###Scaling the number of seeds produced across species to a percentage of maximum produced
+#Need these values to be integers for negative binomial models
+germcalcs <- germcalcs %>% group_by(Species) %>% mutate(seeds_percent = round(No_viable_seeds_grouped/max(No_viable_seeds_grouped)*100))
+germcalcstomerge <- germcalcs %>% select(Site, Plot, Species, C_E_or_T, Rep, surv_to_produce_seeds, total_germ, total_no_germ, percent_germ)
+#Merge back into big dataframe
+vitaltomerge <- vitaldata %>% select(-c(Notes_germination, Survival, Neighbours01, No_viable_seeds_grouped, No_inviable_seeds_grouped))
+vitaldata <- left_join(vitaltomerge, germcalcstomerge, by =c("Site", "Plot", "Species", "C_E_or_T", "Rep"))
+
+### Checking distributions and standardising data ##
 #Distributions of traits and PC1, have to use datanotscaled to log
 #SLA better logged?
 #LDMC still strange logged
 #WUE/D13C better logged but still left-skewed
 #PC1 - right-skewed, logging doesn't help
-with(dataall, pairs(~SLA + LDMC + mean_D13C + PC1, diag.panel = panel.hist))
-with(dataall, pairs(~log(SLA+2) + LDMC + log(mean_D13C+2) + PC1, diag.panel = panel.hist))
-# Transforming explanatory variables
-dataall$logp1_totalabund <- log(dataall$Total_abundance+1)
-dataall$logp1_interabund <- log(dataall$Inter_abundance+1)
-dataall$logp1_intraabund <-log(dataall$Intra_abundance+1)
-dataall$log_SLA <-log(dataall$SLA)
-dataall$log_D13C <-log(dataall$mean_D13C)
+with(vitaldata, pairs(~SLA + LDMC + mean_D13C + PC1, diag.panel = panel.hist))
+with(vitaldata, pairs(~log(SLA+2) + LDMC + log(mean_D13C+2) + PC1, diag.panel = panel.hist))
+#Logging and standardising variables
+vitaldata$log_SLA <-log(vitaldata$SLA)
+vitaldata$log_D13C <-log(vitaldata$mean_D13C)
+
 #Standardising continuous explanatory variables to a mean of 0 and SD of 1
-dataall$std_cc <- scale(dataall$cc_percentage, center = TRUE, scale = TRUE)
-dataall$std_logp1_totalabund <- scale(dataall$logp1_totalabund, center = TRUE, scale = TRUE)
-dataall$std_logp1_interabund <- scale(dataall$logp1_interabund, center = TRUE, scale = TRUE)
-dataall$std_logp1_intraabund <- scale(dataall$logp1_intraabund, center = TRUE, scale = TRUE)
-dataall$std_PC1 <- scale(dataall$PC1, center = TRUE, scale = TRUE)
-dataall$std_PC2 <- scale(dataall$PC2, center = TRUE, scale = TRUE)
-dataall$std_PC3 <- scale(dataall$PC3, center = TRUE, scale = TRUE)
-dataall$std_log_SLA <- scale(dataall$log_SLA, center = TRUE, scale = TRUE)
-dataall$std_LDMC <- scale(dataall$LDMC, center = TRUE, scale = TRUE)
-dataall$std_log_D13C <- scale(dataall$log_D13C, center = TRUE, scale = TRUE)
+vitaldata$std_cc <- scale(vitaldata$cc_percentage, center = TRUE, scale = TRUE)
+vitaldata$std_PC1 <- scale(vitaldata$PC1, center = TRUE, scale = TRUE)
+vitaldata$std_PC2 <- scale(vitaldata$PC2, center = TRUE, scale = TRUE)
+vitaldata$std_PC3 <- scale(vitaldata$PC3, center = TRUE, scale = TRUE)
+vitaldata$std_log_SLA <- scale(vitaldata$log_SLA, center = TRUE, scale = TRUE)
+vitaldata$std_LDMC <- scale(vitaldata$LDMC, center = TRUE, scale = TRUE)
+vitaldata$std_log_D13C <- scale(vitaldata$log_D13C, center = TRUE, scale = TRUE)
 
-###Scaling the number of seeds produced across species to a percentage of maximum produced
-#Need these values to be integers for negative binomial models
-dataall <- dataall %>% group_by(Species) %>% mutate(seeds_percent = round(No_viable_seeds_grouped/max(No_viable_seeds_grouped)*100))
+# Transforming explanatory variables
+vitaldata$logp1_totalabund <- log(vitaldata$Total_abundance+1)
+vitaldata$logp1_interabund <- log(vitaldata$Inter_abundance+1)
+vitaldata$logp1_intraabund <-log(vitaldata$Intra_abundance+1)
+vitaldata$log_SLA <-log(vitaldata$SLA)
+vitaldata$log_D13C <-log(vitaldata$mean_D13C)
+#Standardising continuous explanatory variables to a mean of 0 and SD of 1
+vitaldata$std_cc <- scale(vitaldata$cc_percentage, center = TRUE, scale = TRUE)
+vitaldata$std_logp1_totalabund <- scale(vitaldata$logp1_totalabund, center = TRUE, scale = TRUE)
+vitaldata$std_logp1_interabund <- scale(vitaldata$logp1_interabund, center = TRUE, scale = TRUE)
+vitaldata$std_logp1_intraabund <- scale(vitaldata$logp1_intraabund, center = TRUE, scale = TRUE)
 
-#Need ProducedSeeds to be numeric, not a factor to plot curves
-dataall$ProducedSeeds <- as.numeric(dataall$ProducedSeeds)
+#Need surv_to_produce_seeds to be numeric, not a factor to plot curves
+vitaldata$surv_to_produce_seeds <- as.numeric(vitaldata$surv_to_produce_seeds)
+
 #Splitting data by species
-arcadata <- dataall %>% filter(Species == "ARCA")
-hygldata <- dataall %>% filter(Species == "HYGL")
-larodata <- dataall %>% filter(Species == "LARO")
-peaidata <- dataall %>% filter(Species == "PEAI")
-pldedata <- dataall %>% filter(Species == "PLDE")
-poledata <- dataall %>% filter(Species == "POLE")
-trcydata <- dataall %>% filter(Species == "TRCY")
-trordata <- dataall %>% filter(Species == "TROR")
-verodata <- dataall %>% filter(Species == "VERO")
+arcadata <- vitaldata %>% filter(Species == "ARCA")
+hygldata <- vitaldata %>% filter(Species == "HYGL")
+larodata <- vitaldata %>% filter(Species == "LARO")
+peaidata <- vitaldata %>% filter(Species == "PEAI")
+pldedata <- vitaldata %>% filter(Species == "PLDE")
+poledata <- vitaldata %>% filter(Species == "POLE")
+trcydata <- vitaldata %>% filter(Species == "TRCY")
+trordata <- vitaldata %>% filter(Species == "TROR")
+verodata <- vitaldata %>% filter(Species == "VERO")
 
 #Seed production model data, which is filtered to things that produced
 #at least one seed (viable or inviable)
-seedmodeldata <- dataall %>% filter(ProducedSeeds == "1")
+seedmodeldata <- vitaldata %>% filter(surv_to_produce_seeds == "1")
 seedarca <- seedmodeldata %>% filter(Species == "ARCA")
 seedhygl <- seedmodeldata %>% filter(Species == "HYGL")
 seedlaro <- seedmodeldata %>% filter(Species == "LARO")
@@ -350,27 +393,4 @@ seedpole <- seedmodeldata %>% filter(Species == "POLE")
 seedtrcy <- seedmodeldata %>% filter(Species == "TRCY")
 seedtror <- seedmodeldata %>% filter(Species == "TROR")
 seedvero <- seedmodeldata %>% filter(Species == "VERO")
-
-#### Adding trait and abiotic data to germination data ####
-#Adding in info on abiotic environment and traits
-germdata <- left_join(germinationdata, abioticpcadata)
-germdata <- left_join(germdata, traitdata)
-#Logging and standardising
-germdata$log_SLA <-log(germdata$SLA)
-germdata$log_D13C <-log(germdata$mean_D13C)
-germdata$log_germ <- log(germdata$Germination_rate+1)
-#Standardising continuous explanatory variables to a mean of 0 and SD of 1
-germdata$std_cc <- scale(germdata$cc_percentage, center = TRUE, scale = TRUE)
-germdata$std_PC1 <- scale(germdata$PC1, center = TRUE, scale = TRUE)
-germdata$std_PC2 <- scale(germdata$PC2, center = TRUE, scale = TRUE)
-germdata$std_PC3 <- scale(germdata$PC3, center = TRUE, scale = TRUE)
-germdata$std_log_SLA <- scale(germdata$log_SLA, center = TRUE, scale = TRUE)
-germdata$std_LDMC <- scale(germdata$LDMC, center = TRUE, scale = TRUE)
-germdata$std_log_D13C <- scale(germdata$log_D13C, center = TRUE, scale = TRUE)
-
-#Want to use cbind for number of successes and failures, using binomial glm.
-#Create a row for total number germinated, total number didn't
-germdata <- germdata %>% mutate(total_germ = sum(Number_germinated+February_germination))
-germdata <- germdata %>% mutate(total_no_germ = Number_seeds_sown-total_germ)
-germdata <- germdata %>% mutate(percent_germ = total_germ/Number_seeds_sown)
 

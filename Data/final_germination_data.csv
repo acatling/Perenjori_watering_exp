@@ -63,7 +63,7 @@ Site,Plot,Row,Column,Species,C_E_or_T,Rep,Number_seeds_sown,February_germination
 1,A,9,7,LARO,T,2,15,0,2,Swap
 1,A,9,8,TROR,E,3,15,0,1,NA
 1,A,9,9,TRCY,C,1,15,0,14,Swap
-1,A,10,1,LARO,C,2,15,0,4,Swap
+1,A,10,1,LARO,C,4,15,0,4,Swap
 1,A,10,2,HYGL,C,1,15,0,0,NA
 1,A,10,3,VERO,T,1,15,0,2,NA
 1,A,10,4,TROR,E,2,15,0,7,Swap
@@ -175,7 +175,7 @@ Site,Plot,Row,Column,Species,C_E_or_T,Rep,Number_seeds_sown,February_germination
 1,C,4,3,HYGL,T,1,15,0,0,NA
 1,C,4,4,TRCY,C,3,15,0,8,Swap
 1,C,4,5,TROR,E,1,15,0,3,Swap
-1,C,4,6,TRCY,C,1,15,0,8,Swap
+1,C,4,6,TRCY,E,1,15,0,8,Swap
 1,C,4,7,TRCY,C,1,15,0,3,NA
 1,C,4,8,VERO,E,3,15,1,1,Probably not my seed
 1,C,4,9,LARO,C,3,15,0,3,NA
@@ -387,7 +387,7 @@ Site,Plot,Row,Column,Species,C_E_or_T,Rep,Number_seeds_sown,February_germination
 2,C,3,8,ARCA,C,2,15,0,4,NA
 2,C,3,9,VERO,T,1,15,0,7,NA
 2,C,4,1,LARO,E,2,15,0,7,NA
-2,C,4,2,HYGL,E,3,15,0,0,NA
+2,C,4,2,HYGL,T,2,15,0,0,NA
 2,C,4,3,VERO,C,2,15,0,10,"Pod broke off, four seeds"
 2,C,4,4,ARCA,C,1,15,0,4,NA
 2,C,4,5,VERO,T,2,15,0,8,NA

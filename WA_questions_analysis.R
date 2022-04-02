@@ -24,23 +24,17 @@ my_theme <- theme(axis.title.x = element_text(size = 14, face = 'bold'),
                   legend.title = element_blank())
 #Data imported from data preparation sheet
 source("data_preparation.R")
-#dataall has everything (germination, survival, seed production and neighbour info) combined
-
+#dataall has survival, seed production and neighbour info combined
 ## Note that germination analysis is separate, in germination_analysis.R
 
 #### Is neighbour abundance correlated with abiotic environmental factors? ####
 glimpse(dataall)
 #Worried about neighbour 0 count being assigned to things that weren't surveyed
-# did I survey the plots that never germinated? hm...
 #dataall is only the subplots that germinated
 #dataall has rows for subplots that germinated but died before surveying communities
-#1728 subplots sown.
+#1728 subplots sown. Think I have mortality data for 1140 subplots, surveys for 1057 subplots
 #Just need to check why some plots weren't surveyed - I thought I surveyed everything that germinated
-# 53 rows
-#test <- surveydataraw %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
-#  filter(row_number() ==1)
-# everything that died, regardless of when, I went back and surveyed
-# did not survey subplots that never germinated
+#test <- anti_join(mortalitydatatrim, surveytrim) #107 rows
 hist(dataall$Total_abundance)
 hist(log(dataall$Total_abundance+1))
 #dataset with neighbours only

@@ -266,7 +266,7 @@ Site,Plot,Row,Column,Species,C_E_or_T,Rep,No_germinated,Survival,Neighbours,Date
 2,B,9,7,VERO,C,1,6,1,,,
 2,B,9,8,LARO,E,3,5,1,,,
 2,B,10,1,HYGL,E,3,5,0,0,4/09/2020,Swap
-2,B,10,2,HYGL,E,3,5,0,1,1/08/2020,
+2,B,10,2,HYGL,T,1,5,0,1,1/08/2020,Swap
 2,B,10,3,POLE,C,1,5?,0,1,1/08/2020,
 2,B,10,4,HYGL,E,2,1,0,1,1/08/2020,
 2,B,10,6,PEAI,T,2,7,0,1,Checklist,Not thinned
