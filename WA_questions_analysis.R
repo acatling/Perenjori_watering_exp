@@ -24,28 +24,34 @@ my_theme <- theme(axis.title.x = element_text(size = 14, face = 'bold'),
                   legend.title = element_blank())
 #Data imported from data preparation sheet
 source("data_preparation.R")
-#dataall has survival, seed production and neighbour info combined
+#vitaldata has all datasets combined 
+# germination, survival, seed production, neighbour info, traits, abiotic factors
+# one row per subplot with seeds sown - NAs are very important since, e.g. survival info is only on germinated subplots
+#1614 subplots with germination data (1171 germinated)
+#1139* subplots with survival data (1171 have surv_to_produce_seeds data, 1139 from survtomerge, mortalitydataraw 1164)
+#653 subplots with seed production data
+#1057 subplots with neighbourhood surveys done (517 have neighbours)
+
 ## Note that germination analysis is separate, in germination_analysis.R
+## Note that neighbour abundance and PC2 are correlated, so will not model them together
 
 #### Is neighbour abundance correlated with abiotic environmental factors? ####
-glimpse(dataall)
-#Worried about neighbour 0 count being assigned to things that weren't surveyed
-#dataall is only the subplots that germinated
-#dataall has rows for subplots that germinated but died before surveying communities
-#1728 subplots sown. Think I have mortality data for 1140 subplots, surveys for 1057 subplots
-#Just need to check why some plots weren't surveyed - I thought I surveyed everything that germinated
+glimpse(vitaldata)
+#Check why some plots weren't surveyed - I thought I surveyed everything that germinated
 #test <- anti_join(mortalitydatatrim, surveytrim) #107 rows
-hist(dataall$Total_abundance)
-hist(log(dataall$Total_abundance+1))
+hist(vitaldata$Total_abundance)
+hist(log(vitaldata$Total_abundance+1))
 #dataset with neighbours only
-datanonly <- dataall %>% filter(Total_abundance > 0)
+datanonly <- vitaldata %>% filter(Total_abundance > 0)
 hist(datanonly$Total_abundance)
 hist(log(datanonly$Total_abundance+1))
+#hist(vitaldata$Total_abundance[vitaldata$Total_abundance > 0])
+#hist(log(vitaldata$Total_abundance[vitaldata$Total_abundance > 0]+1))
 
-#Trying to plot them side by side as pdf
+###Trying to plot them side by side as pdf
 # All of the below variables are standardised - I don't think that matters
-#PC1
-pc1plot1 <- ggplot(dataall, aes(x = std_PC1, y = log(Total_abundance+1)))+
+##PC1
+pc1plot1 <- ggplot(vitaldata, aes(x = std_PC1, y = log(Total_abundance+1)))+
   geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
   geom_smooth(method="lm")+
   ylab("log(Neighbour abundance + 1)")+
@@ -58,8 +64,8 @@ pc1plot2 <- ggplot(datanonly, aes(x = std_PC1, y = log(Total_abundance+1)))+
 #Testing marginal histogram plot or marginal density plot
 ggMarginal(pc1plot2)
 ggMarginal(pc1plot2, type = "histogram")
-#PC2
-pc2plot1 <- ggplot(dataall, aes(x = std_PC2, y = log(Total_abundance+1)))+
+##PC2
+pc2plot1 <- ggplot(vitaldata, aes(x = std_PC2, y = log(Total_abundance+1)))+
   geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
   geom_smooth(method="lm")+
   ylab("log(Neighbour abundance + 1)")+
@@ -69,8 +75,16 @@ pc2plot2 <- ggplot(datanonly, aes(x = std_PC2, y = log(Total_abundance+1)))+
   geom_smooth(method="lm")+
   ylab("")+
   theme_classic()
-#Water availability
-waterplot1 <- ggplot(dataall, aes(x = Treatment, y = log(Total_abundance+1)))+
+##Water availability
+#Reordering watering treatments to  Dry, Ambient, Wet
+datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
+vitaldata$Treatment <- factor(vitaldata$Treatment, level = c("Dry", "Ambient", "Wet"))
+#Rename Control watering treatment to Ambient
+datanonly <- datanonly %>% mutate(Treatment = recode(Treatment, Control = 'Ambient'))
+#Reorder watering treatments to  Dry, Ambient, Wet
+datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
+
+waterplot1 <- ggplot(vitaldata, aes(x = Treatment, y = log(Total_abundance+1)))+
   geom_boxplot()+
   geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
   ylab("log(Neighbour abundance + 1)")+
@@ -116,13 +130,8 @@ modelabundwater <- aov(log(Total_abundance+1) ~ Treatment, datanonly)
 summary(modelabundwater)
 TukeyHSD(modelabundwater)
 
-## More plots
-#Rename Control watering treatment to Ambient
-datanonly <- datanonly %>% mutate(Treatment = recode(Treatment, Control = 'Ambient'))
-#Reorder watering treatments to  Dry, Ambient, Wet
-datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
-
-#Plotting PC1 vs abund for watering treatments
+### More plots
+##Plotting PC1 vs abund for watering treatments
 waterpc1plot <- ggplot(datanonly, aes(x = std_PC1, y = logp1_totalabund))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
   geom_smooth()+
@@ -130,7 +139,7 @@ waterpc1plot <- ggplot(datanonly, aes(x = std_PC1, y = logp1_totalabund))+
   theme_classic()+
   my_theme+
   facet_wrap(~Treatment)
-#Plotting PC2 vs abund for watering treatments
+##Plotting PC2 vs abund for watering treatments
 waterpc2plot <- ggplot(datanonly, aes(x = std_PC2, y = logp1_totalabund))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
   geom_smooth()+
@@ -145,20 +154,20 @@ dev.off()
 
 ### Are PC1 and PC2 correlated? ####
 #Only want one data point per plot
-plotvar <- dataall %>% group_by(Site, Plot) %>% filter(row_number() == 1)
+plotvar <- vitaldata %>% group_by(Site, Plot) %>% filter(row_number() == 1)
 ggplot(plotvar, aes(x = std_PC1, y = std_PC2))+
   geom_jitter(width = 0.05, height = 0.05)+
-  geom_smooth(method="lm")+
+  geom_smooth()+
   theme_classic()
 modpc1pc2 <- lm(std_PC2 ~ std_PC1, plotvar)
 summary(modpc1pc2)
 ### How is neighbour abundance distributed across species across abiotic env? ####
-sppc1abund <- ggplot(dataall, aes(x = std_PC1, y = logp1_totalabund))+
+sppc1abund <- ggplot(vitaldata, aes(x = std_PC1, y = logp1_totalabund))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
   ylab("log(Neighbour abundance + 1)")+
   theme_classic()+
   facet_wrap(~Species)
-sppc2abund <- ggplot(dataall, aes(x = std_PC2, y = logp1_totalabund))+
+sppc2abund <- ggplot(vitaldata, aes(x = std_PC2, y = logp1_totalabund))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
   ylab("log(Neighbour abundance + 1)")+
   theme_classic()+
@@ -176,20 +185,24 @@ dev.off()
 #### Question 1 relative importance A. and B. factors####
 ##What is the relative importance of abiotic and biotic factors for survival and fecundity?
 #Additive model: response ~ total_abundance + water + PC1 + PC2 + PC3 + RE
-#See Q1 - Survival and Q1 - Viable seed production
 ### Q1 - Survival to produce seeds ####
+
+# There are 129 subplots that do not have total_abundance information but did germinate
+# And 82 subplots that weren't surveyed but germinated...?
+
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 for (i in 1:length(specieslist)){
   print(specieslist[i])
-  survival <- glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
-                  (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  survival <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + (1|Site/Plot),
+                  family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   print(summary(survival))
 }
+
 # ###Putting models into a list for coef plotting
 # survivalmodels <- list()
 # for (i in 1:length(specieslist)){
-#   survivalmodels[[i]] <- glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + std_PC3 + Dodder01 +
-#                                  (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]))
+#   survivalmodels[[i]] <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + std_PC3 + Dodder01 +
+#                                  (1|Site/Plot), family = binomial, data = filter(vitaldata, Species == specieslist[i]))
 # }
 # #Making coefficient plot for survival as a function of environment
 # plot_models(survivalmodels, transform = NULL, vline.color = "grey", legend.title = "Species",
@@ -201,8 +214,8 @@ for (i in 1:length(specieslist)){
 #Running it with this bobqya optimiser so that vero converges
 for (i in 1:length(specieslist)){
   nam <- paste0("survmod", specieslist[i])
-  assign(nam, glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
-                      (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + (1|Site/Plot),
+                      family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 }
 
 #ARCA survival model, model created in loop above
@@ -254,12 +267,12 @@ plot_models(survmodels, transform = NULL, vline.color = "grey", legend.title = "
 
 # #Plots of significant with neighbour abundance (ARCA and TROR)
 # par(mfrow=c(2,1))
-# x_to_plot<-seq.func(dataall$std_logp1_totalabund)
-# with(arcadata, plot(ProducedSeeds ~ std_logp1_totalabund))
+# x_to_plot<-seq.func(vitaldata$std_logp1_totalabund)
+# with(arcadata, plot(surv_to_produce_seeds ~ std_logp1_totalabund))
 # arcapreddata <- with(arcadata, data.frame(1, x_to_plot, 0, 0, 0, 0, 0, 0))
 # arcapred <- glmm.predict(mod = survmodARCA, newdat = arcapreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 # plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
-# with(trordata, plot(ProducedSeeds ~ std_logp1_totalabund))
+# with(trordata, plot(surv_to_produce_seeds ~ std_logp1_totalabund))
 # trorpreddata <- with(trordata, data.frame(1, x_to_plot, 0, 0, 0, 0, 0))
 # trorpred <- glmm.predict(mod = trorsurvmod2, newdat = trorpreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 # plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
@@ -274,11 +287,11 @@ par(pty="s")
 species.list.s<-list(arcadata, hygldata, larodata, peaidata, pldedata, poledata, trcydata, trordata, verodata)
 for(i in 1:length(species.list.s)){
   plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$ProducedSeeds~plotted.data$std_PC1, pch=19, col="grey60", ylab="Survival rate", xlab="", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_PC1, pch=19, col="grey60", ylab="Survival rate", xlab="", cex.lab=2, cex.axis=2.00,tck=-0.01)
   mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
   title(xlab = "PC1", cex.lab=2)
   title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
-  model<-glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+  model<-glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                  (1|Site/Plot), family = binomial, data = plotted.data, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   x_to_plot<-seq.func(plotted.data$std_PC1)
   preddata <- with(model, data.frame(1, 0, 0, 0, x_to_plot, 0, 0))
@@ -297,9 +310,9 @@ par(pty="s")
 species.list.s<-list(arcadata, hygldata, larodata, peaidata, pldedata, poledata, trcydata, trordata, verodata)
 for(i in 1:length(species.list.s)){
   plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$ProducedSeeds~plotted.data$std_PC1, pch=19, col="grey60", ylab="", xlab="", cex = 3, cex.lab=3, cex.axis=3,tck=-0.02, alpha = 0.4, axes = 'FALSE', frame.plot = TRUE)
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_PC1, pch=19, col="grey60", ylab="", xlab="", cex = 3, cex.lab=3, cex.axis=3,tck=-0.02, alpha = 0.4, axes = 'FALSE', frame.plot = TRUE)
   title(main=bquote(italic(.(species.name.list[i]))), cex.main=4)
-  model<-glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+  model<-glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                  (1|Site/Plot), family = binomial, data = plotted.data, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   x_to_plot<-seq.func(plotted.data$std_PC1)
   preddata <- with(model, data.frame(1, 0, 0, 0, x_to_plot, 0, 0))
@@ -318,8 +331,8 @@ specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR",
 #Need optimiser for convergence
 for (i in 1:length(specieslist)){
   print(specieslist[i])
-  survivalabiotic <- glmer(ProducedSeeds ~ Treatment + std_PC1 + std_PC2 +
-                      (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  survivalabiotic <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 +
+                      (1|Site/Plot), family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   print(summary(survivalabiotic))
 }
 
@@ -510,22 +523,22 @@ dev.off()
 ## Do species-level leaf traits explain responses to environment?
 ##Starting with simple example. Does SLA modulate the respones of survival to PC1?
 ### Survival models
-survpc1sla <- glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_SLA + 
+survpc1sla <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_SLA + 
                       std_PC1:std_log_SLA + std_logp1_totalabund:std_log_SLA + std_PC2:std_log_SLA + Treatment:std_log_SLA +
-                      (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, dataall, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+                      (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, vitaldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 summary(survpc1sla)
-survpc1ldmc <- glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_LDMC + 
+survpc1ldmc <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_LDMC + 
                        std_PC1:std_LDMC + std_logp1_totalabund:std_LDMC + std_PC2:std_LDMC + Treatment:std_LDMC +
-                       (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, dataall, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+                       (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, vitaldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 summary(survpc1ldmc)
-survpc1D13C <- glmer(ProducedSeeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_D13C + 
+survpc1D13C <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_D13C + 
                        std_PC1:std_log_D13C + std_logp1_totalabund:std_log_D13C + std_PC2:std_log_D13C + Treatment:std_log_D13C +
-                       (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, dataall, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+                       (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, vitaldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
 summary(survpc1D13C)
 
-with(dataall, plot(ProducedSeeds ~ std_log_D13C))
-x_to_plot<-seq.func(dataall$std_log_D13C)
-wuepreddata <- with(dataall, data.frame(1, 0, x_to_plot, 0*x_to_plot))
+with(vitaldata, plot(surv_to_produce_seeds ~ std_log_D13C))
+x_to_plot<-seq.func(vitaldata$std_log_D13C)
+wuepreddata <- with(vitaldata, data.frame(1, 0, x_to_plot, 0*x_to_plot))
 wuepred <- glmm.predict(mod = survpc1wue, newdat = wuepreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = wuepred$y, upper = wuepred$upper, lower = wuepred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 
@@ -647,11 +660,11 @@ diversitydata <- diversitydata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) 
 diversitydata <- within(diversitydata, SDI[is.na(SDI)] <-  '0')
 diversitydata <- diversitydata %>% filter(row_number() == 1)
 diversitytomerge <- diversitydata %>% select(Site, Plot, Species, C_E_or_T, Rep, sp_richness, SDI)
-#dataall 1152 seedmortality
+#vitaldata 1152 seedmortality
 #diversitytomerge 1130 seedabundance surveytrim
-test <- anti_join(dataall, diversitytomerge)
+test <- anti_join(vitaldata, diversitytomerge)
 #gives 53 rows - None have seeds
-test2 <- anti_join(diversitytomerge, dataall)
+test2 <- anti_join(diversitytomerge, vitaldata)
 #gives 34 rows - 6 unknowns,
 test3 <- diversitydata %>% filter(Rep == "4")
 
@@ -680,14 +693,14 @@ for (i in 1:length(specieslist)){
 # One failed to converge
 
 ##By species for survival
-arcatestmod1 <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, arcadata)
+arcatestmod1 <- glmer(surv_to_produce_seeds ~ 1 + (1|Site/Plot), family = binomial, arcadata)
 summary(arcatestmod1)
 vca_func(arcatestmod1)
 #Tells me that 55% of the variation in survival is among plots within blocks. 
 # 45% is among blocks.
 for (i in 1:length(specieslist)){
   print(specieslist[i])
-  vca <- glmer(ProducedSeeds ~ 1 + (1|Site/Plot), family = binomial, data = filter(dataall, Species == specieslist[i]))
+  vca <- glmer(surv_to_produce_seeds ~ 1 + (1|Site/Plot), family = binomial, data = filter(vitaldata, Species == specieslist[i]))
   print(summary(vca))
   print(vca_func(vca))
 }
