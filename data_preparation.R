@@ -159,7 +159,7 @@ neighbourabundance <- surveydatafixed %>% group_by(Site, Plot, Species, C_E_or_T
 surveyabundance <- left_join(surveydatafixed, neighbourabundance)
 #Making a column for whether or not Dodder was present in subplot (1 = yes, 0 = no)
 #Then filtering to one row per subplot
-#Creating the below dataframe seedabundancerows to use later
+#Creating the below dataframe surveyabundancerows to use later
 surveyabundancerows <- surveyabundance
 surveyabundance <- surveyabundance %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
                   mutate(Dodder01 = case_when(any(Neighbour_sp == "Dodder") ~ "1",
@@ -176,6 +176,21 @@ surveytrim <- surveytrim %>% replace(is.na(.),0)
 #Creating dataframe with neighbour info only
 surveytrimn <- surveytrim %>% filter(Neighbours == "Yes")
 #1057 subplots, 517 of which have neighbours
+
+#### Calculating species richness and diversity ####
+#Not including dodder because we don't have an abundance count for it so can't calculate diversity inc dodder
+#Species richness
+diversitydata <- surveyabundancerows %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
+  add_tally(Neighbour_count > 0, name = "sp_richness")
+#SDI = Simpsons diversity index
+diversitydata <- diversitydata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
+  mutate(SDI_step = Neighbour_count/Total_abundance,
+         SDI_step2 = SDI_step^2,
+         SDI = 1-(sum(SDI_step2)))
+#NAs are where there are no neighbours (or just dodder). Changing SDI to 0
+diversitydata <- within(diversitydata, SDI[is.na(SDI)] <-  '0')
+diversitydata <- diversitydata %>% filter(row_number() == 1)
+diversitytomerge <- diversitydata %>% select(Site, Plot, Species, C_E_or_T, Rep, sp_richness, SDI)
 
 ############### Soil/abiotic data #####
 soildata <- read_csv("Data/soil_analysis_2020.csv")
@@ -304,6 +319,8 @@ vitaldata <- left_join(vitaldata, traitdata)
 #1057 rows with neighbourhood surveys done
 vitaldata <- left_join(vitaldata, surveytrim, by = c("Site", "Plot", "Species", "C_E_or_T", "Rep"))
 # Subplots in surveytrim that aren't in vitaldata: 1 A LARO T1 (fixed, check), 2 B HYGL T? 1? (fixed), 2 C PLDE-POLE T 2 (fixed), 3 A NA NA NA (check later), 4 A TROR E 4 (check later)
+### Adding in diversity data from surveys
+vitaldata <- left_join(vitaldata, diversitytomerge, by = c("Site", "Plot", "Species", "C_E_or_T", "Rep"))
 
 ## Want to calculate the relevant things, e.g. Total_abundance and ProducedSeeds
 # But don't want to override NAs for subplots where it's not relevant - i.e. those that never germinated
@@ -328,7 +345,7 @@ germcalcs <- germcalcs %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
 ###Scaling the number of seeds produced across species to a percentage of maximum produced
 #Need these values to be integers for negative binomial models
 germcalcs <- germcalcs %>% group_by(Species) %>% mutate(seeds_percent = round(No_viable_seeds_grouped/max(No_viable_seeds_grouped)*100))
-germcalcstomerge <- germcalcs %>% select(Site, Plot, Species, C_E_or_T, Rep, surv_to_produce_seeds, total_germ, total_no_germ, percent_germ)
+germcalcstomerge <- germcalcs %>% select(Site, Plot, Species, C_E_or_T, Rep, surv_to_produce_seeds, total_germ, total_no_germ, percent_germ, No_viable_seeds_grouped, seeds_percent)
 #Merge back into big dataframe
 vitaltomerge <- vitaldata %>% select(-c(Notes_germination, Survival, No_viable_seeds_grouped, No_inviable_seeds_grouped))
 vitaldata <- left_join(vitaltomerge, germcalcstomerge, by =c("Site", "Plot", "Species", "C_E_or_T", "Rep"))
@@ -400,3 +417,4 @@ seedpole <- seedmodeldata %>% filter(Species == "POLE")
 seedtrcy <- seedmodeldata %>% filter(Species == "TRCY")
 seedtror <- seedmodeldata %>% filter(Species == "TROR")
 seedvero <- seedmodeldata %>% filter(Species == "VERO")
+

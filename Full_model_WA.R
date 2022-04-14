@@ -1,5 +1,5 @@
 ## Full model for WA data
-#July - October 2021
+# Updated April 2022
 
 library(tidyverse)  
 library(lme4)
@@ -8,41 +8,40 @@ library(lmerTest)
 
 #Data imported from data preparation sheet
 source("data_preparation.R")
-#dataall has everything (germination, survival, seed production and neighbour info) combined
-#datanotscaled is same dataset but without standardised predictors
+#vitaldata has everything (germination, survival, seed production and neighbour info) combined
 
+#### Do interactions between the abiotic and biotic environment determine vital rates? ####
+#Interactions between watering, PC1 and neighbour abundance
 
-### Is canopy correlated with abundance?
-
-ggplot(datanotscaled, aes(x = cc_percentage, y = log(Total_abundance+1)))+
-  geom_jitter(alpha = 0.1)+
-  geom_smooth(method = "lm")+
-  theme_classic()
-
-
-################################### MODELS ###################################
-####Survival models (ProducedSeeds as proxy) #####
+#### Survival models #####
 #Survival to seed production, yes or no
-#Note that Control watering treatment is the reference
 #Many died before the watering treatment began? Need to account for this!!!!**
 ##ARCA
-#Only one case of one intraspecific neighbour
-arcasurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, arcadata)
+#Full additive model
+arcasurv1 <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + (1|Site/Plot), family = binomial, arcadata)
 summary(arcasurv1)
-arcasurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+#Watering interacting with PC1
+arcasurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, arcadata)
 summary(arcasurv2)
+#Watering interacting with neighbour abundance
 #Warning messages
-arcasurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+arcasurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, arcadata)
 summary(arcasurv3)
-arcasurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 +  
+# PC1 interacting with neighbour abundance
+arcasurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 +  
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, arcadata)
-#Doesn't converge
-arcasurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+##Not sure if these three make sense:
+#Watering:PC1 and Watering:NA
+#Watering:NA and PC1:NA
+#Watering:PC1 and PC1:NA
+##
+#Watering interacting with PC1 and neighbour abundance (3-way)
+arcasurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, arcadata)
 summary(arcasurv5)
-arcasurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+arcasurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, arcadata)
 summary(arcasurv6)
 #Warning messages
@@ -50,21 +49,21 @@ AIC(arcasurv1, arcasurv2, arcasurv3, arcasurv5, arcasurv6)
 #arcasurv5 best fit
 
 ###hygl
-hyglsurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, hygldata)
+hyglsurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, hygldata)
 summary(hyglsurv1)
-hyglsurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+hyglsurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, hygldata)
 summary(hyglsurv2)
-hyglsurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+hyglsurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, hygldata)
 summary(hyglsurv3)
-hyglsurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + 
+hyglsurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + 
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, hygldata)
 summary(hyglsurv4)
-hyglsurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+hyglsurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, hygldata)
 #Doesn't converge
-hyglsurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+hyglsurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, hygldata)
 summary(hyglsurv6)
 AIC(hyglsurv1, hyglsurv2, hyglsurv3, hyglsurv4, hyglsurv6)
@@ -72,57 +71,57 @@ AIC(hyglsurv1, hyglsurv2, hyglsurv3, hyglsurv4, hyglsurv6)
 
 #laro
 #No intraspecific neighbours
-larosurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, larodata)
+larosurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, larodata)
 summary(larosurv1)
-larosurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+larosurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, larodata)
 summary(larosurv3)
-larosurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+larosurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, larodata)
 summary(larosurv5)
-larosurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+larosurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, larodata)
 summary(larosurv6)
 AIC(larosurv1, larosurv3, larosurv5, larosurv6)
 #larosurv1 most parsimonious
 
 #peai
-peaisurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, peaidata)
+peaisurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, peaidata)
 summary(peaisurv1)
-peaisurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+peaisurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, peaidata)
 summary(peaisurv2)
-peaisurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+peaisurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, peaidata)
 summary(peaisurv3)
-peaisurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + 
+peaisurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + 
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, peaidata)
 summary(peaisurv4)
-peaisurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+peaisurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, peaidata)
 summary(peaisurv5)
-peaisurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+peaisurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, peaidata)
 summary(peaisurv6)
 AIC(peaisurv1, peaisurv2, peaisurv3, peaisurv4, peaisurv5, peaisurv6)
 #peaisurv1 most parsimonious
 
 #plde
-pldesurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, pldedata)
+pldesurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, pldedata)
 summary(pldesurv1)
-pldesurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+pldesurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, pldedata)
 summary(pldesurv2)
-pldesurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+pldesurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, pldedata)
 summary(pldesurv3)
-pldesurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + 
+pldesurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + 
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, pldedata)
 summary(pldesurv4)
-pldesurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+pldesurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, pldedata)
 summary(pldesurv5)
-pldesurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+pldesurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, pldedata)
 summary(pldesurv6)
 AIC(pldesurv1, pldesurv2, pldesurv3, pldesurv4, pldesurv5, pldesurv6)
@@ -130,22 +129,22 @@ AIC(pldesurv1, pldesurv2, pldesurv3, pldesurv4, pldesurv5, pldesurv6)
 
 #pole
 #Only one case of intraspecific neighbours (15)
-polesurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, poledata)
+polesurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, poledata)
 summary(polesurv1)
-polesurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+polesurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, poledata)
 summary(polesurv2)
-polesurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+polesurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, poledata)
 summary(polesurv3)
-polesurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + 
+polesurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + 
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, poledata)
 summary(polesurv4)
 #Warning messages
-polesurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+polesurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, poledata)
 #Doesn't converge
-polesurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+polesurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, poledata)
 summary(polesurv6)
 #Rank deficient
@@ -153,21 +152,21 @@ AIC(polesurv1, polesurv2, polesurv3, polesurv4)
 #polesurv1 most parsimonious
 
 #trcy
-trcysurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, trcydata)
+trcysurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, trcydata)
 summary(trcysurv1)
-trcysurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+trcysurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, trcydata)
 summary(trcysurv2)
-trcysurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+trcysurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, trcydata)
 summary(trcysurv3)
-trcysurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + 
+trcysurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + 
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, trcydata)
 summary(trcysurv4)
-trcysurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+trcysurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, trcydata)
 summary(trcysurv5)
-trcysurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+trcysurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, trcydata)
 #Doesn't converge
 AIC(trcysurv1, trcysurv2, trcysurv3, trcysurv4, trcysurv5)
@@ -175,50 +174,50 @@ AIC(trcysurv1, trcysurv2, trcysurv3, trcysurv4, trcysurv5)
 
 #tror
 #Only one case of intraspecific neighbours (1)
-trorsurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, trordata)
+trorsurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, trordata)
 summary(trorsurv1)
-trorsurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+trorsurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, trordata)
 #Doesn't converge
-trorsurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+trorsurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, trordata)
 summary(trorsurv3)
-trorsurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + 
+trorsurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + 
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, trordata)
 summary(trorsurv4)
 #Warning messages
-trorsurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+trorsurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, trordata)
 summary(trorsurv5)
-trorsurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+trorsurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, trordata)
 summary(trorsurv6)
 AIC(trorsurv1, trorsurv3, trorsurv4, trorsurv5, trorsurv6)
 #trorsurv3 most parsimonious
 
 #vero
-verosurv1 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, verodata)
+verosurv1 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Total_abundance + (1|Site/Plot), family = binomial, verodata)
 summary(verosurv1)
-verosurv2 <- glmer(ProducedSeeds ~ cc_percentage + Treatment + Intra_abundance + 
+verosurv2 <- glmer(surv_to_produce_seeds ~ cc_percentage + Treatment + Intra_abundance + 
                      Inter_abundance + (1|Site/Plot), family = binomial, verodata)
 summary(verosurv2)
-verosurv3 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
+verosurv3 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + Total_abundance + 
                      (1|Site/Plot), family = binomial, verodata)
 summary(verosurv3)
-verosurv4 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment)^2 + 
+verosurv4 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment)^2 + 
                      Intra_abundance + Inter_abundance + (1|Site/Plot), family = binomial, verodata)
 summary(verosurv4)
-verosurv5 <- glmer(ProducedSeeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
+verosurv5 <- glmer(surv_to_produce_seeds ~ (cc_percentage + Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, verodata)
 summary(verosurv5)
-verosurv6 <- glmer(ProducedSeeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
+verosurv6 <- glmer(surv_to_produce_seeds ~ cc_percentage + (Treatment + Total_abundance)^2 + 
                      (1|Site/Plot), family = binomial, verodata)
 summary(verosurv6)
 AIC(verosurv1, verosurv2, verosurv3, verosurv4, verosurv5, verosurv6)
 #verosurv1 most parsimonious
 
 ############ Seed production data models ######################
-# If a plant survived to produce any seeds (whether viable or inviable), ProducedSeeds = 1
+# If a plant survived to produce any seeds (whether viable or inviable), surv_to_produce_seeds = 1
 
 ggplot(seedmodeldata, aes(x = log(No_viable_seeds_grouped+1), y = log(No_inviable_seeds_grouped+1)))+
   geom_point(aes(alpha = 0.4))+

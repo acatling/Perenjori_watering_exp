@@ -35,7 +35,7 @@ source("data_preparation.R")
 ## Note that germination analysis is separate, in germination_analysis.R
 ## Note that neighbour abundance and PC2 are correlated, so will not model them together
 
-#### Is neighbour abundance correlated with abiotic environmental factors? ####
+#### Is neighbour abundance correlated with abiotic environmental factors or diversity? ####
 glimpse(vitaldata)
 #Check why some plots weren't surveyed - I thought I surveyed everything that germinated
 #test <- anti_join(mortalitydatatrim, surveytrim) #107 rows
@@ -152,6 +152,27 @@ plot_grid(waterpc1plot, waterpc2plot, ncol = 1, labels = c("A", "B")) +
   theme(plot.margin = unit(c(1,50,1,50), "points"))
 dev.off()
 
+#### Is neighbour abundance correlated with diversity?
+# Simpson's diversity index and species richness
+ggplot(datanonly, aes(x = logp1_totalabund, y = sp_richness))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+modelabundrichness <- lm(logp1_totalabund ~ sp_richness, datanonly)
+summary(modelabundpc1)
+
+datanonly$SDI <- as.numeric(datanonly$SDI)
+ggplot(datanonly, aes(x = logp1_totalabund, y = SDI))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+modelabundrichness <- lm(logp1_totalabund ~ SDI, datanonly)
+summary(modelabundpc1)
+
 ### Are PC1 and PC2 correlated? ####
 #Only want one data point per plot
 plotvar <- vitaldata %>% group_by(Site, Plot) %>% filter(row_number() == 1)
@@ -265,7 +286,7 @@ plot_models(survmodels, transform = NULL, vline.color = "grey", legend.title = "
   theme_classic()+
   scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "POLE", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
 
-# #Plots of significant with neighbour abundance (ARCA and TROR)
+# #Plots of significant with neighbour abundance (ARCA and TROR) -- haven't updated
 # par(mfrow=c(2,1))
 # x_to_plot<-seq.func(vitaldata$std_logp1_totalabund)
 # with(arcadata, plot(surv_to_produce_seeds ~ std_logp1_totalabund))
@@ -327,33 +348,93 @@ dev.off()
 ### Surv - Quantify variance in vital rates explained by abiotic only vs biotic only ####
 ## Another way of this answering this question, instead of just looking at # of significant interactions
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
-#Abiotic only
-#Need optimiser for convergence
+### Abiotic only
 for (i in 1:length(specieslist)){
   print(specieslist[i])
-  survivalabiotic <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 +
-                      (1|Site/Plot), family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  survivalabiotic <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                           family = binomial, data = filter(vitaldata, Species == specieslist[i]))
   print(summary(survivalabiotic))
 }
 
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmod", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                          family = binomial, data = filter(vitaldata, Species == specieslist[i])))
+}
+
+summary(abioticmodARCA)
+r.squaredGLMM(abioticmodARCA)
+summary(abioticmodHYGL)
+r.squaredGLMM(abioticmodHYGL)
+summary(abioticmodLARO)
+r.squaredGLMM(abioticmodLARO)
+summary(abioticmodPEAI)
+r.squaredGLMM(abioticmodPEAI)
+summary(abioticmodPLDE)
+r.squaredGLMM(abioticmodPLDE)
+summary(abioticmodPOLE)
+r.squaredGLMM(abioticmodPOLE)
+summary(abioticmodTRCY)
+r.squaredGLMM(abioticmodTRCY)
+summary(abioticmodTROR)
+r.squaredGLMM(abioticmodTROR)
+summary(abioticmodVERO)
+r.squaredGLMM(abioticmodVERO)
+
+### Biotic only
+# Need optimiser to converge
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalbiotic <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
+                          family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  print(summary(survivalbiotic))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmod", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 +(1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+
+summary(bioticmodARCA)
+r.squaredGLMM(bioticmodARCA)
+summary(bioticmodHYGL)
+r.squaredGLMM(bioticmodHYGL)
+summary(bioticmodLARO)
+r.squaredGLMM(bioticmodLARO)
+summary(bioticmodPEAI)
+r.squaredGLMM(bioticmodPEAI)
+summary(bioticmodPLDE)
+r.squaredGLMM(bioticmodPLDE)
+summary(bioticmodPOLE)
+r.squaredGLMM(bioticmodPOLE)
+summary(bioticmodTRCY)
+r.squaredGLMM(bioticmodTRCY)
+summary(bioticmodTROR)
+r.squaredGLMM(bioticmodTROR)
+summary(bioticmodVERO)
+r.squaredGLMM(bioticmodVERO)
 
 ##################################################################
 ### Q1 - Viable seed production #####
+# Should I use No_viable_seeds_grouped or seeds_percent???
 #Using No_viable_seeds_grouped for individual species models
 #and seeds_percent for trait models
-#trcy doesn't converge with No_viable_seeds_grouped
-#Same results both ways
+
+# optimiser 
+#control = glmmTMBControl(optCtrl=list(iter.max=1e3,eval.max=1e3))
+
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 for (i in 1:length(specieslist)){
   print(specieslist[i])
-  fecundity <- glmmTMB(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+  fecundity <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                       (1|Site/Plot), family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
   print(summary(fecundity))
 }
 #Assigning model names by species
 for (i in 1:length(specieslist)){
   nam <- paste0("seedmod", specieslist[i])
-  assign(nam, glmmTMB(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                       (1|Site/Plot), family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
 }
 #Checking residuals
@@ -372,12 +453,12 @@ summary(seedmodPEAI)
 PLDEseeddharma <- simulateResiduals(seedmodPLDE)
 plot(PLDEseeddharma)
 summary(seedmodPLDE)
-# POLE unhappy. Need to try simpler model 
-#or don't run it for this vital rate. Just not enough data??
-# Only one occurrence of Dodder. Not a lot of neighbour data, but nor does ARCA
 POLEseeddharma <- simulateResiduals(seedmodPOLE)
 plot(POLEseeddharma)
 summary(seedmodPOLE)
+# POLE unhappy. Need to try simpler model 
+#or don't run it for this vital rate. Just not enough data??
+# Only one occurrence of Dodder. Not a lot of neighbour data, but nor does ARCA
 testDispersion(POLEseeddharma)
 #Underdispersed! 
 testZeroInflation(POLEseeddharma)
@@ -385,7 +466,7 @@ testZeroInflation(POLEseeddharma)
 #Trying a Conway-Maxwell-Poisson distribution (good for underdispersion)
 #Needs to be within glmmTMB to have random effects
 library(mpcmp)
-poleseedmod3 <- glmmTMB(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+poleseedmod3 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                           (1|Site/Plot), family = compois, data = seedpole)
 summary(poleseedmod3)
 POLEseeddharma3 <- simulateResiduals(poleseedmod3)
@@ -406,12 +487,9 @@ plot(POLEseeddharma2)
 TRCYseeddharma <- simulateResiduals(seedmodTRCY)
 plot(TRCYseeddharma)
 summary(seedmodTRCY)
-#Doesn't converge with no_viable_seeds_grouped
-#Seeing if it converges with an optimiser - no.
-#control = glmmTMBControl(optCtrl=list(iter.max=1e3,eval.max=1e3))
-trcyseedmod2 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
-                          (1|Site/Plot), family = nbinom2, data = seedtrcy)
-summary(trcyseedmod2)
+# trcyseedmod2 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+#                           (1|Site/Plot), family = nbinom2, data = seedtrcy)
+#summary(trcyseedmod2)
 TRORseeddharma <- simulateResiduals(seedmodTROR)
 plot(TRORseeddharma)
 summary(seedmodTROR)
@@ -495,7 +573,6 @@ dev.off()
 #arcapred <- glmm.predict(mod = arcaseedmod1, newdat = arcapreddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 #plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
 
-
 #Simpler version for ESA presentation:
 #Points for seeds_percent and no_viable seeds in same place!
 dev.off()
@@ -521,7 +598,7 @@ dev.off()
 
 ##### Question 2 traits explaining responses ####
 ## Do species-level leaf traits explain responses to environment?
-##Starting with simple example. Does SLA modulate the respones of survival to PC1?
+##Starting with simple example. Does SLA modulate the responses of survival to PC1?
 ### Survival models
 survpc1sla <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_SLA + 
                       std_PC1:std_log_SLA + std_logp1_totalabund:std_log_SLA + std_PC2:std_log_SLA + Treatment:std_log_SLA +
@@ -645,42 +722,28 @@ abline(h=0, lty=3, lwd=2)
 ## NEED TO UPDATE MY MODIFIERS OF SLOPES FROM MY BIG MODEL 
 # everything that is interacting with SLA!
 
-########### Haven't updated anything below here ###########
-#### Calculating species richness and diversity ####
-#Not including dodder because we don't have an abundance count for it so can't calculate diversity inc dodder
-#Species richness
-diversitydata <- seedabundancerows %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>%
-  add_tally(Neighbour_count > 0, name = "sp_richness")
-#SDI = Simpsons diversity index
-diversitydata <- diversitydata %>% group_by(Site, Plot, Species, C_E_or_T, Rep) %>% 
-    mutate(SDI_step = Neighbour_count/Total_abundance,
-           SDI_step2 = SDI_step^2,
-          SDI = 1-(sum(SDI_step2)))
-#NAs are where there are no neighbours (or just dodder). Changing SDI to 0
-diversitydata <- within(diversitydata, SDI[is.na(SDI)] <-  '0')
-diversitydata <- diversitydata %>% filter(row_number() == 1)
-diversitytomerge <- diversitydata %>% select(Site, Plot, Species, C_E_or_T, Rep, sp_richness, SDI)
-#vitaldata 1152 seedmortality
-#diversitytomerge 1130 seedabundance surveytrim
-test <- anti_join(vitaldata, diversitytomerge)
-#gives 53 rows - None have seeds
-test2 <- anti_join(diversitytomerge, vitaldata)
-#gives 34 rows - 6 unknowns,
-test3 <- diversitydata %>% filter(Rep == "4")
-
 ### John's code to calculate variance components in models ####
 #March 2022
+## Have not updated these summaries since updating data_preparation file
+
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 ##By species for germination
-#Is having (1|id) as a random effect legitimate? Can't remember
-#I have this for my other germination models
 for (i in 1:length(specieslist)){
   print(specieslist[i])
   vca <- glmer(cbind(total_germ, total_no_germ) ~ 1 + (1|Site/Plot), 
-            family = binomial, data = filter(germdata, Species == specieslist[i]))
+            family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   print(summary(vca))
   print(vca_func(vca))
 }
+#POLE 0
+#pole had extremely low germination
+polevarmod <- glmer(cbind(total_germ, total_no_germ) ~ 1 + (1|Site/Plot), 
+                    family = binomial, data = poledata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+polevarmoddharma <- simulateResiduals(polevarmod)
+plot(polevarmoddharma)
+summary(polevarmod)
+vca_func(polevarmod)
+
 #ARCA 90% of variation in germination in among plots within blocks, 10% among blocks
 #HYGL 52% among plots, 48% among blocks
 #LARO 34% among plots, 66% among blocks
@@ -724,6 +787,8 @@ for (i in 1:length(specieslist)){
 #VERO 51% among plots, 49% among blocks
 #Convergence issues
 
+
+########### Haven't updated anything below here ###########
 ### Various working out below (what works is above) ######
 #Creating a dataframe with SLA data, my code;
 speciessla <- seedmodeldata %>% select("Species", "std_log_SLA") %>% filter(row_number() == 1)
