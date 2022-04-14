@@ -392,7 +392,10 @@ vitaldata$std_logp1_intraabund <- scale(vitaldata$logp1_intraabund, center = TRU
 vitaldata$surv_to_produce_seeds <- as.numeric(vitaldata$surv_to_produce_seeds)
 
 #Renaming Control watering treatment to Ambient
-vitaldata <- vitaldata %>% mutate(Treatment = recode(Treatment, Control = 'Ambient'))
+vitaldata <- within(vitaldata, Treatment[Treatment == 'Control'] <- 'Ambient')
+
+## Need SDI to be numeric
+vitaldata$SDI <- as.numeric(vitaldata$SDI)
 
 #Splitting data by species
 arcadata <- vitaldata %>% filter(Species == "ARCA")

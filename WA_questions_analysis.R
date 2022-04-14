@@ -1,6 +1,6 @@
 ### Answering my specific questions
 # WA Perenjori 2020 Watering Experiment
-#Updated 22/03/22
+#Updated April 22
 
 #### Loading packages and data ####
 library(ggplot2)
@@ -12,6 +12,7 @@ library(glmmTMB)
 library(gridExtra)
 library(ggExtra)
 library(cowplot)
+library(car)
 
 #Functions file
 source("R_functions/functions.R")
@@ -35,7 +36,6 @@ source("data_preparation.R")
 ## Note that germination analysis is separate, in germination_analysis.R
 ## Note that neighbour abundance and PC2 are correlated, so will not model them together
 
-#### Is neighbour abundance correlated with abiotic environmental factors or diversity? ####
 glimpse(vitaldata)
 #Check why some plots weren't surveyed - I thought I surveyed everything that germinated
 #test <- anti_join(mortalitydatatrim, surveytrim) #107 rows
@@ -45,9 +45,15 @@ hist(log(vitaldata$Total_abundance+1))
 datanonly <- vitaldata %>% filter(Total_abundance > 0)
 hist(datanonly$Total_abundance)
 hist(log(datanonly$Total_abundance+1))
-#hist(vitaldata$Total_abundance[vitaldata$Total_abundance > 0])
-#hist(log(vitaldata$Total_abundance[vitaldata$Total_abundance > 0]+1))
 
+#Reordering watering treatments to  Dry, Ambient, Wet
+datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
+vitaldata$Treatment <- factor(vitaldata$Treatment, level = c("Dry", "Ambient", "Wet"))
+datanonly$SDI <- as.numeric(datanonly$SDI)
+
+specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
+
+#### Is neighbour abundance correlated with abiotic environmental factors or diversity? ####
 ###Trying to plot them side by side as pdf
 # All of the below variables are standardised - I don't think that matters
 ##PC1
@@ -75,15 +81,8 @@ pc2plot2 <- ggplot(datanonly, aes(x = std_PC2, y = log(Total_abundance+1)))+
   geom_smooth(method="lm")+
   ylab("")+
   theme_classic()
-##Water availability
-#Reordering watering treatments to  Dry, Ambient, Wet
-datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
-vitaldata$Treatment <- factor(vitaldata$Treatment, level = c("Dry", "Ambient", "Wet"))
-#Rename Control watering treatment to Ambient
-datanonly <- datanonly %>% mutate(Treatment = recode(Treatment, Control = 'Ambient'))
-#Reorder watering treatments to  Dry, Ambient, Wet
-datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
 
+##Water availability
 waterplot1 <- ggplot(vitaldata, aes(x = Treatment, y = log(Total_abundance+1)))+
   geom_boxplot()+
   geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
@@ -152,7 +151,11 @@ plot_grid(waterpc1plot, waterpc2plot, ncol = 1, labels = c("A", "B")) +
   theme(plot.margin = unit(c(1,50,1,50), "points"))
 dev.off()
 
-#### Is neighbour abundance correlated with diversity?
+#### Does the diversity of neighbours influence vital rates? ####
+# Can only look at this in subplots that have neighbours, otherwise data are zero conflated with respect to SDI and neighbour abundance
+#datanonly is vitaldata filtered to Total_abundance > 0 
+
+### Is neighbour abundance correlated with diversity?
 # Simpson's diversity index and species richness
 ggplot(datanonly, aes(x = logp1_totalabund, y = sp_richness))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
@@ -161,9 +164,8 @@ ggplot(datanonly, aes(x = logp1_totalabund, y = sp_richness))+
   my_theme
 
 modelabundrichness <- lm(logp1_totalabund ~ sp_richness, datanonly)
-summary(modelabundpc1)
+summary(modelabundrichness)
 
-datanonly$SDI <- as.numeric(datanonly$SDI)
 ggplot(datanonly, aes(x = logp1_totalabund, y = SDI))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
   geom_smooth()+
@@ -172,6 +174,485 @@ ggplot(datanonly, aes(x = logp1_totalabund, y = SDI))+
 
 modelabundrichness <- lm(logp1_totalabund ~ SDI, datanonly)
 summary(modelabundpc1)
+
+#Create a model per species
+# Survival
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survival <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                    family = binomial, data = filter(datanonly, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  print(summary(survival))
+}
+#POLE didn't converge, it doesn't have much data at all with neighbours
+#TRCY significant positive response to SDI, huge estimate
+# TROR significant positive response to SDI too
+##########
+#13/04
+
+#Watering*N*Cover
+## With quadratic
+# surv_to_produce_seeds ~ std_PC1 + I(std_PC1^2)
+#x is std_PC1
+#cbind // plogis // 1 - int, x for PC1, x^2
+# (1, x, x^2)
+
+### Looking at distribution of data - linear or quadratic? ####
+#Meeting with John 13/03
+# for loops
+species.list.s<-list(arcadata, hygldata, larodata, peaidata, pldedata, poledata, trcydata, trordata, verodata)
+species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+
+## Germination ##
+arcasimplemod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, arcadata)
+summary(arcasimplemod)
+plot(percent_germ ~ std_PC1, arcadata)
+curve(exp(cbind(1, x, x^2)%*%fixef(arcasimplemod)), add = T)
+title(main = "ARCA")
+
+### Germination, PC1
+dev.off()
+pdf("Output/Figures/germ_PC1_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$percent_germ~plotted.data$std_PC1, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_PC1) 
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+### Survival, PC2
+dev.off()
+pdf("Output/Figures/germ_PC2_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$percent_germ~plotted.data$std_PC2, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmer(cbind(total_germ, total_no_germ)~std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = binomial, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_PC2) 
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+### Survival, neighbour abundance
+dev.off()
+pdf("Output/Figures/germ_NA_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$percent_germ~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmer(cbind(total_germ, total_no_germ)~std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = binomial, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_logp1_totalabund) 
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+## Survival ##
+#ARCA
+arcasimplemod <- glmer(surv_to_produce_seeds ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, arcadata)
+summary(arcasimplemod)
+plot(surv_to_produce_seeds ~ std_PC1, arcadata)
+curve(exp(cbind(1, x, x^2)%*%fixef(arcasimplemod)), add = T)
+title(main = "ARCA")
+
+
+#Loop all species
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  mod <- glmer(surv_to_produce_seeds ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), 
+                  family = binomial, data = filter(datanonly, Species == specieslist[i]))
+  print(summary(mod))
+  plot(surv_to_produce_seeds ~ std_PC1, data = filter(vitaldata, Species == specieslist[i]))
+  curve(exp(cbind(1, x, x^2)%*%fixef(mod)), add = T)
+  title(main = specieslist[i])
+}
+### Survival, PC1
+dev.off()
+pdf("Output/Figures/Surv_PC1_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_PC1, pch=19, col="grey60", ylab="Probability of survival", xlab="PC1", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmer(surv_to_produce_seeds ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_PC1)
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+### Survival, PC2
+dev.off()
+pdf("Output/Figures/Surv_PC2_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_PC2, pch=19, col="grey60", ylab="Probability of survival", xlab="PC1", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmer(surv_to_produce_seeds ~ std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = binomial, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_PC2)
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+### Survival, neighbour abundance
+dev.off()
+pdf("Output/Figures/Surv_NA_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Probability of survival", xlab="PC1", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmer(surv_to_produce_seeds ~ std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = binomial, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_logp1_totalabund)
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+
+## Seed production ##
+##Seed production ~ PC1
+#ARCA
+arcasimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), arcadata)
+summary(arcasimplemod)
+plot(No_viable_seeds_grouped ~ std_PC1, arcadata)
+curve(exp(cbind(1, x, x^2)%*%fixef(arcasimplemod)), add = T)
+title(main = "ARCA")
+
+#PEAI
+peaisimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), peaidata)
+summary(peaisimplemod)
+plot(No_viable_seeds_grouped ~ std_PC1, peaidata)
+curve(exp(cbind(1, x, x^2)%*%fixef(peaisimplemod)), add = T)
+title(main = "PEAI")
+
+# With a loop
+#Need to use glmmTMB, getting model convergence issues using glmer.nb (2) and optimiser (1)
+#Species list ARCA, HYGL, etc.
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  mod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), 
+                 data = filter(datanonly, Species == specieslist[i]))
+  print(summary(mod))
+  plot(No_viable_seeds_grouped ~ std_PC1, data = filter(vitaldata, Species == specieslist[i]))
+  curve(exp(cbind(1, x, x^2)%*%fixef(mod)), add = T)
+  title(main = specieslist[i])
+}
+
+#One didn't converge, figuring out which
+arcasimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), arcadata)
+hyglsimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), hygldata)
+larosimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), larodata)
+peaisimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), peaidata)
+pldesimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), pldedata)
+polesimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), poledata)
+trcysimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), trcydata)
+trorsimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), trordata)
+#TROR not converging
+trorsimplemod <- glmmTMB(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = nbinom2, trordata)
+verosimplemod <- glmer.nb(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), verodata)
+# VERO not converging
+verosimplemod <- glmmTMB(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = nbinom2, trordata)
+ggplot(trordata, aes(x = std_PC1, y = No_viable_seeds_grouped))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+### Seed production, PC1
+dev.off()
+pdf("Output/Figures/SP_PC1_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$No_viable_seeds_grouped~plotted.data$std_PC1, pch=19, col="grey60", ylab="Number of viable seeds", xlab="PC1", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmmTMB(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = nbinom2, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_PC1)
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+#Check what is happening with POLE, confidence interval is entire plot
+polesimplemod <- glmmTMB(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = nbinom2, poledata)
+summary(polesimplemod)
+polesimplemoddharma <- simulateResiduals(polesimplemod)
+plot(polesimplemoddharma)
+#very bad residual plot
+
+### Seed production, PC2
+dev.off()
+pdf("Output/Figures/SP_PC2_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$No_viable_seeds_grouped~plotted.data$std_PC2, pch=19, col="grey60", ylab="Number of viable seeds", xlab="PC2", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmmTMB(No_viable_seeds_grouped ~ std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = nbinom2, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_PC2)
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+### Seed production, neighbour abundance
+dev.off()
+pdf("Output/Figures/SP_NA_quadratic.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$No_viable_seeds_grouped~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Number of viable seeds", xlab="Total neighbour abundance (standardised, log plus 1)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = nbinom2, plotted.data)
+  x_to_plot<-seq.func(plotted.data$std_logp1_totalabund)
+  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+#What is happening with pole?
+polesimplemod2 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = nbinom2, poledata)
+summary(polesimplemod2)
+polesimplemoddharma2 <- simulateResiduals(polesimplemod2)
+plot(polesimplemoddharma2)
+#bad dharma
+
+##########
+
+
+### Checking model fits and vif
+## Checking for multicollinearity in models using variance inflation factor
+# VIF over 5 is a problem
+for (i in 1:length(specieslist)){
+  nam <- paste0("SDIsurvivalmod", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                    family = binomial, data = filter(datanonly, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+
+SDIsurvivalmodARCA <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                             family = binomial, filter(datanonly, Species == 'ARCA'))
+arcaSDIsurvdharma <- simulateResiduals(SDIsurvivalmodARCA)
+plot(arcaSDIsurvdharma)
+summary(SDIsurvivalmodARCA)
+vif(SDIsurvivalmodARCA)
+
+SDIsurvivalmodHYGL <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'HYGL'))
+#test <- datanonly %>% filter(Species == 'HYGL')
+#5 B HYGL T 1 didn't germinate or have survival data but has 3 neighbours recorded, check this*
+datanonly %>% filter(Species == 'HYGL') %>%
+  ggplot(aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+hyglSDIsurvdharma <- simulateResiduals(SDIsurvivalmodHYGL)
+plot(hyglSDIsurvdharma)
+summary(SDIsurvivalmodHYGL)
+vif(SDIsurvivalmodHYGL)
+
+SDIsurvivalmodLARO <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'LARO'))
+laroSDIsurvdharma <- simulateResiduals(SDIsurvivalmodLARO)
+plot(laroSDIsurvdharma)
+summary(SDIsurvivalmodLARO)
+vif(SDIsurvivalmodLARO)
+
+#Only converges with optimiser
+SDIsurvivalmodPEAI <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'PEAI'), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+datanonly %>% filter(Species == 'PEAI') %>%
+  ggplot(aes(x = Treatment, y = surv_to_produce_seeds))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+PEAISDIsurvdharma <- simulateResiduals(SDIsurvivalmodPEAI)
+plot(PEAISDIsurvdharma)
+#dharma bit unhappy
+summary(SDIsurvivalmodPEAI)
+vif(SDIsurvivalmodPEAI)
+#vif fine
+
+SDIsurvivalmodPLDE <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'PLDE'))
+PLDESDIsurvdharma <- simulateResiduals(SDIsurvivalmodPLDE)
+plot(PLDESDIsurvdharma)
+summary(SDIsurvivalmodPLDE)
+vif(SDIsurvivalmodPLDE)
+#I think this is okay - looking at GVIF^(1/2*Df))
+
+#Won't converge, even with optimiser
+#Converges without PC2 (residuals bit unhappy, vif fine), or without Dodder (some issue), or without Treatment (dharma and vif unhappy)
+SDIsurvivalmodPOLE <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'POLE'), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+test <- vitaldata %>% filter(Species == 'POLE', surv_to_produce_seeds == 1)
+test2 <- datanonly %>% filter(Species == 'POLE')
+test3 <- vitaldata %>% filter(Species == 'POLE')
+
+#19 subplots that with or without neighbours that survived to produce seeds
+#185 subplots with or without neighbours that germinated
+#23 subplots with neighbours that germinated (survival model)
+
+vitaldata %>% filter(Species == 'POLE') %>%
+  ggplot(aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+vitaldata %>% filter(Species == 'POLE') %>%
+  ggplot(aes(x = std_logp1_totalabund, y = log(No_viable_seeds_grouped+1)))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+#Only 1 with Dodder that survived. 3 without dodder that didn't survive
+#std_PC2 has a huge gap in data
+#None that survived in the dry treatment
+#Few that survived without neighbours
+POLESDIsurvdharma <- simulateResiduals(SDIsurvivalmodPOLE)
+plot(POLESDIsurvdharma)
+summary(SDIsurvivalmodPOLE)
+vif(SDIsurvivalmodPOLE)
+
+SDIsurvivalmodTRCY <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'TRCY'))
+TRCYSDIsurvdharma <- simulateResiduals(SDIsurvivalmodTRCY)
+plot(TRCYSDIsurvdharma)
+summary(SDIsurvivalmodTRCY)
+vif(SDIsurvivalmodTRCY)
+
+SDIsurvivalmodTROR <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'TROR'))
+TRORSDIsurvdharma <- simulateResiduals(SDIsurvivalmodTROR)
+plot(TRORSDIsurvdharma)
+summary(SDIsurvivalmodTROR)
+vif(SDIsurvivalmodTROR)
+
+SDIsurvivalmodVERO <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                            family = binomial, filter(datanonly, Species == 'VERO'), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+VEROSDIsurvdharma <- simulateResiduals(SDIsurvivalmodVERO)
+plot(VEROSDIsurvdharma)
+#dharma unhappy
+datanonly %>% filter(Species == 'VERO') %>%
+  ggplot(aes(x = std_PC1, y = surv_to_produce_seeds))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+# All plants with low PC1 survived, everything else seems fine
+summary(SDIsurvivalmodVERO)
+vif(SDIsurvivalmodVERO)
+
+### Need to update below here*
+
+
+### Viable seed production ###
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  fecundity <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI +
+                         (1|Site/Plot), family = nbinom2, data = filter(datanonly, Species == specieslist[i]))
+  print(summary(fecundity))
+}
+#POLE significant negative response to SDI
+# TRCY positive response to SDI
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("SDIfecunditymod", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI +
+                        (1|Site/Plot), family = nbinom2, data = filter(datanonly, Species == specieslist[i])))
+}
+
+arcaSDIfecunditydharma <- simulateResiduals(SDIfecunditymodARCA)
+plot(arcaSDIfecunditydharma)
+summary(SDIfecunditymodARCA)
+vif(SDIfecunditymodARCA)
+hyglSDIfecunditydharma <- simulateResiduals(SDIfecunditymodHYGL)
+plot(hyglSDIfecunditydharma)
+summary(SDIfecunditymodHYGL)
+laroSDIfecunditydharma <- simulateResiduals(SDIfecunditymodLARO)
+plot(laroSDIfecunditydharma)
+summary(SDIfecunditymodLARO)
+PEAISDIfecunditydharma <- simulateResiduals(SDIfecunditymodPEAI)
+plot(PEAISDIfecunditydharma)
+summary(SDIfecunditymodPEAI)
+PLDESDIfecunditydharma <- simulateResiduals(SDIfecunditymodPLDE)
+plot(PLDESDIfecunditydharma)
+summary(SDIfecunditymodPLDE)
+#PLDE slight issues
+POLESDIfecunditydharma <- simulateResiduals(SDIfecunditymodPOLE)
+plot(POLESDIfecunditydharma)
+summary(SDIfecunditymodPOLE)
+#POLE big issues
+TRCYSDIfecunditydharma <- simulateResiduals(SDIfecunditymodTRCY)
+plot(TRCYSDIfecunditydharma)
+summary(SDIfecunditymodTRCY)
+TRORSDIfecunditydharma <- simulateResiduals(SDIfecunditymodTROR)
+plot(TRORSDIfecunditydharma)
+summary(SDIfecunditymodTROR)
+VEROSDIfecunditydharma <- simulateResiduals(SDIfecunditymodVERO)
+plot(VEROSDIfecunditydharma)
+summary(SDIfecunditymodVERO)
+
+## Plots for TRCY
+## Try plotting both of these from the models using lab retreat code
+### Something funky happening here with y axis**
+seedtrcy %>% filter(Total_abundance > 0) %>%
+ggplot(aes(x = SDI, y = surv_to_produce_seeds))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+## Checking for multicollinearity in models using variance inflation factor
+
+
 
 ### Are PC1 and PC2 correlated? ####
 #Only want one data point per plot
@@ -211,7 +692,6 @@ dev.off()
 # There are 129 subplots that do not have total_abundance information but did germinate
 # And 82 subplots that weren't surveyed but germinated...?
 
-specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 for (i in 1:length(specieslist)){
   print(specieslist[i])
   survival <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + (1|Site/Plot),
@@ -361,25 +841,25 @@ for (i in 1:length(specieslist)){
   assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
                           family = binomial, data = filter(vitaldata, Species == specieslist[i])))
 }
-
+#Extracting values for theoretical marginal R squared
 summary(abioticmodARCA)
-r.squaredGLMM(abioticmodARCA)
+arcaabiotic <- r.squaredGLMM(abioticmodARCA)[1,1]
 summary(abioticmodHYGL)
-r.squaredGLMM(abioticmodHYGL)
+hyglabiotic <- r.squaredGLMM(abioticmodHYGL)[1,1]
 summary(abioticmodLARO)
-r.squaredGLMM(abioticmodLARO)
+laroabiotic <- r.squaredGLMM(abioticmodLARO)[1,1]
 summary(abioticmodPEAI)
-r.squaredGLMM(abioticmodPEAI)
+peaiabiotic <- r.squaredGLMM(abioticmodPEAI)[1,1]
 summary(abioticmodPLDE)
-r.squaredGLMM(abioticmodPLDE)
+pldeabiotic <- r.squaredGLMM(abioticmodPLDE)[1,1]
 summary(abioticmodPOLE)
-r.squaredGLMM(abioticmodPOLE)
+poleabiotic <- r.squaredGLMM(abioticmodPOLE)[1,1]
 summary(abioticmodTRCY)
-r.squaredGLMM(abioticmodTRCY)
+trcyabiotic <- r.squaredGLMM(abioticmodTRCY)[1,1]
 summary(abioticmodTROR)
-r.squaredGLMM(abioticmodTROR)
+trorabiotic <- r.squaredGLMM(abioticmodTROR)[1,1]
 summary(abioticmodVERO)
-r.squaredGLMM(abioticmodVERO)
+veroabiotic <- r.squaredGLMM(abioticmodVERO)[1,1]
 
 ### Biotic only
 # Need optimiser to converge
@@ -397,23 +877,58 @@ for (i in 1:length(specieslist)){
 }
 
 summary(bioticmodARCA)
-r.squaredGLMM(bioticmodARCA)
+arcabiotic <- r.squaredGLMM(bioticmodARCA)[1,1]
 summary(bioticmodHYGL)
-r.squaredGLMM(bioticmodHYGL)
+hyglbiotic <- r.squaredGLMM(bioticmodHYGL)[1,1]
 summary(bioticmodLARO)
-r.squaredGLMM(bioticmodLARO)
+larobiotic <- r.squaredGLMM(bioticmodLARO)[1,1]
 summary(bioticmodPEAI)
-r.squaredGLMM(bioticmodPEAI)
+peaibiotic <- r.squaredGLMM(bioticmodPEAI)[1,1]
 summary(bioticmodPLDE)
-r.squaredGLMM(bioticmodPLDE)
+pldebiotic <- r.squaredGLMM(bioticmodPLDE)[1,1]
 summary(bioticmodPOLE)
-r.squaredGLMM(bioticmodPOLE)
+polebiotic <- r.squaredGLMM(bioticmodPOLE)[1,1]
 summary(bioticmodTRCY)
-r.squaredGLMM(bioticmodTRCY)
+trcybiotic <- r.squaredGLMM(bioticmodTRCY)[1,1]
 summary(bioticmodTROR)
-r.squaredGLMM(bioticmodTROR)
+trorbiotic <- r.squaredGLMM(bioticmodTROR)[1,1]
 summary(bioticmodVERO)
-r.squaredGLMM(bioticmodVERO)
+verobiotic <- r.squaredGLMM(bioticmodVERO)[1,1]
+
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+rsquaredtable <- matrix(rep(1, times=2), ncol=2, nrow = 9)
+#define column names and row names of matrix
+colnames(rsquaredtable) <- c('R squared biotic model', 'R squared abiotic model')
+rownames(rsquaredtable) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
+#convert matrix to table 
+rsquaredtable <- as.data.frame(rsquaredtable)
+#view table 
+rsquaredtable
+##Replace values with appropriate ones
+#Biotic model
+rsquaredtable[1,1] <- arcabiotic
+rsquaredtable[2,1] <- hyglbiotic
+rsquaredtable[3,1] <- larobiotic
+rsquaredtable[4,1] <- peaibiotic
+rsquaredtable[5,1] <- pldebiotic
+rsquaredtable[6,1] <- polebiotic
+rsquaredtable[7,1] <- trcybiotic
+rsquaredtable[8,1] <- trorbiotic
+rsquaredtable[9,1] <- verobiotic
+#Abiotic model
+rsquaredtable[1,2] <- arcaabiotic
+rsquaredtable[2,2] <- hyglabiotic
+rsquaredtable[3,2] <- laroabiotic
+rsquaredtable[4,2] <- peaiabiotic
+rsquaredtable[5,2] <- pldeabiotic
+rsquaredtable[6,2] <- poleabiotic
+rsquaredtable[7,2] <- trcyabiotic
+rsquaredtable[8,2] <- trorabiotic
+rsquaredtable[9,2] <- veroabiotic
+
+#Export table as a csv file
+write.csv(rsquaredtable,"Output/Tables/rsquaredtable.csv")
 
 ##################################################################
 ### Q1 - Viable seed production #####
@@ -437,6 +952,7 @@ for (i in 1:length(specieslist)){
   assign(nam, glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                       (1|Site/Plot), family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
 }
+
 #Checking residuals
 arcaseeddharma <- simulateResiduals(seedmodARCA)
 plot(arcaseeddharma)
@@ -473,14 +989,14 @@ POLEseeddharma3 <- simulateResiduals(poleseedmod3)
 plot(POLEseeddharma3)
 #MUCH better residuals
 #Testing it for plde - very similar result!! Same residuals
-#pldeseedmod3 <- glmmTMB(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+#pldeseedmod3 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
 #                          (1|Site/Plot), family = compois, data = seedplde)
 #summary(pldeseedmod3)
 summary(seedmodPLDE)
 poleseedmod2 <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                           (1|Site/Plot), family = nbinom2, data = seedpole)
 summary(poleseedmod2)
-with(seedpole, plot(seeds_percent ~ std_logp1_totalabund))
+with(seedpole, plot(No_viable_seeds_grouped ~ std_logp1_totalabund))
 POLEseeddharma2 <- simulateResiduals(poleseedmod2)
 plot(POLEseeddharma2)
 #
@@ -787,6 +1303,9 @@ for (i in 1:length(specieslist)){
 #VERO 51% among plots, 49% among blocks
 #Convergence issues
 
+#### Do interactions between the abiotic and biotic environment determine vital rates? ####
+#Interactions between watering, PC1 and neighbour abundance
+# See Full_Model_WA script
 
 ########### Haven't updated anything below here ###########
 ### Various working out below (what works is above) ######
