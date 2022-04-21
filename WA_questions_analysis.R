@@ -1,6 +1,6 @@
 ### Answering my specific questions
 # WA Perenjori 2020 Watering Experiment
-#Updated April 22
+#Updated April 21st 2022
 
 #### Loading packages and data ####
 library(ggplot2)
@@ -173,7 +173,27 @@ ggplot(datanonly, aes(x = logp1_totalabund, y = SDI))+
   my_theme
 
 modelabundrichness <- lm(logp1_totalabund ~ SDI, datanonly)
-summary(modelabundpc1)
+summary(modelabundrichness)
+
+ggplot(datanonly, aes(x = SDI, y = sp_richness))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+modelrichnessSDI <- lm(SDI ~ sp_richness, datanonly)
+summary(modelrichnessSDI)
+
+### Testing variance inflation factors with species richness 
+arcatest <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + sp_richness + (1|Site/Plot),
+                  family = binomial, arcadata)
+summary(arcatest)
+vif(arcatest)
+
+arcatest2 <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+                   family = binomial, arcadata)
+summary(arcatest2)
+vif(arcatest2)
 
 #Create a model per species
 # Survival
@@ -186,18 +206,14 @@ for (i in 1:length(specieslist)){
 #POLE didn't converge, it doesn't have much data at all with neighbours
 #TRCY significant positive response to SDI, huge estimate
 # TROR significant positive response to SDI too
-##########
-#13/04
-
+### Looking at distribution of data - linear or quadratic? ####
+#Meeting with John 13/03
 #Watering*N*Cover
 ## With quadratic
 # surv_to_produce_seeds ~ std_PC1 + I(std_PC1^2)
 #x is std_PC1
 #cbind // plogis // 1 - int, x for PC1, x^2
 # (1, x, x^2)
-
-### Looking at distribution of data - linear or quadratic? ####
-#Meeting with John 13/03
 # for loops
 species.list.s<-list(arcadata, hygldata, larodata, peaidata, pldedata, poledata, trcydata, trordata, verodata)
 species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
@@ -209,25 +225,7 @@ plot(percent_germ ~ std_PC1, arcadata)
 curve(exp(cbind(1, x, x^2)%*%fixef(arcasimplemod)), add = T)
 title(main = "ARCA")
 
-### Germination, PC1
-dev.off()
-pdf("Output/Figures/germ_PC1_quadratic.pdf", width=21, height=21)
-par(mfrow=c(3,3))
-par(mar=c(4,6,2,1))
-par(pty="s")
-for(i in 1:length(species.list.s)){
-  plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$percent_germ~plotted.data$std_PC1, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
-  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
-  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
-  model<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, plotted.data)
-  x_to_plot<-seq.func(plotted.data$std_PC1) 
-  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
-  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-}
-dev.off()
-
+# Making a bunch of plots including quadratic term to compare line fits
 ### Survival, PC2
 dev.off()
 pdf("Output/Figures/germ_PC2_quadratic.pdf", width=21, height=21)
@@ -273,7 +271,6 @@ summary(arcasimplemod)
 plot(surv_to_produce_seeds ~ std_PC1, arcadata)
 curve(exp(cbind(1, x, x^2)%*%fixef(arcasimplemod)), add = T)
 title(main = "ARCA")
-
 
 #Loop all species
 for (i in 1:length(specieslist)){
@@ -462,9 +459,7 @@ plot(polesimplemoddharma2)
 #bad dharma
 
 ##########
-
-
-### Checking model fits and vif
+### Checking model fits and vif ####
 ## Checking for multicollinearity in models using variance inflation factor
 # VIF over 5 is a problem
 for (i in 1:length(specieslist)){
@@ -592,7 +587,6 @@ vif(SDIsurvivalmodVERO)
 
 ### Need to update below here*
 
-
 ### Viable seed production ###
 for (i in 1:length(specieslist)){
   print(specieslist[i])
@@ -651,8 +645,6 @@ ggplot(aes(x = SDI, y = surv_to_produce_seeds))+
   my_theme
 
 ## Checking for multicollinearity in models using variance inflation factor
-
-
 
 ### Are PC1 and PC2 correlated? ####
 #Only want one data point per plot
@@ -795,6 +787,27 @@ for(i in 1:length(species.list.s)){
   model<-glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
                  (1|Site/Plot), family = binomial, data = plotted.data, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   x_to_plot<-seq.func(plotted.data$std_PC1)
+  preddata <- with(model, data.frame(1, 0, 0, 0, x_to_plot, 0, 0))
+  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+}
+dev.off()
+
+dev.off()
+pdf("Output/Figures/survival_PC2.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+species.list.s<-list(arcadata, hygldata, larodata, peaidata, pldedata, poledata, trcydata, trordata, verodata)
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_PC2, pch=19, col="grey60", ylab="Survival rate", xlab="", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(xlab = "PC1", cex.lab=2)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  model<-glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
+                 (1|Site/Plot), family = binomial, data = plotted.data, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  x_to_plot<-seq.func(plotted.data$std_PC2)
   preddata <- with(model, data.frame(1, 0, 0, 0, x_to_plot, 0, 0))
   plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
   plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
@@ -1307,6 +1320,143 @@ for (i in 1:length(specieslist)){
 #Interactions between watering, PC1 and neighbour abundance
 # See Full_Model_WA script
 
+#### Population growth rate 20/04/22 John meeting ####
+# Per capita growth rate of a given population  i = seed survival*(1-germination)+number of viable seeds produced per germinant*germination
+### Code from meeting with John 20/04/22 ###
+# prob of germination / germination fraction. # germinated / total germination, currently I have this as percent_germ which is a proportion (not percentage) lol oops
+#Calculate this at the plot level
+#glmmTMB
+#lambda_no_nbh
+#lambda_nbh
+
+testmodel <- glmmTMB(No_viable_seeds_grouped ~ Neighbours.x + (Neighbours.x|Site/Plot),family = nbinom2, seedarca)
+plot_means<-coef(testmodel)$cond[1][[1]]
+plot_means_no_neighbours<-exp(plot_means[,1])
+plot_means_neighbours<-exp(plot_means[,1] + plot_means[,2])
+
+# This produces the same result as using seedarca as dataframe
+arcadata %>% filter(surv_to_produce_seeds == 1) %>%
+  ggplot(aes(x = Neighbours.x, y = No_viable_seeds_grouped+1))+
+  geom_boxplot()+
+  scale_y_log10()+
+  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
+  theme_classic()+
+  my_theme
+
+## Do same for survival
+#survival, glmer, binom
+#plogis instead of exp
+
+testmodelsurv <- glmer(surv_to_produce_seeds ~ Neighbours.x + (Neighbours.x|Site/Plot),family = binomial, arcadata)
+plot_means2<-coef(testmodel)$cond[1][[1]]
+plot_means_no_neighbours2<-plogis(plot_means[,1])
+plot_means_neighbours2<-plogis(plot_means[,1] + plot_means[,2])
+
+rownames(plot_means2)
+testing <- tidyr::separate(rownames(plot_means2), c("Site", "Plot"))
+
+#test <- vitaldata %% group_by(plot_id) %>% mutate(lambda = 0.9*(1-percent_germ)+x*percent_germ)
+
+##### 20/04/22 meeting with John, quadratic responses to PC1/PC2/NA ####
+### Germination, PC1
+dev.off()
+pdf("Output/Figures/test200422.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$percent_germ~plotted.data$std_PC1, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_PC1) 
+  model<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, plotted.data)
+  model2<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + (1|Site/Plot), family = binomial, plotted.data)
+  if(summary(model)$coefficients[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+### Germination, PC2
+dev.off()
+pdf("Output/Figures/test200422_PC2.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$percent_germ~plotted.data$std_PC2, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC2 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_PC2) 
+  model<-glmer(cbind(total_germ, total_no_germ)~std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = binomial, plotted.data)
+  model2<-glmer(cbind(total_germ, total_no_germ)~std_PC2 + (1|Site/Plot), family = binomial, plotted.data)
+  if(summary(model)$coefficients[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+
+#Plots of survival probability in response to neighbour abundance by watering treatment
+# with a quadratic term and fitting lines and CIs from simple glm binomial model
+ggplot(vitaldata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds, colour = Treatment))+
+  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
+  geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ poly(x, 2))+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Species)
+
+#Survival ~ NA by watering treatment, linear fits only
+ggplot(vitaldata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds, colour = Treatment))+
+  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
+  geom_smooth(method = "glm", method.args=list(family="binomial"))+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Species)
+
+## Survival ~ PC1 by watering treatment, quadratic term
+ggplot(vitaldata, aes(x = std_PC1, y = surv_to_produce_seeds, colour = Treatment))+
+  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
+  geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ poly(x, 2))+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Species)
+# Survival ~ PC1 by watering treatment, linear term
+ggplot(vitaldata, aes(x = std_PC1, y = surv_to_produce_seeds, colour = Treatment))+
+  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
+  geom_smooth(method = "glm", method.args=list(family="binomial"))+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Species)
+## Survival ~ PC2 by watering treatment, quadratic
+ggplot(vitaldata, aes(x = std_PC2, y = surv_to_produce_seeds, colour = Treatment))+
+  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
+  geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ poly(x, 2))+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Species)
+# Survival ~ PC2 by watering treatment, linear
+ggplot(vitaldata, aes(x = std_PC2, y = surv_to_produce_seeds, colour = Treatment))+
+  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
+  geom_smooth(method = "glm", method.args=list(family="binomial"))+
+  theme_classic()+
+  my_theme+
+  facet_wrap(~Species)
+
 ########### Haven't updated anything below here ###########
 ### Various working out below (what works is above) ######
 #Creating a dataframe with SLA data, my code;
@@ -1429,4 +1579,15 @@ plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope
 with(slopestest, points(std_log_SLA, slope_PC2, col="grey70", pch=19))
 with(slopestest, arrows(std_log_SLA, slope_PC2+slope.SEs, std_log_SLA, slope_PC2-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
 abline(h=0, lty=3, lwd=2)
+
+
+
+
+
+
+
+
+
+
+
 
