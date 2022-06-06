@@ -1,0 +1,44 @@
+Site,Plot,Species,C_E_or_T,Rep,No_viable_seeds,No_inviable_seeds,Number_flowers,Notes_to_add,Viable_seeds_to_add,Inviable_seeds_to_add
+6,A,HYGL,C,3,1,4,1,Miss some? One flower head,NA,NA
+1,A,LARO,E,1,9,12,3,3 flower heads,NA,NA
+1,A,LARO,C,3,12,2,3,3 flowers,NA,NA
+1,B,LARO,T,1,11,7,5,5 flowers,NA,NA
+2,B,LARO,E,2,NA,NA,1,"1 flower head, looks like I missed them",NA,NA
+2,C,LARO,C,2,NA,NA,1,"1 flower head, looks like I missed them",NA,NA
+3,C,LARO,C,3,NA,NA,1,"1 flower, likely missed seeds",NA,NA
+4,B,LARO,E,2,6,0,1,1 flower head,NA,NA
+4,A,LARO,C,3,0,6,1,1 flower,NA,NA
+4,B,LARO,T,2,0,0,1,1 flower,NA,NA
+4,B,LARO,E,3,0,5,1,1 flower,NA,NA
+5,A,LARO,E,2,1,18,2,2 flowers,NA,NA
+5,B,LARO,C,1,3,0,1,1 flower head,NA,NA
+6,A,LARO,E,2,4,6,1,1 flower head,NA,NA
+6,A,LARO,E,3,22,12,2,2 flower heads,NA,NA
+6,B,LARO,C,1,0,0,1,1 flower,NA,NA
+6,B,LARO,E,2,5,12,3,3 flowers,NA,NA
+6,B,LARO,C,2,0,3,1,1 flower,NA,NA
+7,B,LARO,C,1,NA,NA,NA,LOOKS LIKE I MISSED THEM,NA,NA
+7,C,LARO,E,2,NA,NA,NA,LOOKS LIKE I MISSED THEM,NA,NA
+7,C,LARO,E,3,0,4,2,2 flowers,NA,NA
+8,A,LARO,E,1,11,11,3,3 flowers,NA,NA
+8,A,LARO,T,2,6,7,1,1 flower,NA,NA
+8,C,LARO,C,1,6,11,3,3 flowers,NA,NA
+8,C,LARO,T,1,NA,NA,1,"1 flower head, looks like I missed them",NA,NA
+1,B,POLE,C,3,130,5,3,3 flowers,NA,NA
+2,A,POLE,C,1,NA,NA,NA,May have missed,NA,NA
+2,B,POLE,E,2,NA,NA,9,"9 open flower heads, 4 small buds, missed?",NA,NA
+2,C,POLE,E,1,20,120,5,5 flower heads,NA,NA
+2,C,POLE,T,2,120,50,10,"10 flower heads, 3 buds",NA,NA
+2,C,POLE,E,3,35,20,3,3 flowers,NA,NA
+5,A,POLE,E,1,101,43,2,2 flower heads,NA,NA
+5,A,POLE,C,2,108,16,2,2 flowers,NA,NA
+6,B,POLE,E,1,37,270,20,"Non-viable seeds are mostly undeveloped, 20 flower heads; check this",NA,NA
+6,B,POLE,E,2,0,0,3,3 flowers,NA,NA
+6,B,POLE,C,2,8,12,2,"2 flowers, 3rd stem eaten?",NA,NA
+6,C,POLE,C,2,0,22,1,1 flower head,NA,NA
+7,A,POLE,E,1,125,20,4,4 flowers,NA,NA
+7,C,POLE,E,1,27,140,4,"4 flower heads, 1 'bud'",NA,NA
+7,C,POLE,E,3,68,19,2,2 flower heads,NA,NA
+7,C,TROR,E,1,NA,NA,NA,"Accidentally broke off seeds while trying to bag, haven't found where this was recorded yet",NA,NA
+2,C,VERO,C,2,NA,NA,NA,Immature seed pod broke off,4,NA
+6,B,VERO,C,2,NA,NA,NA,"Immature seed pod broke off, accidentally snapped off",4,NA

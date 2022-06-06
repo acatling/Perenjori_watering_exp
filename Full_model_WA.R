@@ -877,12 +877,6 @@ tab_model(arcain3, hyglin1, laroin1, peaiin1, pldein3, polein1, trcyin2, trorin6
 #Survival
 tab_model(arcasurv5, hyglsurv3, larosurv1, peaisurv1, pldesurv1, polesurv1, trcysurv1, trorsurv3, verosurv1, transform = NULL)
 
-### Diversity as a predictor #####
-# Work in progress!
-
-library(MuMIn)
-r.squaredGLMM(arca1)
-
 #A way to test how much variance is being soaked up by random effect
 lmmod <-  lm(No_viable_seeds_grouped ~ 1 + as.factor(plotid), data=seedarca)
 summary(lmmod)

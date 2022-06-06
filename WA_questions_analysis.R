@@ -31,27 +31,10 @@ source("data_preparation.R")
 #1614 subplots with germination data (1171 germinated)
 #1139* subplots with survival data (1171 have surv_to_produce_seeds data, 1139 from survtomerge, mortalitydataraw 1164)
 #653 subplots with seed production data
-#1057 subplots with neighbourhood surveys done (517 have neighbours)
+#1100 subplots with neighbourhood surveys done (534 have neighbours)
 
 ## Note that germination analysis is separate, in germination_analysis.R
 ## Note that neighbour abundance and PC2 are correlated, so will not model them together
-
-glimpse(vitaldata)
-#Check why some plots weren't surveyed - I thought I surveyed everything that germinated
-#test <- anti_join(mortalitydatatrim, surveytrim) #107 rows
-hist(vitaldata$Total_abundance)
-hist(log(vitaldata$Total_abundance+1))
-#dataset with neighbours only
-datanonly <- vitaldata %>% filter(Total_abundance > 0)
-hist(datanonly$Total_abundance)
-hist(log(datanonly$Total_abundance+1))
-
-#Reordering watering treatments to  Dry, Ambient, Wet
-datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
-vitaldata$Treatment <- factor(vitaldata$Treatment, level = c("Dry", "Ambient", "Wet"))
-datanonly$SDI <- as.numeric(datanonly$SDI)
-
-specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 
 #### Is neighbour abundance correlated with abiotic environmental factors or diversity? ####
 ###Trying to plot them side by side as pdf
@@ -253,7 +236,7 @@ par(mar=c(4,6,2,1))
 par(pty="s")
 for(i in 1:length(species.list.s)){
   plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$percent_germ~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  plot(plotted.data$percent_germ~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="Neighbour abundance (log plus 1, standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
   mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
   title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
   model<-glmer(cbind(total_germ, total_no_germ)~std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = binomial, plotted.data)
@@ -309,7 +292,7 @@ par(mar=c(4,6,2,1))
 par(pty="s")
 for(i in 1:length(species.list.s)){
   plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_PC2, pch=19, col="grey60", ylab="Probability of survival", xlab="PC1", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_PC2, pch=19, col="grey60", ylab="Probability of survival", xlab="PC2", cex.lab=2, cex.axis=2.00,tck=-0.01)
   mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
   title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
   model<-glmer(surv_to_produce_seeds ~ std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = binomial, plotted.data)
@@ -328,7 +311,7 @@ par(mar=c(4,6,2,1))
 par(pty="s")
 for(i in 1:length(species.list.s)){
   plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Probability of survival", xlab="PC1", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Probability of survival", xlab="Total neighbour abundance (log plus 1, standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
   mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
   title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
   model<-glmer(surv_to_produce_seeds ~ std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = binomial, plotted.data)
@@ -838,111 +821,6 @@ for(i in 1:length(species.list.s)){
 }
 dev.off()
 
-### Surv - Quantify variance in vital rates explained by abiotic only vs biotic only ####
-## Another way of this answering this question, instead of just looking at # of significant interactions
-specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
-### Abiotic only
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  survivalabiotic <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
-                           family = binomial, data = filter(vitaldata, Species == specieslist[i]))
-  print(summary(survivalabiotic))
-}
-
-for (i in 1:length(specieslist)){
-  nam <- paste0("abioticmod", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
-                          family = binomial, data = filter(vitaldata, Species == specieslist[i])))
-}
-#Extracting values for theoretical marginal R squared
-summary(abioticmodARCA)
-arcaabiotic <- r.squaredGLMM(abioticmodARCA)[1,1]
-summary(abioticmodHYGL)
-hyglabiotic <- r.squaredGLMM(abioticmodHYGL)[1,1]
-summary(abioticmodLARO)
-laroabiotic <- r.squaredGLMM(abioticmodLARO)[1,1]
-summary(abioticmodPEAI)
-peaiabiotic <- r.squaredGLMM(abioticmodPEAI)[1,1]
-summary(abioticmodPLDE)
-pldeabiotic <- r.squaredGLMM(abioticmodPLDE)[1,1]
-summary(abioticmodPOLE)
-poleabiotic <- r.squaredGLMM(abioticmodPOLE)[1,1]
-summary(abioticmodTRCY)
-trcyabiotic <- r.squaredGLMM(abioticmodTRCY)[1,1]
-summary(abioticmodTROR)
-trorabiotic <- r.squaredGLMM(abioticmodTROR)[1,1]
-summary(abioticmodVERO)
-veroabiotic <- r.squaredGLMM(abioticmodVERO)[1,1]
-
-### Biotic only
-# Need optimiser to converge
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  survivalbiotic <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
-                          family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-  print(summary(survivalbiotic))
-}
-
-for (i in 1:length(specieslist)){
-  nam <- paste0("bioticmod", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 +(1|Site/Plot), 
-                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-}
-
-summary(bioticmodARCA)
-arcabiotic <- r.squaredGLMM(bioticmodARCA)[1,1]
-summary(bioticmodHYGL)
-hyglbiotic <- r.squaredGLMM(bioticmodHYGL)[1,1]
-summary(bioticmodLARO)
-larobiotic <- r.squaredGLMM(bioticmodLARO)[1,1]
-summary(bioticmodPEAI)
-peaibiotic <- r.squaredGLMM(bioticmodPEAI)[1,1]
-summary(bioticmodPLDE)
-pldebiotic <- r.squaredGLMM(bioticmodPLDE)[1,1]
-summary(bioticmodPOLE)
-polebiotic <- r.squaredGLMM(bioticmodPOLE)[1,1]
-summary(bioticmodTRCY)
-trcybiotic <- r.squaredGLMM(bioticmodTRCY)[1,1]
-summary(bioticmodTROR)
-trorbiotic <- r.squaredGLMM(bioticmodTROR)[1,1]
-summary(bioticmodVERO)
-verobiotic <- r.squaredGLMM(bioticmodVERO)[1,1]
-
-#Create table to put these values in
-#create matrix with 2 columns filled with random value, 1
-rsquaredtable <- matrix(rep(1, times=2), ncol=2, nrow = 9)
-#define column names and row names of matrix
-colnames(rsquaredtable) <- c('R squared biotic model', 'R squared abiotic model')
-rownames(rsquaredtable) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
-#convert matrix to table 
-rsquaredtable <- as.data.frame(rsquaredtable)
-#view table 
-rsquaredtable
-##Replace values with appropriate ones
-#Biotic model
-rsquaredtable[1,1] <- arcabiotic
-rsquaredtable[2,1] <- hyglbiotic
-rsquaredtable[3,1] <- larobiotic
-rsquaredtable[4,1] <- peaibiotic
-rsquaredtable[5,1] <- pldebiotic
-rsquaredtable[6,1] <- polebiotic
-rsquaredtable[7,1] <- trcybiotic
-rsquaredtable[8,1] <- trorbiotic
-rsquaredtable[9,1] <- verobiotic
-#Abiotic model
-rsquaredtable[1,2] <- arcaabiotic
-rsquaredtable[2,2] <- hyglabiotic
-rsquaredtable[3,2] <- laroabiotic
-rsquaredtable[4,2] <- peaiabiotic
-rsquaredtable[5,2] <- pldeabiotic
-rsquaredtable[6,2] <- poleabiotic
-rsquaredtable[7,2] <- trcyabiotic
-rsquaredtable[8,2] <- trorabiotic
-rsquaredtable[9,2] <- veroabiotic
-
-#Export table as a csv file
-write.csv(rsquaredtable,"Output/Tables/rsquaredtable.csv")
-
 ##################################################################
 ### Q1 - Viable seed production #####
 # Should I use No_viable_seeds_grouped or seeds_percent???
@@ -1074,9 +952,9 @@ pdf("Output/Figures/fecundity_PC1", width=21, height=21)
 par(mfrow=c(3,3))
 par(mar=c(4,6,2,1))
 par(pty="s")
-species.list.s<-list(seedarca, seedhygl, seedlaro, seedpeai, seedplde, seedpole, seedtrcy, seedtror, seedvero)
-for(i in 1:length(species.list.s)){
-  plotted.data<-as.data.frame(species.list.s[i])
+species.list.f<-list(seedarca, seedhygl, seedlaro, seedpeai, seedplde, seedpole, seedtrcy, seedtror, seedvero)
+for(i in 1:length(species.list.f)){
+  plotted.data<-as.data.frame(species.list.f[i])
   plot(plotted.data$seeds_percent~plotted.data$std_PC1, pch=19, col="grey60", ylab="Number seeds", xlab="", cex.lab=2, cex.axis=2.00,tck=-0.01)
   mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
   title(xlab = "PC1", cex.lab=2)
@@ -1110,9 +988,9 @@ par(mfrow=c(3,3))
 par(mar=c(2,2,6,0.5))
 #Margins: bottom, left, top, right
 par(pty="s")
-species.list.s<-list(seedarca, seedhygl, seedlaro, seedpeai, seedplde, seedpole, seedtrcy, seedtror, seedvero)
-for(i in 1:length(species.list.s)){
-  plotted.data<-as.data.frame(species.list.s[i])
+species.list.f<-list(seedarca, seedhygl, seedlaro, seedpeai, seedplde, seedpole, seedtrcy, seedtror, seedvero)
+for(i in 1:length(species.list.f)){
+  plotted.data<-as.data.frame(species.list.f[i])
   plot(plotted.data$seeds_percent~plotted.data$std_PC1, pch=19, col="grey60", ylab="", xlab="", cex.lab=3, cex.axis=2.00,tck=-0.02, axes = 'FALSE', frame.plot = TRUE)
   title(main=bquote(italic(.(species.name.list[i]))), cex.main=4)
   model<-glmmTMB(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 +
@@ -1126,76 +1004,183 @@ for(i in 1:length(species.list.s)){
 dev.off()
 
 ##### Question 2 traits explaining responses ####
-## Do species-level leaf traits explain responses to environment?
-##Starting with simple example. Does SLA modulate the responses of survival to PC1?
-### Survival models
-survpc1sla <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_SLA + 
+#Trait data needed for plotting
+#Creating a dataframe with SLA data - need the as.data.frame part!
+speciessla <- seedmodeldata %>% select("Species", "std_log_SLA") %>% group_by(Species) %>% filter(row_number() == 1)
+speciessla <- as.data.frame(speciessla)
+
+#Creating a dataframe with D13C data
+speciesD13C <- seedmodeldata %>% select("Species", "std_log_D13C") %>% group_by(Species) %>% filter(row_number() == 1)
+speciesD13C <- as.data.frame(speciesD13C)
+
+### John's working 07/11/2021 plotting simple model sla modulating response of fecundity to PC2 ###
+seedsla2 <- glmer.nb(seeds_percent ~ std_PC2 + std_log_SLA + std_PC2:std_log_SLA +
+                       (1|Site/Plot) + (1+std_PC2|Species), family = nbinom2, seedmodeldata)
+summary(seedsla2)
+#My interpretation: the slopes are the slope responses of PC2 for each species plus
+#the interaction of PC2:SLA*each species' SLA value.
+#Unique value for PC2 slopes, one value for PC2:SLA, unique values of SLA
+species_slopes<-coef(seedsla2)$Species[,2] + coef(seedsla2)$Species[,4]*speciessla$std_log_SLA
+
+plot(species_slopes ~ speciessla$std_log_SLA)
+curve(cbind(1,x)%*%fixef(seedsla2)[c(2,4)], add=T)
+abline(h=0, lty=3)
+
+##Does SLA modulate the responses of survival to PC1, PC2, neighbour abundance or treatment?
+### Survival models ###
+#SLA
+survsla <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_SLA + 
                       std_PC1:std_log_SLA + std_logp1_totalabund:std_log_SLA + std_PC2:std_log_SLA + Treatment:std_log_SLA +
                       (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, vitaldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-summary(survpc1sla)
-survpc1ldmc <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_LDMC + 
+survsladharma <- simulateResiduals(survsla)
+plot(survsladharma)
+#good
+summary(survsla)
+#No interactions significant
+
+#LDMC
+survldmc <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_LDMC + 
                        std_PC1:std_LDMC + std_logp1_totalabund:std_LDMC + std_PC2:std_LDMC + Treatment:std_LDMC +
                        (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, vitaldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-summary(survpc1ldmc)
-survpc1D13C <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_D13C + 
+survldmcdharma <- simulateResiduals(survldmc)
+#good but outlier test significant?
+plot(survldmcdharma)
+summary(survldmc)
+#No interactions significant
+
+#D13C
+survD13C <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_D13C + 
                        std_PC1:std_log_D13C + std_logp1_totalabund:std_log_D13C + std_PC2:std_log_D13C + Treatment:std_log_D13C +
                        (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = binomial, vitaldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-summary(survpc1D13C)
+survD13Cdharma <- simulateResiduals(survD13C)
+plot(survD13Cdharma)
+#good
+summary(survD13C)
+#No interactions significant
 
-with(vitaldata, plot(surv_to_produce_seeds ~ std_log_D13C))
-x_to_plot<-seq.func(vitaldata$std_log_D13C)
-wuepreddata <- with(vitaldata, data.frame(1, 0, x_to_plot, 0*x_to_plot))
-wuepred <- glmm.predict(mod = survpc1wue, newdat = wuepreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-plot.CI.func(x.for.plot = x_to_plot, pred = wuepred$y, upper = wuepred$upper, lower = wuepred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+### Fecundity models ###
+#SLA
+#control = glmmTMBControl(optCtrl=list(iter.max=1e3,eval.max=1e3))
+#Converges with glmer.nb instead of glmmTMB!
+seedsla <- glmer.nb(seeds_percent ~ std_logp1_totalabund + Treatment + Dodder01 + std_PC1 + std_PC2 + std_log_SLA +
+                      std_PC1:std_log_SLA + std_logp1_totalabund:std_log_SLA + std_PC2:std_log_SLA + Treatment:std_log_SLA +
+                      (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = nbinom2, seedmodeldata)
+## Saving the model to load later
+save(seedsla, file = "Output/Models/seedslamodel.RData")
+seedsladharma <- simulateResiduals(seedsla)
+plot(seedsladharma)
+#okay?
+summary(seedsla)
+#PC1 and PC2 interactions significant
 
-######### Fecundity traits ####
-### Fecundity models
-
+#LDMC
 #Will only converge with optimiser
 seedldmc <- glmer.nb(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + std_LDMC + 
                        std_PC1:std_LDMC + std_logp1_totalabund:std_LDMC + std_PC2:std_LDMC + Treatment:std_LDMC +
                        (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = nbinom2, 
                      seedmodeldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-summary(seedldmc)
+## Saving the model to load later
+save(seedldmc, file = "Output/Models/seedldmcmodel.RData")
 seedldmcdharma <- simulateResiduals(seedldmc)
 plot(seedldmcdharma)
+#good
+summary(seedldmc)
+#no significant interactions
 
+#D13C
 seedD13C <- glmer.nb(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + std_log_D13C + 
                        std_PC1:std_log_D13C + std_logp1_totalabund:std_log_D13C + std_PC2:std_log_D13C + Treatment:std_log_D13C +
                        (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = nbinom2, seedmodeldata,
                      control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-summary(seedD13C)
-seedD13Cdharma <- simulateResiduals(seedD13Cdharma)
-plot(seedD13Cdharma)
-
-######## SLA analysis and plotting below! #########
 ## Saving the model to load later
-save(seedsla, file = "Output/Models/seedslamodel.RData")
+save(seedD13C, file = "Output/Models/seedD13Cmodel.RData")
+seedD13Cdharma <- simulateResiduals(seedD13C)
+plot(seedD13Cdharma)
+#Okay, KS test significant
+summary(seedD13C)
+#No significant interactions
+
+### Lambda models ###
+#Trying simple model first - SLA modulating reponse to PC1
+lambdaslasimple <- lmer(log_lambda_p1 ~ std_PC1 + std_log_SLA + std_PC1:std_log_SLA + (1|Site/Plot) + (std_PC1|Species), popdata)
+lambdaslasimpledharma <- simulateResiduals(lambdaslasimple)
+plot(lambdaslasimpledharma)
+#Okay, KS test significant
+summary(lambdaslasimple)
+
+#Simple model with PC1 and Treatment --- won't converge, treatment seems to be the problem
+lambdaslasimple2 <- lmer(log_lambda_p1 ~ std_PC1 + Treatment + std_log_SLA + std_PC1:std_log_SLA + Treatment:std_log_SLA + (1|Site/Plot) + (Treatment + std_PC1|Species), popdata)
+lambdaslasimpledharma <- simulateResiduals(lambdaslasimple2)
+plot(lambdaslasimpledharma)
+#Okay, KS test significant
+summary(lambdaslasimple2)
+
+#Simple model just treatment
+lambdaslasimple4 <- lmer(log_lambda_p1 ~ Treatment + std_log_SLA + Treatment:std_log_SLA + (1|Site/Plot) + (Treatment|Species), popdata)
+lambdaslasimpledharma <- simulateResiduals(lambdaslasimple4)
+plot(lambdaslasimpledharma)
+#Okay, KS test significant
+summary(lambdaslasimple4)
+#Closest to significant but never is
+
+##SLA - not converging with Treatment, so removing it
+#lambdasla <- lmer(log_lambda_p1 ~ neighbours01 + Treatment + std_PC1 + std_PC2 + std_log_SLA +
+#                        std_PC1:std_log_SLA + neighbours01:std_log_SLA + std_PC2:std_log_SLA + Treatment:std_log_SLA +
+#                        (1|Site/Plot) + (std_PC1 + std_PC2 + neighbours01 + Treatment|Species), popdata)
+#lambdasladharma <- simulateResiduals(lambdasla)
+#plot(lambdasladharma)
+#summary(lambdasla)
+
+#Simpler model with PC1, PC2 and neighbours
+lambdasla <- lmer(log_lambda_p1 ~ std_PC1 + std_PC2 + neighbours01 + std_log_SLA + 
+                    std_PC1:std_log_SLA + std_PC2:std_log_SLA + neighbours01:std_log_SLA + (1|Site/Plot) + (neighbours01 + std_PC1 + std_PC2|Species), popdata)
+lambdaslasimpledharma <- simulateResiduals(lambdasla)
+plot(lambdaslasimpledharma)
+#Okay, KS test significant
+summary(lambdasla)
+#No significant interactions
+
+##LDMC - converges!
+lambdaldmc <- lmer(log_lambda_p1 ~ neighbours01 + Treatment + std_PC1 + std_PC2 + std_LDMC + 
+                     neighbours01:std_LDMC + Treatment:std_LDMC + std_PC1:std_LDMC + std_PC2:std_LDMC +
+                     (1|Site/Plot) + (neighbours01 + Treatment + std_PC1 + std_PC2|Species), popdata)
+lambdaldmcdharma <- simulateResiduals(lambdaldmc)
+plot(lambdaldmcdharma)
+#not great residuals, KS test significant
+summary(lambdaldmc)
+#No significant interactions
+
+#D13C - converges!
+lambdaD13C <- lmer(log_lambda_p1 ~ neighbours01 + Treatment + std_PC1 + std_PC2 + std_log_D13C + 
+                         neighbours01:std_log_D13C + Treatment:std_log_D13C + std_PC1:std_log_D13C + std_PC2:std_log_D13C +
+                         (1|Site/Plot) + (neighbours01 + Treatment + std_PC1 + std_PC2|Species), popdata)
+lambdaD13Cdharma <- simulateResiduals(lambdaD13C)
+plot(lambdaD13Cdharma)
+#not great residuals, KS test significant
+summary(lambdaD13C)
+#PC1 and TreatmentWet significant
+r.squaredLR(lambdaD13C)
+
+#Plotting PC1 simply
+species_slopes<-coef(lambdaD13C)$Species[,4] + coef(lambdaD13C)$Species[,9]*speciesD13C$std_log_D13C
+plot(species_slopes ~ speciesD13C$std_log_D13C)
+curve(cbind(1,x)%*%fixef(lambdaD13C)[c(4,9)], add=T)
+abline(h=0, lty=3)
+
+#### Plotting significant trait interactions ####
+#using John's Catford script, help in lab retreat and my amendments
+######## Fecundity SLA PC1 PC2
 # Loading in the model from saved output
 load("Output/Models/seedslamodel.RData")
-
-#Trying optimiser to aid convergence
-#control = glmmTMBControl(optCtrl=list(iter.max=1e3,eval.max=1e3))
-#Trying without Treatment and Dodder. Didn't work but did converge with glmer.nb instead of glmmTMB!
-seedsla <- glmer.nb(seeds_percent ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + std_log_SLA + Dodder01 +
-                        std_PC1:std_log_SLA + std_logp1_totalabund:std_log_SLA + std_PC2:std_log_SLA + Treatment:std_log_SLA +
-                        (1|Site/Plot) + (std_PC1 + std_PC2 + std_logp1_totalabund + Treatment|Species), family = nbinom2, seedmodeldata)
-summary(seedsla)
-seedsladharma <- simulateResiduals(seedsla)
-plot(seedsladharma)
-
-#### Need to check if below here was updated after lab retreat, not sure! ###
-
-### Plotting this with John's Catford script and my amendments
-### This works!!
-#Creating a dataframe with SLA data - need the as.data.frame part!
-speciessla <- seedmodeldata %>% select("Species", "std_log_SLA") %>% filter(row_number() == 1)
-speciessla <- as.data.frame(speciessla)
 #Matching SLA values to Species in the model
 traits_for_model<-speciessla[match(rownames(coef(seedsla)$Species), speciessla$Species),c(1:2)]
 #John: this bit grabs the random slopes for each species as well as their associated SEs
-#NOT SURE THESE ARE THE RIGHT VALUES?** [2,2?]
-varfix <- vcov(seedsla)[2,2]
+#NOT SURE THESE ARE THE RIGHT VALUES?** I changed this to [8,8] to be SLA column and row but
+#not sure that the random effects part is correct. What does [2,2,] pull out??
+#I think [2,2,] pulls out the random slope values for PC1 which should be correct as [2,2,] since it is 
+# the first random slope fitted in the model and [1,1,] is the random intercept?
+#Not sure why there are six columns and rows though, I would expect 5
+varfix <- vcov(seedsla)[8,8]
 re <- ranef(seedsla,condVar=TRUE)
 varcm <- attr(re$Species,"postVar")[2,2,]
 vartot <- varfix+varcm
@@ -1205,15 +1190,15 @@ traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
 #Unique value for PC2 slopes per species (what's left over), one value for PC2:SLA for all species, unique values of SLA per species
 #This changes the position of each species: PC2:SLA - which is one it's one value
 # This is all because the fixed effects have explained some of the response already
-slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(seedsla)$Species[,5] + coef(seedsla)$Species[,9]*traits_for_model$std_log_SLA,
-                                         slope_PC2 = coef(seedsla)$Species[,6] + coef(seedsla)$Species[,11]*traits_for_model$std_log_SLA)
+slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(seedsla)$Species[,6] + coef(seedsla)$Species[,9]*traits_for_model$std_log_SLA,
+                                         slope_PC2 = coef(seedsla)$Species[,7] + coef(seedsla)$Species[,11]*traits_for_model$std_log_SLA)
+
 ### Plotting response of fecundity to PC1 as a function of SLA
-#c(5,9) is pulling out std_PC1 and std_PC1*std_log_SLA
-#WHY DO WE CALL DATA FROM OUR BIG DATASET IN THIS FIRST LINE EXACTLY? To calculate the CIs or error around the points?
+#c(6,9) is pulling out std_PC1 and std_PC1*std_log_SLA
 data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
-pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(5,9)]
-sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(5,9), c(5,9)], as.matrix(data.for.sla.slope.regression))))
-with(slopedata, plot(slope_PC1 ~ std_log_SLA, ylab= "Slope of fecundity - PC1 relationship", xlab="log(SLA) (standardised)", ylim=c(-1,.3), pch = 19, col="grey70"))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(6,9)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(6,9), c(6,9)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC1 ~ std_log_SLA, ylab= "Slope of fecundity - PC1 relationship", xlab="log(SLA) (standardised)", ylim=c(-1.1,.3), pch = 19, col="grey70"))
 with(slopedata, arrows(std_log_SLA, slope_PC1+slope.SEs, std_log_SLA, slope_PC1-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
 plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope.regression,
              upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
@@ -1221,12 +1206,17 @@ plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope
              env.colour='grey30', env.trans=40, line.colour='black', line.weight=3, line.type=1)
 abline(h=0, lty=3, lwd=2)
 
+#Calculating R squared
+pc1sla <- lm(slope_PC1 ~ std_log_SLA, slopedata)
+summary(pc1sla)
+
 ### Plotting response of fecundity to PC2 as a function of SLA
-#c(6,11) is pulling out std_PC2 and std_PC2*std_log_SLA
+#c(7,11) is pulling out std_PC2 and std_PC2*std_log_SLA
+
 data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
-pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(6,11)]
-sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(6,11), c(6,11)], as.matrix(data.for.sla.slope.regression))))
-with(slopedata, plot(slope_PC2 ~ std_log_SLA, ylab= "Slope of fecundity - PC2 relationship", xlab="log(SLA) (standardised)", ylim=c(-0.6, 0.5), pch = 19, col="grey70"))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(7,11)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(7,11), c(7,11)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC2 ~ std_log_SLA, ylab= "Slope of fecundity - PC2 relationship", xlab="log(SLA) (standardised)", ylim = c(-0.5, 0.4), pch = 19, col="grey70"))
 with(slopedata, arrows(std_log_SLA, slope_PC2+slope.SEs, std_log_SLA, slope_PC2-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
 plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope.regression,
              upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
@@ -1234,22 +1224,187 @@ plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope
              env.colour='grey30', env.trans=40, line.colour='black', line.weight=3, line.type=1)
 abline(h=0, lty=3, lwd=2)
 
-#### This plots just the regression line, without CIs - for PC1-SLA
-#curve(cbind(1,x)%*%fixef(seedsla)[c(5,9)], add=T, lwd=3)
-### Not necessary, but can label the rownames the species names
-#rownames(speciessla) <- speciessla$Species
-### pch = 19 for plotting makes the data points filled in
+#Calculating R squared
+pc2sla <- lm(slope_PC2 ~ std_log_SLA, slopedata)
+summary(pc2sla)
 
-##THis pulls out the fixed effect values in a table
-#test <- summary(seedsla)$coef
-
-#As a bit of a check, run a model without interaction and these should be the slope values we want ultimately
+#As a check, run a model without interaction and these should be the slope values we want ultimately
 # after adding the things, this:
 ## slopes = the slope responses of PC2 for each species + the interaction of PC2:SLA*each species' SLA value
 #Very similar - not exactly the same!
 
 ## NEED TO UPDATE MY MODIFIERS OF SLOPES FROM MY BIG MODEL 
-# everything that is interacting with SLA!
+# everything that is interacting with SLA! 
+#Check this?*
+
+######## Plotting lambda Treatment PC1
+summary(lambdaD13C)
+traits_for_model<-speciesD13C[match(rownames(coef(lambdaD13C)$Species), speciesD13C$Species),c(1:2)]
+varfix <- vcov(lambdaD13C)[2,2]
+re <- ranef(lambdaD13C,condVar=TRUE)
+varcm <- attr(re$Species,"postVar")[2,2,]
+vartot <- varfix+varcm
+traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
+slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(lambdaD13C)$Species[,5] + coef(lambdaD13C)$Species[,11]*traits_for_model$std_log_D13C)
+
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(popdata$std_log_D13C))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(lambdaD13C)[c(5,11)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(lambdaD13C)[c(5,11), c(5,11)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC1 ~ std_log_D13C, ylab= "Slope of lambda - PC1 relationship", ylim = c(-0.65, 0.45), xlab="log(D13C) (standardised)", pch = 19, col="grey70"))
+with(slopedata, arrows(std_log_D13C, slope_PC1+slope.SEs, std_log_D13C, slope_PC1-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
+plot.CI.func(x.for.plot=seq.func(popdata$std_log_D13C), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='grey30', env.trans=40, line.colour='black', line.weight=3, line.type=1)
+abline(h=0, lty=3, lwd=2)
+
+#Calculating R squared
+pc1d13c <- lm(slope_PC1 ~ std_log_D13C, slopedata)
+summary(pc1d13c)
+
+### Plotting significant TreatmentWet:std_D13C lambda response
+#Just wet
+traits_for_model<-speciesD13C[match(rownames(coef(lambdaD13C)$Species), speciesD13C$Species),c(1:2)]
+varfix <- vcov(lambdaD13C)[2,2]
+re <- ranef(lambdaD13C,condVar=TRUE)
+varcm <- attr(re$Species,"postVar")[2,2,]
+vartot <- varfix+varcm
+traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
+slopedata <- traits_for_model %>% mutate(slope_PC1_dry = coef(lambdaD13C)$Species[,3] + coef(lambdaD13C)$Species[,9]*traits_for_model$std_log_D13C,
+                                         slope_PC1_wet = coef(lambdaD13C)$Species[,4] + coef(lambdaD13C)$Species[,10]*traits_for_model$std_log_D13C)
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(popdata$std_log_D13C))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(lambdaD13C)[c(4,10)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(lambdaD13C)[c(4,10), c(4,10)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC1_wet ~ std_log_D13C, ylab= "Slope of lambda - TreatmentWet relationship", ylim = c(-1.0, 1.4), xlab="log(D13C) (standardised)", pch = 19, col="grey70"))
+with(slopedata, arrows(std_log_D13C, slope_PC1_wet+slope.SEs, std_log_D13C, slope_PC1_wet-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
+plot.CI.func(x.for.plot=seq.func(popdata$std_log_D13C), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='grey30', env.trans=40, line.colour='black', line.weight=3, line.type=1)
+abline(h=0, lty=3, lwd=2)
+#Calculating R squared
+lambawetD13C <- lm(slope_PC1_wet ~ std_log_D13C, slopedata)
+summary(lambawetD13C)
+
+# y axis slope of response
+# x axis D13C
+# two lines - wet and dry (not sure how to add ambient)
+summary(lambdaD13C)
+traits_for_model<-speciesD13C[match(rownames(coef(lambdaD13C)$Species), speciesD13C$Species),c(1:2)]
+varfix <- vcov(lambdaD13C)[2,2]
+re <- ranef(lambdaD13C,condVar=TRUE)
+varcm <- attr(re$Species,"postVar")[2,2,]
+vartot <- varfix+varcm
+traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
+slopedata <- traits_for_model %>% mutate(slope_PC1_dry = coef(lambdaD13C)$Species[,3] + coef(lambdaD13C)$Species[,9]*traits_for_model$std_log_D13C,
+                                         slope_PC1_wet = coef(lambdaD13C)$Species[,4] + coef(lambdaD13C)$Species[,10]*traits_for_model$std_log_D13C)
+
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(popdata$std_log_D13C))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(lambdaD13C)[c(4,10)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(lambdaD13C)[c(4,10), c(4,10)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC1_wet ~ std_log_D13C, ylab= "Slope of lambda - Treatment relationship", ylim = c(-1.0, 1.4), xlab="log(D13C) (standardised)", pch = 19, col="lightblue"))
+with(slopedata, arrows(std_log_D13C, slope_PC1_wet+slope.SEs, std_log_D13C, slope_PC1_wet-slope.SEs, length = 0, angle = 30, code = 2, col = "lightblue", lwd = 1))
+plot.CI.func(x.for.plot=seq.func(popdata$std_log_D13C), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='lightblue', env.trans=40, line.colour='blue', line.weight=3, line.type=1)
+text(x = 2.0, y = 1.2, "*", cex = 2, col = "blue")
+abline(h=0, lty=3, lwd=2)
+with(slopedata, points(slope_PC1_dry ~ std_log_D13C, pch = 19, col="pink"))
+with(slopedata, arrows(std_log_D13C, slope_PC1_dry+slope.SEs, std_log_D13C, slope_PC1_dry-slope.SEs, length = 0, angle = 30, code = 2, col = "pink", lwd = 1))
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(popdata$std_log_D13C))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(lambdaD13C)[c(3,9)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(lambdaD13C)[c(3,9), c(3,9)], as.matrix(data.for.sla.slope.regression))))
+plot.CI.func(x.for.plot=seq.func(popdata$std_log_D13C), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='pink', env.trans=40, line.colour='red', line.weight=3, line.type=1)
+################ Panel four traits ##########
+###Making a panel with four figures representing significant trait relationships
+#A - fecundity-PC1 modulated by SLA; C - fecundity-PC2 modulated by SLA
+# B - lambda-PC1 modulated by D13C; D - lambda-TreatmentWet modulated by D13C
+
+dev.off()
+pdf("Output/Figures/panel_traits.pdf", width=21, height=21)
+par(mfrow=c(2,2), mar =c(8,8,1,1), oma = c(1, 1, 1, 1))
+#A
+traits_for_model<-speciessla[match(rownames(coef(seedsla)$Species), speciessla$Species),c(1:2)]
+varfix <- vcov(seedsla)[2,2]
+re <- ranef(seedsla,condVar=TRUE)
+varcm <- attr(re$Species,"postVar")[2,2,]
+vartot <- varfix+varcm
+traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
+slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(seedsla)$Species[,6] + coef(seedsla)$Species[,9]*traits_for_model$std_log_SLA,
+                                         slope_PC2 = coef(seedsla)$Species[,7] + coef(seedsla)$Species[,11]*traits_for_model$std_log_SLA)
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(6,9)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(6,9), c(6,9)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC1 ~ std_log_SLA, ylab= "Slope of fecundity - PC1 relationship", xlab=NA, ylim=c(-1.1,.3), pch = 19, col="grey70", cex.lab = 3, cex.axis = 2, cex = 3))
+with(slopedata, arrows(std_log_SLA, slope_PC1+slope.SEs, std_log_SLA, slope_PC1-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1, cex = 3))
+plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='grey30', env.trans=40, line.colour='black', line.weight=4, line.type=1)
+abline(h=0, lty=3, lwd=3, cex = 3)
+#B
+traits_for_model<-speciesD13C[match(rownames(coef(lambdaD13C)$Species), speciesD13C$Species),c(1:2)]
+varfix <- vcov(lambdaD13C)[2,2]
+re <- ranef(lambdaD13C,condVar=TRUE)
+varcm <- attr(re$Species,"postVar")[2,2,]
+vartot <- varfix+varcm
+traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
+slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(lambdaD13C)$Species[,5] + coef(lambdaD13C)$Species[,11]*traits_for_model$std_log_D13C)
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(popdata$std_log_D13C))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(lambdaD13C)[c(5,11)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(lambdaD13C)[c(5,11), c(5,11)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC1 ~ std_log_D13C, ylab= "Slope of lambda - PC1 relationship", ylim = c(-0.65, 0.45), xlab=NA, pch = 19, col="grey70", cex.lab = 3, cex.axis = 2, cex = 3))
+with(slopedata, arrows(std_log_D13C, slope_PC1+slope.SEs, std_log_D13C, slope_PC1-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1, cex = 3))
+plot.CI.func(x.for.plot=seq.func(popdata$std_log_D13C), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='grey30', env.trans=40, line.colour='black', line.weight=4, line.type=1)
+abline(h=0, lty=3, lwd=3, cex = 3)
+#C
+traits_for_model<-speciessla[match(rownames(coef(seedsla)$Species), speciessla$Species),c(1:2)]
+varfix <- vcov(seedsla)[2,2]
+re <- ranef(seedsla,condVar=TRUE)
+varcm <- attr(re$Species,"postVar")[2,2,]
+vartot <- varfix+varcm
+traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
+slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(seedsla)$Species[,6] + coef(seedsla)$Species[,9]*traits_for_model$std_log_SLA,
+                                         slope_PC2 = coef(seedsla)$Species[,7] + coef(seedsla)$Species[,11]*traits_for_model$std_log_SLA)
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(7,11)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(7,11), c(7,11)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC2 ~ std_log_SLA, ylab= "Slope of fecundity - PC2 relationship", xlab="log(SLA) (standardised)", ylim = c(-0.5, 0.4), cex.lab = 3, cex.axis = 2, pch = 19, col="grey70", cex = 3))
+with(slopedata, arrows(std_log_SLA, slope_PC2+slope.SEs, std_log_SLA, slope_PC2-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1, cex = 3))
+plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='grey30', env.trans=40, line.colour='black', line.weight=4, line.type=1)
+abline(h=0, lty=3, lwd=3, cex = 3)
+#D
+traits_for_model<-speciesD13C[match(rownames(coef(lambdaD13C)$Species), speciesD13C$Species),c(1:2)]
+varfix <- vcov(lambdaD13C)[2,2]
+re <- ranef(lambdaD13C,condVar=TRUE)
+varcm <- attr(re$Species,"postVar")[2,2,]
+vartot <- varfix+varcm
+traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
+slopedata <- traits_for_model %>% mutate(slope_PC1_dry = coef(lambdaD13C)$Species[,3] + coef(lambdaD13C)$Species[,9]*traits_for_model$std_log_D13C,
+                                         slope_PC1_wet = coef(lambdaD13C)$Species[,4] + coef(lambdaD13C)$Species[,10]*traits_for_model$std_log_D13C)
+data.for.sla.slope.regression<-cbind(int=1, x=seq.func(popdata$std_log_D13C))
+pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(lambdaD13C)[c(4,10)]
+sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(lambdaD13C)[c(4,10), c(4,10)], as.matrix(data.for.sla.slope.regression))))
+with(slopedata, plot(slope_PC1_wet ~ std_log_D13C, ylab= "Slope of lambda - TreatmentWet relationship", ylim = c(-1.0, 1.4), xlab="log(D13C) (standardised)", cex.lab = 3, cex.axis = 2, pch = 19, col="grey70", cex = 3))
+with(slopedata, arrows(std_log_D13C, slope_PC1_wet+slope.SEs, std_log_D13C, slope_PC1_wet-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1, cex = 3))
+plot.CI.func(x.for.plot=seq.func(popdata$std_log_D13C), pred=pred.sla.slope.regression,
+             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
+             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
+             env.colour='grey30', env.trans=40, line.colour='black', line.weight=4, line.type=1)
+abline(h=0, lty=3, lwd=3, cex = 3)
+
+dev.off()
+
 
 ### John's code to calculate variance components in models ####
 #March 2022
@@ -1316,101 +1471,7 @@ for (i in 1:length(specieslist)){
 #VERO 51% among plots, 49% among blocks
 #Convergence issues
 
-#### Do interactions between the abiotic and biotic environment determine vital rates? ####
-#Interactions between watering, PC1 and neighbour abundance
-# See Full_Model_WA script
-
-#### Population growth rate 20/04/22 John meeting ####
-# Per capita growth rate of a given population  i = seed survival*(1-germination)+number of viable seeds produced per germinant*germination
-### Code from meeting with John 20/04/22 ###
-# prob of germination / germination fraction. # germinated / total germination, currently I have this as percent_germ which is a proportion (not percentage) lol oops
-#Calculate this at the plot level
-#glmmTMB
-#lambda_no_nbh
-#lambda_nbh
-
-testmodel <- glmmTMB(No_viable_seeds_grouped ~ Neighbours.x + (Neighbours.x|Site/Plot),family = nbinom2, seedarca)
-plot_means<-coef(testmodel)$cond[1][[1]]
-plot_means_no_neighbours<-exp(plot_means[,1])
-plot_means_neighbours<-exp(plot_means[,1] + plot_means[,2])
-
-# This produces the same result as using seedarca as dataframe
-arcadata %>% filter(surv_to_produce_seeds == 1) %>%
-  ggplot(aes(x = Neighbours.x, y = No_viable_seeds_grouped+1))+
-  geom_boxplot()+
-  scale_y_log10()+
-  geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
-  theme_classic()+
-  my_theme
-
-## Do same for survival
-#survival, glmer, binom
-#plogis instead of exp
-
-testmodelsurv <- glmer(surv_to_produce_seeds ~ Neighbours.x + (Neighbours.x|Site/Plot),family = binomial, arcadata)
-plot_means2<-coef(testmodel)$cond[1][[1]]
-plot_means_no_neighbours2<-plogis(plot_means[,1])
-plot_means_neighbours2<-plogis(plot_means[,1] + plot_means[,2])
-
-rownames(plot_means2)
-testing <- tidyr::separate(rownames(plot_means2), c("Site", "Plot"))
-
-#test <- vitaldata %% group_by(plot_id) %>% mutate(lambda = 0.9*(1-percent_germ)+x*percent_germ)
-
 ##### 20/04/22 meeting with John, quadratic responses to PC1/PC2/NA ####
-### Germination, PC1
-dev.off()
-pdf("Output/Figures/test200422.pdf", width=21, height=21)
-par(mfrow=c(3,3))
-par(mar=c(4,6,2,1))
-par(pty="s")
-for(i in 1:length(species.list.s)){
-  plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$percent_germ~plotted.data$std_PC1, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
-  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
-  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
-  x_to_plot<-seq.func(plotted.data$std_PC1) 
-  model<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, plotted.data)
-  model2<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + (1|Site/Plot), family = binomial, plotted.data)
-  if(summary(model)$coefficients[3,4]<0.05){
-    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
-    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-  }else{
-    preddata <- with(model2, data.frame(1, x_to_plot))
-    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-  }
-}
-dev.off()
-
-### Germination, PC2
-dev.off()
-pdf("Output/Figures/test200422_PC2.pdf", width=21, height=21)
-par(mfrow=c(3,3))
-par(mar=c(4,6,2,1))
-par(pty="s")
-for(i in 1:length(species.list.s)){
-  plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$percent_germ~plotted.data$std_PC2, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="PC2 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
-  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
-  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
-  x_to_plot<-seq.func(plotted.data$std_PC2) 
-  model<-glmer(cbind(total_germ, total_no_germ)~std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = binomial, plotted.data)
-  model2<-glmer(cbind(total_germ, total_no_germ)~std_PC2 + (1|Site/Plot), family = binomial, plotted.data)
-  if(summary(model)$coefficients[3,4]<0.05){
-    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
-    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-  }else{
-    preddata <- with(model2, data.frame(1, x_to_plot))
-    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-  }
-}
-dev.off()
-
-
 #Plots of survival probability in response to neighbour abundance by watering treatment
 # with a quadratic term and fitting lines and CIs from simple glm binomial model
 ggplot(vitaldata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds, colour = Treatment))+
@@ -1457,137 +1518,340 @@ ggplot(vitaldata, aes(x = std_PC2, y = surv_to_produce_seeds, colour = Treatment
   my_theme+
   facet_wrap(~Species)
 
-########### Haven't updated anything below here ###########
-### Various working out below (what works is above) ######
-#Creating a dataframe with SLA data, my code;
-speciessla <- seedmodeldata %>% select("Species", "std_log_SLA") %>% filter(row_number() == 1)
-speciessla <- as.data.frame(speciessla)
-rownames(speciessla) <- speciessla$Species
-#speciessla <- speciessla %>% select("std_log_SLA")
-
-### John's working 07/11/2021
-seedsla2 <- glmer.nb(seeds_percent ~ std_PC2 + std_log_SLA + std_PC2:std_log_SLA +
-                       (1|Site/Plot) + (1+std_PC2|Species), family = nbinom2, seedmodeldata)
-summary(seedsla2)
-#My interpretation: the slopes are the slope responses of PC2 for each species plus
-#the interaction of PC2:SLA*each species' SLA value.
-#Unique value for PC2 slopes, one value for PC2:SLA, unique values of SLA
-species_slopes<-coef(seedsla2)$Species[,2] + coef(seedsla2)$Species[,4]*speciessla$std_log_SLA
-
-plot(species_slopes ~ speciessla$std_log_SLA)
-curve(cbind(1,x)%*%fixef(seedsla2)[c(2,4)], add=T)
-abline(h=0, lty=3)
-### End John's
-
-##John's code:
-traits_for_model<-speciessla[match(rownames(coef(seedsla)$Species), speciessla$Species),c(1:2)]
-#GETTING STUCK IN BELOW LINE. Not sure I'm calling the right coef columns, tried many and none work
-traits_for_model$slopes<- rowSums(cbind(1, traits_for_model) * as.data.frame(coef(seedsla)$Species[,c(7, 9, 11)]))
-#Below is my interpretation of what that line does
-traits_for_model <- traits_for_model %>% mutate(slopes = coef(seedsla)$Species[,c(7, 9, 11)])
-#Back to John's code
-traits_for_model$slope.SEs<-slope.SEs<-sqrt(vartot)
-traits_for_model$Species<-rownames(coef(seedsla)$Species)
-
-## Updating this different way 08/11
-slopedata <- traits_for_model %>% mutate(slope_PC1 = coef(seedsla)$Species[,5] + coef(seedsla)$Species[,9]*traits_for_model$std_log_SLA,
-                                         slope_PC2 = coef(seedsla)$Species[,6] + coef(seedsla)$Species[,11]*traits_for_model$std_log_SLA)
-
-#Trying it a different way
-#Extracting slopes for each species
-#Note that the slopes are called std_PC1 and std_PC2 (confusing oops), renaming
-beta <- coef(seedsla)$Species
-signifbeta <- beta %>% select("std_PC1", "std_PC2")
-signifbeta <- signifbeta %>% rownames_to_column("Species")
-signifbeta <- signifbeta %>% rename(slope_PC1 = std_PC1,
-                                    slope_PC2 = std_PC2)
-#Merging datasets
-slopespsla <- merge(speciessla, signifbeta)
-#Creating a column for SE of slopes
-slopespsla <- slopespsla %>% mutate(slope.SEs = sqrt(vartot))
-
-### SLA - PC1 slope response
-#Revelation! c(5,9) is pulling out std_PC1 and std_PC1*std_log_SLA
-#But shouldn't it be std_log_SLA and std_log_SLA*std_PC1...? Nah, not what John did
-#Not sure this is working yet.
-data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
-pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(5,9)]
-sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(5,9), c(5,9)], as.matrix(data.for.sla.slope.regression))))
-with(slopedata, plot(slope_PC1 ~ std_log_SLA, ylab= "Slope of fecundity - PC1 relationship", xlab="log(SLA) (standardised)", ylim=c(-1,.3)))
-plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope.regression,
-             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
-             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
-             env.colour='grey30', env.trans=40, line.colour='black', line.weight=3, line.type=1)
-with(slopedata, points(std_log_SLA, slope_PC1, col="grey70", pch=19))
-with(slopedata, arrows(std_log_SLA, slope_PC1+slope.SEs, std_log_SLA, slope_PC1-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
-#curve(cbind(1,x)%*%fixef(seedsla)[c(9,11)], add=T, lwd=3)
-abline(h=0, lty=3, lwd=2)
-
-####Testing a few things with Isis to see if the code is working
-# with(slopespsla, plot(slope_PC1 ~ std_log_SLA))
-# test <- slopespsla %>% select(Species, slope_PC1, slope_PC2)
-# test2 <- merge(seedmodeldata, test)
-# x_to_plot<-seq.func(test2$std_log_SLA)
-# with(test2, plot(slope_PC1 ~ test2$std_log_SLA))
-# arcapreddata <- with(test2, data.frame(1, 0, 0, 0, 0, 0, x_to_plot, 0, 0*x_to_plot, 0*x_to_plot, 0*x_to_plot, 0*x_to_plot, 0*x_to_plot))
-#GETTING AN ERROR
-# arcapred <- glmm.predict(mod = seedsla, newdat = arcapreddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
-# plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
-
-### cath ###
-dev.off()
-plot(slopespsla$std_log_SLA, slopespsla$slope_PC2)
-arrows(slopespsla$std_log_SLA, slopespsla$slope_PC2+slopespsla$slope.SEs, slopespsla$std_log_SLA, slopespsla$slope_PC2-slopespsla$slope.SEs, code=3, angle=90, length=0)
-m <- lm(slopespsla$slope_PC2~slopespsla$std_log_SLA) # not good practice 
-abline(m)
-
-set_theme(theme_classic())
-plot_model(seedsla, type = "int", mdrt.values = "minmax", show.data = T, show.legend = F)
-
-dev.off()
-pdf("Output/slapc-0511.pdf", width=21, height=21)
-par(mfrow=c(3,3))
-par(mar=c(4,6,2,1))
-par(pty="s")
-#### End Cath ###
-
-
-#Testing another way; aw man the order of 5/9 or 9/5 matters too...
-# data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
-# pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(9, 5)] # why do you need to do a matrix multiplication? - cath 
-# sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(9, 5), c(9, 5)], as.matrix(data.for.sla.slope.regression))))
-# with(slopespsla, plot(slope_PC1 ~ std_log_SLA, ylab= "Slope of fecundity - PC1 relationship", xlab="log(SLA) (standardised)", ylim=c(-1,.3)))
-# plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope.regression,
-#              upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
-#              lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
-#              env.colour='grey30', env.trans=40, line.colour='black', line.weight=3, line.type=1)
-# with(slopespsla, points(std_log_SLA, slope_PC1, col="grey70", pch=19))
-# with(slopespsla, arrows(std_log_SLA, slope_PC1+slope.SEs, std_log_SLA, slope_PC1-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
-# #curve(cbind(1,x)%*%fixef(seedsla)[c(9,11)], add=T, lwd=3)
-#abline(h=0, lty=3, lwd=2)
-
-###### SLA - PC2 slope response
-#6,11 and 7,11 give the same thing?
-data.for.sla.slope.regression<-cbind(int=1, x=seq.func(seedmodeldata$std_log_SLA))
-pred.sla.slope.regression<- data.for.sla.slope.regression%*%fixef(seedsla)[c(6, 11)]
-sla.slope.regression.SEs<-sqrt(diag(as.matrix(data.for.sla.slope.regression) %*% tcrossprod(vcov(seedsla)[c(6, 11), c(6, 11)], as.matrix(data.for.sla.slope.regression))))
-with(slopestest, plot(slope_PC2 ~ std_log_SLA, ylab= "Slope of fecundity - PC2 relationship", xlab="log(SLA) (standardised)", ylim=c(-0.6, 0.5)))
-plot.CI.func(x.for.plot=seq.func(seedmodeldata$std_log_SLA), pred=pred.sla.slope.regression,
-             upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
-             lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
-             env.colour='grey30', env.trans=40, line.colour='black', line.weight=3, line.type=1)
-with(slopestest, points(std_log_SLA, slope_PC2, col="grey70", pch=19))
-with(slopestest, arrows(std_log_SLA, slope_PC2+slope.SEs, std_log_SLA, slope_PC2-slope.SEs, length = 0, angle = 30, code = 2, col = "grey70", lwd = 1))
-abline(h=0, lty=3, lwd=2)
 
 
 
 
 
+### Quantifying variance in vital rates explained by abiotic only vs biotic only ####
+## Another way of this answering this question, instead of just looking at # of significant interactions
+### Survival ###
+library(MuMIn)
+### Abiotic only
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalabiotic <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                           family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  print(summary(survivalabiotic))
+}
 
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmod", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+#Extracting values for theoretical marginal R squared
+summary(abioticmodARCA)
+arcaabiotic <- r.squaredGLMM(abioticmodARCA)[1,1]
+summary(abioticmodHYGL)
+hyglabiotic <- r.squaredGLMM(abioticmodHYGL)[1,1]
+summary(abioticmodLARO)
+laroabiotic <- r.squaredGLMM(abioticmodLARO)[1,1]
+summary(abioticmodPEAI)
+peaiabiotic <- r.squaredGLMM(abioticmodPEAI)[1,1]
+summary(abioticmodPLDE)
+pldeabiotic <- r.squaredGLMM(abioticmodPLDE)[1,1]
+summary(abioticmodPOLE)
+poleabiotic <- r.squaredGLMM(abioticmodPOLE)[1,1]
+summary(abioticmodTRCY)
+trcyabiotic <- r.squaredGLMM(abioticmodTRCY)[1,1]
+summary(abioticmodTROR)
+trorabiotic <- r.squaredGLMM(abioticmodTROR)[1,1]
+summary(abioticmodVERO)
+veroabiotic <- r.squaredGLMM(abioticmodVERO)[1,1]
 
+### Biotic only
+# Need optimiser to converge
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalbiotic <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
+                          family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  print(summary(survivalbiotic))
+}
 
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmod", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
 
+summary(bioticmodARCA)
+arcabiotic <- r.squaredGLMM(bioticmodARCA)[1,1]
+summary(bioticmodHYGL)
+hyglbiotic <- r.squaredGLMM(bioticmodHYGL)[1,1]
+summary(bioticmodLARO)
+larobiotic <- r.squaredGLMM(bioticmodLARO)[1,1]
+summary(bioticmodPEAI)
+peaibiotic <- r.squaredGLMM(bioticmodPEAI)[1,1]
+summary(bioticmodPLDE)
+pldebiotic <- r.squaredGLMM(bioticmodPLDE)[1,1]
+summary(bioticmodPOLE)
+polebiotic <- r.squaredGLMM(bioticmodPOLE)[1,1]
+summary(bioticmodTRCY)
+trcybiotic <- r.squaredGLMM(bioticmodTRCY)[1,1]
+summary(bioticmodTROR)
+trorbiotic <- r.squaredGLMM(bioticmodTROR)[1,1]
+summary(bioticmodVERO)
+verobiotic <- r.squaredGLMM(bioticmodVERO)[1,1]
 
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+rsquaredtable <- matrix(rep(1, times=2), ncol=2, nrow = 9)
+#define column names and row names of matrix
+colnames(rsquaredtable) <- c('R squared biotic model', 'R squared abiotic model')
+rownames(rsquaredtable) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
+#convert matrix to table 
+rsquaredtable <- as.data.frame(rsquaredtable)
+#view table 
+rsquaredtable
+##Replace values with appropriate ones
+#Biotic model
+rsquaredtable[1,1] <- arcabiotic
+rsquaredtable[2,1] <- hyglbiotic
+rsquaredtable[3,1] <- larobiotic
+rsquaredtable[4,1] <- peaibiotic
+rsquaredtable[5,1] <- pldebiotic
+rsquaredtable[6,1] <- polebiotic
+rsquaredtable[7,1] <- trcybiotic
+rsquaredtable[8,1] <- trorbiotic
+rsquaredtable[9,1] <- verobiotic
+#Abiotic model
+rsquaredtable[1,2] <- arcaabiotic
+rsquaredtable[2,2] <- hyglabiotic
+rsquaredtable[3,2] <- laroabiotic
+rsquaredtable[4,2] <- peaiabiotic
+rsquaredtable[5,2] <- pldeabiotic
+rsquaredtable[6,2] <- poleabiotic
+rsquaredtable[7,2] <- trcyabiotic
+rsquaredtable[8,2] <- trorabiotic
+rsquaredtable[9,2] <- veroabiotic
+
+#Export table as a csv file
+write.csv(rsquaredtable,"Output/Tables/surv_rsquaredtable.csv")
+
+####
+
+### Fecundity ###
+### Abiotic only
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  abioticseed <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                           family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(abioticseed))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                    family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+#Extracting values for theoretical marginal R squared
+summary(abioticmodseedARCA)
+arcaabioticseed <- r.squaredGLMM(abioticmodseedARCA)[1,1]
+summary(abioticmodseedHYGL)
+hyglabioticseed <- r.squaredGLMM(abioticmodseedHYGL)[1,1]
+summary(abioticmodseedLARO)
+laroabioticseed <- r.squaredGLMM(abioticmodseedLARO)[1,1]
+summary(abioticmodseedPEAI)
+peaiabioticseed <- r.squaredGLMM(abioticmodseedPEAI)[1,1]
+summary(abioticmodseedPLDE)
+pldeabioticseed <- r.squaredGLMM(abioticmodseedPLDE)[1,1]
+summary(abioticmodseedPOLE)
+poleabioticseed <- r.squaredGLMM(abioticmodseedPOLE)[1,1]
+summary(abioticmodseedTRCY)
+trcyabioticseed <- r.squaredGLMM(abioticmodseedTRCY)[1,1]
+summary(abioticmodseedTROR)
+trorabioticseed <- r.squaredGLMM(abioticmodseedTROR)[1,1]
+summary(abioticmodseedVERO)
+veroabioticseed <- r.squaredGLMM(abioticmodseedVERO)[1,1]
+
+### Biotic only
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  bioticseed <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
+                          family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(bioticseed))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
+                    family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+
+summary(bioticmodseedARCA)
+arcabioticseed <- r.squaredGLMM(bioticmodseedARCA)[1,1]
+summary(bioticmodseedHYGL)
+hyglbioticseed <- r.squaredGLMM(bioticmodseedHYGL)[1,1]
+summary(bioticmodseedLARO)
+larobioticseed <- r.squaredGLMM(bioticmodseedLARO)[1,1]
+summary(bioticmodseedPEAI)
+peaibioticseed <- r.squaredGLMM(bioticmodseedPEAI)[1,1]
+summary(bioticmodseedPLDE)
+pldebioticseed <- r.squaredGLMM(bioticmodseedPLDE)[1,1]
+summary(bioticmodseedPOLE)
+polebioticseed <- r.squaredGLMM(bioticmodseedPOLE)[1,1]
+summary(bioticmodseedTRCY)
+trcybioticseed <- r.squaredGLMM(bioticmodseedTRCY)[1,1]
+summary(bioticmodseedTROR)
+trorbioticseed <- r.squaredGLMM(bioticmodseedTROR)[1,1]
+summary(bioticmodseedVERO)
+verobioticseed <- r.squaredGLMM(bioticmodseedVERO)[1,1]
+
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+rsquaredtableseed <- matrix(rep(1, times=2), ncol=2, nrow = 9)
+#define column names and row names of matrix
+colnames(rsquaredtableseed) <- c('R squared biotic model', 'R squared abiotic model')
+rownames(rsquaredtableseed) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
+#convert matrix to table 
+rsquaredtableseed <- as.data.frame(rsquaredtableseed)
+#view table 
+rsquaredtableseed
+##Replace values with appropriate ones
+#Biotic model
+rsquaredtableseed[1,1] <- arcabioticseed
+rsquaredtableseed[2,1] <- hyglbioticseed
+rsquaredtableseed[3,1] <- larobioticseed
+rsquaredtableseed[4,1] <- peaibioticseed
+rsquaredtableseed[5,1] <- pldebioticseed
+rsquaredtableseed[6,1] <- polebioticseed
+rsquaredtableseed[7,1] <- trcybioticseed
+rsquaredtableseed[8,1] <- trorbioticseed
+rsquaredtableseed[9,1] <- verobioticseed
+#Abiotic model
+rsquaredtableseed[1,2] <- arcaabioticseed
+rsquaredtableseed[2,2] <- hyglabioticseed
+rsquaredtableseed[3,2] <- laroabioticseed
+rsquaredtableseed[4,2] <- peaiabioticseed
+rsquaredtableseed[5,2] <- pldeabioticseed
+rsquaredtableseed[6,2] <- poleabioticseed
+rsquaredtableseed[7,2] <- trcyabioticseed
+rsquaredtableseed[8,2] <- trorabioticseed
+rsquaredtableseed[9,2] <- veroabioticseed
+
+#Export table as a csv file
+write.csv(rsquaredtableseed,"Output/Tables/seed_rsquaredtable.csv")
+
+###### Population growth rate, lambda ###
+### Abiotic only
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  abioticlambda <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                                   data = filter(popdata, Species == specieslist[i]))
+  print(summary(abioticlambda))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmodlambda", specieslist[i])
+  assign(nam, glmmTMB(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                      data = filter(popdata, Species == specieslist[i])))
+}
+#Extracting values for theoretical marginal R squared
+summary(abioticmodlambdaARCA)
+arcaabioticlambda <- r.squaredGLMM(abioticmodlambdaARCA)[1,1]
+summary(abioticmodlambdaHYGL)
+hyglabioticlambda <- r.squaredGLMM(abioticmodlambdaHYGL)[1,1]
+summary(abioticmodlambdaLARO)
+laroabioticlambda <- r.squaredGLMM(abioticmodlambdaLARO)[1,1]
+summary(abioticmodlambdaPEAI)
+peaiabioticlambda <- r.squaredGLMM(abioticmodlambdaPEAI)[1,1]
+summary(abioticmodlambdaPLDE)
+pldeabioticlambda <- r.squaredGLMM(abioticmodlambdaPLDE)[1,1]
+summary(abioticmodlambdaPOLE)
+poleabioticlambda <- r.squaredGLMM(abioticmodlambdaPOLE)[1,1]
+summary(abioticmodlambdaTRCY)
+trcyabioticlambda <- r.squaredGLMM(abioticmodlambdaTRCY)[1,1]
+summary(abioticmodlambdaTROR)
+trorabioticlambda <- r.squaredGLMM(abioticmodlambdaTROR)[1,1]
+summary(abioticmodlambdaVERO)
+veroabioticlambda <- r.squaredGLMM(abioticmodlambdaVERO)[1,1]
+
+### Biotic only - hm, only have categorical neighbours....
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalbioticlambda <- lmer(log_lambda_p1 ~ neighbours01 + (1|Site/Plot), 
+                                  data = filter(popdata, Species == specieslist[i]))
+  print(summary(survivalbioticlambda))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmodlambda", specieslist[i])
+  assign(nam, lmer(log_lambda_p1 ~ neighbours01 + (1|Site/Plot), 
+                      data = filter(popdata, Species == specieslist[i])))
+}
+
+summary(bioticmodlambdaARCA)
+arcabioticlambda <- r.squaredGLMM(bioticmodlambdaARCA)[1,1]
+summary(bioticmodlambdaHYGL)
+hyglbioticlambda <- r.squaredGLMM(bioticmodlambdaHYGL)[1,1]
+summary(bioticmodlambdaLARO)
+larobioticlambda <- r.squaredGLMM(bioticmodlambdaLARO)[1,1]
+summary(bioticmodlambdaPEAI)
+peaibioticlambda <- r.squaredGLMM(bioticmodlambdaPEAI)[1,1]
+summary(bioticmodlambdaPLDE)
+pldebioticlambda <- r.squaredGLMM(bioticmodlambdaPLDE)[1,1]
+summary(bioticmodlambdaPOLE)
+polebioticlambda <- r.squaredGLMM(bioticmodlambdaPOLE)[1,1]
+summary(bioticmodlambdaTRCY)
+trcybioticlambda <- r.squaredGLMM(bioticmodlambdaTRCY)[1,1]
+summary(bioticmodlambdaTROR)
+trorbioticlambda <- r.squaredGLMM(bioticmodlambdaTROR)[1,1]
+summary(bioticmodlambdaVERO)
+verobioticlambda <- r.squaredGLMM(bioticmodlambdaVERO)[1,1]
+
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+rsquaredtablelambda <- matrix(rep(1, times=2), ncol=2, nrow = 9)
+#define column names and row names of matrix
+colnames(rsquaredtablelambda) <- c('R squared biotic model', 'R squared abiotic model')
+rownames(rsquaredtablelambda) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
+#convert matrix to table 
+rsquaredtablelambda <- as.data.frame(rsquaredtablelambda)
+#view table 
+rsquaredtablelambda
+##Replace values with appropriate ones
+#Biotic model
+rsquaredtablelambda[1,1] <- arcabioticlambda
+rsquaredtablelambda[2,1] <- hyglbioticlambda
+rsquaredtablelambda[3,1] <- larobioticlambda
+rsquaredtablelambda[4,1] <- peaibioticlambda
+rsquaredtablelambda[5,1] <- pldebioticlambda
+rsquaredtablelambda[6,1] <- polebioticlambda
+rsquaredtablelambda[7,1] <- trcybioticlambda
+rsquaredtablelambda[8,1] <- trorbioticlambda
+rsquaredtablelambda[9,1] <- verobioticlambda
+#Abiotic model
+rsquaredtablelambda[1,2] <- arcaabioticlambda
+rsquaredtablelambda[2,2] <- hyglabioticlambda
+rsquaredtablelambda[3,2] <- laroabioticlambda
+rsquaredtablelambda[4,2] <- peaiabioticlambda
+rsquaredtablelambda[5,2] <- pldeabioticlambda
+rsquaredtablelambda[6,2] <- poleabioticlambda
+rsquaredtablelambda[7,2] <- trcyabioticlambda
+rsquaredtablelambda[8,2] <- trorabioticlambda
+rsquaredtablelambda[9,2] <- veroabioticlambda
+
+#Export table as a csv file
+write.csv(rsquaredtablelambda,"Output/Tables/lambda_rsquaredtable.csv")
+
+### Merge them all into a nice table
+### code from other table below, need to update:
+
+### Binding survival, fecundity and lambda tables together ###
+rsquaredtablemerged <- cbind(rsquaredtable, rsquaredtableseed, rsquaredtablelambda)
+#Changing row and column names
+rownames(rsquaredtablemerged) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+colnames(rsquaredtablemerged) <- c("biotic", "abiotic", "biotic", "abiotic", "biotic", "abiotic")
+
+#Plotting with kableR
+rsquaredtablemerged %>% kbl(caption = "<b>Supplementary X</b>. R squared values from abiotic and biotic factor only models for survival, fecundity and population growth rate.", digits = 2) %>%
+  kable_classic(full_width = F, html_font = "Times") %>%
+  column_spec(1, italic = T) %>%
+  #row_spec(0, bold = T) %>%
+  add_header_above(c("", "Survival" = 2, "Fecundity" = 2, "Lambda" = 2))
+
+#Struggling to save this using save_kable and as_image() atm.
+#Can copy it from the Viewer using copy to clipboard, maintain aspect ratio, first value 500
 
 
