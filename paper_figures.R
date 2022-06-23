@@ -808,6 +808,13 @@ hyglsurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 
                           family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), hygldata)
 summary(hyglsurvfinalmod)
 
+#### Meeting John 22/06/22
+#### Plotting interaction between two continuous variables
+# PC1 is x 
+#with(hygldata, plot(jitter(surv_to_produce_seeds, amount = 0.05) ~ std_PC1, col = ifelse(std_logp1_totalabund>0, "red", "blue")))
+#curve(plogis(cbind(1, 0, 0, x, 0, 1, 0, 0*x, 0*x, 0*1, 0*1, x*1)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "red")
+#curve(plogis(cbind(1, 0, 0, x, 0, -1, 0, 0*x, 0*x, 0*-1, 0*-1, x*-1)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "blue")
+
 ## LARO
 larosurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
                         Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
@@ -2553,3 +2560,86 @@ mtext(~italic("V. rosea"), adj = -0.15, padj= 15, side = 3, cex = 2, outer = TRU
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 20, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
+
+#### Creating a table of final model output ####
+
+#ARCA
+summary(arcagermfinalmod)
+arcagerm_est <- coef(summary(arcagermfinalmod))[, "Estimate"]
+# same as:
+#fixef(arcagermfinalmod)
+#coef(summary(arcagermfinalmod))[, 1]
+arcagerm_se <- coef(summary(arcagermfinalmod))[, "Std. Error"]
+#same as:
+#arcagerm_est <- sqrt(diag(vcov(arcagermfinalmod))) #but no rownames
+arcagerm_p <- coef(summary(arcagermfinalmod))[, "Pr(>|z|)"]
+
+#HYGL
+summary(hyglgermfinalmod)
+hyglgerm_est <- coef(summary(hyglgermfinalmod))[, "Estimate"]
+hyglgerm_se <- coef(summary(hyglgermfinalmod))[, "Std. Error"]
+hyglgerm_p <- coef(summary(hyglgermfinalmod))[, "Pr(>|z|)"]
+
+#Extracting values for all
+# specieslistlower <- c("arca", "hygl", "laro", "peai", "plde", "pole", "trcy", "tror", "vero")
+# specieslistlowertest <- c("arca", "hygl")
+# for (i in 1:length(specieslistlowertest)){
+#   nam <- paste0(specieslistlowertest[i], "germ_est", sep = "")
+#   print(nam)
+#   test <- paste0(specieslistlowertest[i], "germfinalmod", sep = "")
+#   print(test)
+#   print(summary(specieslistlowertest[i], "germfinalmod", sep = ""))
+#  assign(nam, coef(sum[, "Estimate"]))
+# }
+
+# t(sapply(model_list, function(x) {
+#   sum <- summary(x)
+#   nam <- paste0(specieslistlower[i], "germ_est", sep = "")
+#   assign(nam, coef(sum[, "Estimate"]))
+# }))
+
+model_list <- list(arcagermfinalmod, hyglgermfinalmod)
+
+thisworks = lapply(1:length(model_list), function(x) {
+  cf <- coef(summary(model_list[[x]]))
+  data.frame(Effect=rownames(cf)[2], 
+             Estimate=cf[2,1],
+             SE=cf[2,2])})
+df2 <- do.call("rbind", thisworks)
+#Can replace rbind with cbind
+
+
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+effects_table <- cbind(arcagerm_est, arcagerm_se, arcagerm_p, hyglgerm_est, hyglgerm_se, hyglgerm_p)
+#define column names and row names of matrix
+rownames(effects_table) <- c('Intercept', 'PC1', 'PC2')
+
+#Need to be dataframe for collation to work
+effects_table <- as.data.frame(effects_table)
+#Making column with Estimate (+/- SE)
+effects_table$collated_germ_arca <- sprintf("%1.1f ± %1.1f", effects_table$arcagerm_est, effects_table$arcagerm_se)
+effects_table$collated_germ_hygl <- sprintf("%1.1f ± %1.1f", effects_table$hyglgerm_est, effects_table$hyglgerm_se)
+
+
+#Add column for asterisks based on below function
+p_text <-function(x){case_when(x >=0.05~"",x <0.001~"***",x <0.01~"**",x <0.05~"*")}
+effects_table <- effects_table %>% mutate(p_asterisks = across(ends_with("_p"),~p_text(.x)))
+
+#view(effects_table)
+#Plotting with kableR
+effects_table %>% select(collated_germ_arca, collated_germ_hygl) %>%
+  kbl(caption = "<b>Supplementary X</b>. Effects table with Estimate ± SE", col.names = c("Est ± SE", "Est ± SE")) %>%
+  kable_classic(full_width = F, html_font = "Times") %>%
+  #column_spec(1, italic = T)# %>%
+  #row_spec(0, bold = T) %>%
+  add_header_above(c("Germination" = 1, "n = " = 1, "n = " = 1), align = 'left') %>%
+  add_header_above(c("Effect", "Arcotheca calendula", "Hyalosperma glutinosum"), align = 'left')
+
+#italics not working for header! probably want this split across two rows, genus then species
+#also want to bold germination
+# and add sample sizes under species names
+#add asterisks depending on p-values
+
+
+

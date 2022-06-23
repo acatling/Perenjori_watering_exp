@@ -667,31 +667,49 @@ dev.off()
 # There are 129 subplots that do not have total_abundance information but did germinate
 # And 82 subplots that weren't surveyed but germinated...?
 
-for (i in 1:length(specieslist)){
+specieslistnopole <- specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "TRCY", "TROR", "VERO")
+
+
+for (i in 1:length(specieslistnopole)){
   print(specieslist[i])
   survival <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + (1|Site/Plot),
-                  family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+                  family = binomial, data = filter(vitaldata, Species == specieslistnopole[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   print(summary(survival))
 }
 
-# ###Putting models into a list for coef plotting
-# survivalmodels <- list()
-# for (i in 1:length(specieslist)){
-#   survivalmodels[[i]] <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + std_PC3 + Dodder01 +
-#                                  (1|Site/Plot), family = binomial, data = filter(vitaldata, Species == specieslist[i]))
-# }
-# #Making coefficient plot for survival as a function of environment
-# plot_models(survivalmodels, transform = NULL, vline.color = "grey", legend.title = "Species",
-#             dot.size = 2, line.size = 1)+
-#   ylab("Estimate")+
-#   theme_classic()+
-#  scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "POLE", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
+#### Putting models into a list for coef plotting ####
+# GERMINATION
+germmodels <- list()
+for (i in 1:length(specieslistnopole)){
+  germmodels[[i]] <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
+                               family = binomial, data = filter(vitaldata, Species == specieslistnopole[i]))
+}
+# , control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))
+
+#Making coefficient plot for survival as a function of environment
+plot_models(germmodels, transform = NULL, vline.color = "grey", legend.title = "Species",
+            dot.size = 2, line.size = 1)+
+  ylab("Estimate")+
+  theme_classic()+
+  scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
+
+# SURVIVAL
+survivalmodels <- list()
+for (i in 1:length(specieslistnopole)){
+  survivalmodels[[i]] <- glmer(surv_to_produce_seeds ~ std_PC1 + std_PC2 + Treatment + std_logp1_totalabund + Dodder01 +
+                                 (1|Site/Plot), family = binomial, data = filter(vitaldata, Species == specieslistnopole[i]))
+}
+#Making coefficient plot for survival as a function of environment
+plot_models(survivalmodels, transform = NULL, vline.color = "grey", legend.title = "Species",
+            dot.size = 2, line.size = 1)+
+  ylab("Estimate")+
+  theme_classic()+
+ scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
 ### Assigning model names by species to plot
-#Running it with this bobqya optimiser so that vero converges
-for (i in 1:length(specieslist)){
-  nam <- paste0("survmod", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + (1|Site/Plot),
-                      family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+for (i in 1:length(specieslistnopole)){
+  nam <- paste0("survmod", specieslistnopole[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ std_PC1 + std_PC2 + Treatment + std_logp1_totalabund + Dodder01 +
+                      (1|Site/Plot), family = "binomial", data = filter(vitaldata, Species == specieslistnopole[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 }
 
 #ARCA survival model, model created in loop above
@@ -709,9 +727,6 @@ plot(PEAIsurvdharma)
 summary(survmodPEAI)
 PLDEsurvdharma <- simulateResiduals(survmodPLDE)
 plot(PLDEsurvdharma)
-summary(survmodPLDE)
-POLEsurvdharma <- simulateResiduals(survmodPOLE)
-plot(POLEsurvdharma)
 summary(survmodPOLE)
 TRCYsurvdharma <- simulateResiduals(survmodTRCY)
 plot(TRCYsurvdharma)
@@ -730,16 +745,43 @@ survmodels[[2]] <- survmodHYGL
 survmodels[[3]] <- survmodLARO
 survmodels[[4]] <- survmodPEAI
 survmodels[[5]] <- survmodPLDE
-survmodels[[6]] <- survmodPOLE
-survmodels[[7]] <- survmodTRCY
-survmodels[[8]] <- survmodTROR
-survmodels[[9]] <- survmodVERO
+survmodels[[6]] <- survmodTRCY
+survmodels[[7]] <- survmodTROR
+survmodels[[8]] <- survmodVERO
 tab_model(survmodels, transform = NULL)
 plot_models(survmodels, transform = NULL, vline.color = "grey", legend.title = "Species",
             dot.size = 2, line.size = 1)+
   ylab("Estimate")+
   theme_classic()+
-  scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "POLE", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
+  scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
+
+# FECUNDITY
+fecunditymodels <- list()
+for (i in 1:length(specieslistnopole)){
+  fecunditymodels[[i]] <- glmmTMB(No_viable_seeds_grouped ~ std_PC1 + std_PC2 + Treatment + std_logp1_totalabund + Dodder01 +
+                                    (1|Site/Plot), family = nbinom2, data = filter(seedmodeldata, Species == specieslistnopole[i]))
+}
+#Making coefficient plot for survival as a function of environment
+plot_models(fecunditymodels, transform = NULL, vline.color = "grey", legend.title = "Species",
+            dot.size = 2, line.size = 1)+
+  ylab("Estimate")+
+  theme_classic()+
+  scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
+
+# LAMBDA
+lambdamodels <- list()
+for (i in 1:length(specieslistnopole)){
+  lambdamodels[[i]] <- lmer(log_lambda_p1 ~ std_PC1 + std_PC2 + Treatment + neighbours01 + (1|Site/Plot), 
+                               data = filter(popdata, Species == specieslistnopole[i]))
+}
+#Making coefficient plot for survival as a function of environment
+plot_models(lambdamodels, transform = NULL, vline.color = "grey", legend.title = "Species",
+            dot.size = 2, line.size = 1)+
+  ylab("Estimate")+
+  theme_classic()+
+  scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
+
+##########
 
 # #Plots of significant with neighbour abundance (ARCA and TROR) -- haven't updated
 # par(mfrow=c(2,1))
