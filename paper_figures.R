@@ -644,7 +644,14 @@ vitalquadpvalues <- cbind(germquadtable, survquadtable, fecundityquadtable, lamb
 #Plotting with kableR
 # To use italics, <i> and </i>. To use bold, <b> and </b>.
 #Or digits = 2 to change rounding of everything to 2, want to change this so PEAI is 4.0e-5 and TRCY is 3.0e-2 and all others are 2 dp
-vitalquadpvalues %>% kbl(caption = "<b>Supplementary 1</b>. Model output <i>p</i>-values for quadratic terms of fixed effects. N.A. denotes neighbour abundance. <b>Bolded</b> values indicate a <i>p</i>-value of <0.05.", digits = c(5, 2, 2, 2, 3, 2, 2, 2, 2, 2)) %>%
+## Can use scales::pvalue or p_value scales to change to < 0.01, < 0.001 etc. do this*
+#Not sure how because my dataframe has duplicate names #  mutate(scales::pvalue[,1]) %>%
+#Could manually rename couple of values that are too long? # test[4,1] <- "<0.001". Keeps bolding but converts them to character so need to figure that out
+#test[2,5] <- "na"
+#test$N.A. <- as.numeric(test$N.A.)
+
+vitalquadpvalues %>% 
+  kbl(caption = "<b>Supplementary 1</b>. Model output <i>p</i>-values for quadratic terms of fixed effects. N.A. denotes neighbour abundance. <b>Bolded</b> values indicate a <i>p</i>-value of <0.05.", digits = c(5, 2, 2, 2, 3, 2, 2, 2, 2, 2)) %>%
   kable_classic(full_width = F, html_font = "Times") %>%
   column_spec(1, italic = T) %>%
   #row_spec(0, bold = T) %>%
@@ -905,6 +912,7 @@ plot(trcysurvmod1dharma)
 vif(trcysurvmod1)
 summary(trcysurvmod1)
 # Model simplification step - Significant Wet:PC1, Wet:NA^2, removing all others
+#CHECK THIS * If wet:NA^2 is significant, keep both Treatment:NA and Treatment:NA^2
 trcysurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + 
                             I(std_logp1_totalabund^2) + Treatment:std_PC1 + Treatment:I(std_logp1_totalabund^2) + (1|Site/Plot), 
                           family = binomial, trcydata)
@@ -1160,6 +1168,22 @@ peailambdafinalmoddharma <- simulateResiduals(peailambdafinalmod)
 plot(peailambdafinalmoddharma)
 #good
 summary(peailambdafinalmod)
+
+##PLDE
+pldelambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
+                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdaplde)
+pldelambdamod1dharma <- simulateResiduals(pldelambdamod1)
+plot(pldelambdamod1dharma)
+#very bad residuals
+vif(pldelambdamod1)
+summary(pldelambdamod1)
+#Model simplification step - No significant interactions, removing all interactions
+pldelambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdaplde)
+pldelambdafinalmoddharma <- simulateResiduals(pldelambdafinalmod)
+plot(pldelambdafinalmoddharma)
+#bad residuals
+summary(pldelambdafinalmod)
+with(lambdaplde, plot(log_lambda_p1 ~ std_PC1))
 
 ##POLE
 polelambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
@@ -2563,83 +2587,493 @@ dev.off()
 
 #### Creating a table of final model output ####
 
-#ARCA
-summary(arcagermfinalmod)
-arcagerm_est <- coef(summary(arcagermfinalmod))[, "Estimate"]
-# same as:
-#fixef(arcagermfinalmod)
-#coef(summary(arcagermfinalmod))[, 1]
-arcagerm_se <- coef(summary(arcagermfinalmod))[, "Std. Error"]
-#same as:
-#arcagerm_est <- sqrt(diag(vcov(arcagermfinalmod))) #but no rownames
-arcagerm_p <- coef(summary(arcagermfinalmod))[, "Pr(>|z|)"]
+#Need to run models first, run all of of 'modelling vital rates in response to all factors'
+## GERMINATION ##
+## Extracting values for all in a loop
+germ_model_list <- list(arcagermfinalmod, hyglgermfinalmod, larogermfinalmod, peaigermfinalmod, pldegermfinalmod, polegermfinalmod, trcygermfinalmod, trorgermfinalmod, verogermfinalmod)
+effects = lapply(1:length(germ_model_list), function(x) {
+  as.data.frame(coef(summary(germ_model_list[[x]]))) %>% mutate(Species=paste0(x))})
+germ_effects_table <- do.call("rbind", effects)
 
-#HYGL
-summary(hyglgermfinalmod)
-hyglgerm_est <- coef(summary(hyglgermfinalmod))[, "Estimate"]
-hyglgerm_se <- coef(summary(hyglgermfinalmod))[, "Std. Error"]
-hyglgerm_p <- coef(summary(hyglgermfinalmod))[, "Pr(>|z|)"]
+#Make rownames a column 
+germ_effects_table <- cbind(Effect = rownames(germ_effects_table), germ_effects_table)
+#Remove rownames
+rownames(germ_effects_table) <- NULL
 
-#Extracting values for all
-# specieslistlower <- c("arca", "hygl", "laro", "peai", "plde", "pole", "trcy", "tror", "vero")
-# specieslistlowertest <- c("arca", "hygl")
-# for (i in 1:length(specieslistlowertest)){
-#   nam <- paste0(specieslistlowertest[i], "germ_est", sep = "")
-#   print(nam)
-#   test <- paste0(specieslistlowertest[i], "germfinalmod", sep = "")
-#   print(test)
-#   print(summary(specieslistlowertest[i], "germfinalmod", sep = ""))
-#  assign(nam, coef(sum[, "Estimate"]))
-# }
+#Renaming effects since loop adding values to ends
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, 'std_PC1')] <- 'std_PC1'
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, 'std_PC2')] <- 'std_PC2'
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, 'I(std_PC1^2)')] <- 'std_PC1^2'
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, 'I(std_PC2^2)')] <- 'std_PC2^2'
 
-# t(sapply(model_list, function(x) {
-#   sum <- summary(x)
-#   nam <- paste0(specieslistlower[i], "germ_est", sep = "")
-#   assign(nam, coef(sum[, "Estimate"]))
-# }))
+germ_effects_table <- within(germ_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+germ_effects_table <- within(germ_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+germ_effects_table <- within(germ_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+germ_effects_table <- within(germ_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+germ_effects_table <- within(germ_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+germ_effects_table <- within(germ_effects_table, Species[Species == '6'] <- 'Podolepis lessonii')
+germ_effects_table <- within(germ_effects_table, Species[Species == '7'] <- 'Trachymene cyanopetala')
+germ_effects_table <- within(germ_effects_table, Species[Species == '8'] <- 'Trachymene ornata')
+germ_effects_table <- within(germ_effects_table, Species[Species == '9'] <- 'Velleia rosea')
 
-model_list <- list(arcagermfinalmod, hyglgermfinalmod)
+#Renaming columns
+germ_effects_table <- germ_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
 
-thisworks = lapply(1:length(model_list), function(x) {
-  cf <- coef(summary(model_list[[x]]))
-  data.frame(Effect=rownames(cf)[2], 
-             Estimate=cf[2,1],
-             SE=cf[2,2])})
-df2 <- do.call("rbind", thisworks)
-#Can replace rbind with cbind
-
-
-#Create table to put these values in
-#create matrix with 2 columns filled with random value, 1
-effects_table <- cbind(arcagerm_est, arcagerm_se, arcagerm_p, hyglgerm_est, hyglgerm_se, hyglgerm_p)
-#define column names and row names of matrix
-rownames(effects_table) <- c('Intercept', 'PC1', 'PC2')
-
-#Need to be dataframe for collation to work
-effects_table <- as.data.frame(effects_table)
-#Making column with Estimate (+/- SE)
-effects_table$collated_germ_arca <- sprintf("%1.1f ± %1.1f", effects_table$arcagerm_est, effects_table$arcagerm_se)
-effects_table$collated_germ_hygl <- sprintf("%1.1f ± %1.1f", effects_table$hyglgerm_est, effects_table$hyglgerm_se)
-
+#Making column with Estimate (+/- SE) and p value asterisks all combined
+#germ_effects_table$collated <- sprintf("%1.1f ± %1.1f", germ_effects_table$Estimate, germ_effects_table$SE)
 
 #Add column for asterisks based on below function
-p_text <-function(x){case_when(x >=0.05~"",x <0.001~"***",x <0.01~"**",x <0.05~"*")}
-effects_table <- effects_table %>% mutate(p_asterisks = across(ends_with("_p"),~p_text(.x)))
+germ_effects_table <- germ_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                              p_value <0.001~"***",
+                                                              p_value <0.01~"**",
+                                                              p_value <0.05~"*"))
+germ_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", germ_effects_table$Estimate, germ_effects_table$SE, germ_effects_table$p_asterisks)
 
-#view(effects_table)
+
+germ_effects_kbl <- germ_effects_table %>% select(Species, Effect, collated)
+#test <- germ_effects_table %>% pivot_wider(names_from = Species, values_from = collated)
+#test2 <- germ_effects_table %>% pivot_wider(names_from = Species, values_from = c(Estimate, SE, p_value, collated))
+# test3 <- germ_effects_table %>% group_by(Species) %>%  
+#   mutate(row = row_number()) %>%  
+#   pivot_wider(names_from = Species, values_from = c(Estimate, SE, p_value, collated)) %>%
+#   select(-row)
+germ_effects_kbl <- germ_effects_kbl %>% group_by(Species) %>% mutate(row = row_number()) %>%
+  pivot_wider(names_from = Species, values_from = collated) %>% select(-row)
+
+#view(germ_effects_kbl)
+
+#germ_effects_kbl[3,5] <- cell_spec(germ_effects_kbl[3,5], "latex", bold = T)
+
 #Plotting with kableR
-effects_table %>% select(collated_germ_arca, collated_germ_hygl) %>%
-  kbl(caption = "<b>Supplementary X</b>. Effects table with Estimate ± SE", col.names = c("Est ± SE", "Est ± SE")) %>%
-  kable_classic(full_width = F, html_font = "Times") %>%
-  #column_spec(1, italic = T)# %>%
-  #row_spec(0, bold = T) %>%
-  add_header_above(c("Germination" = 1, "n = " = 1, "n = " = 1), align = 'left') %>%
-  add_header_above(c("Effect", "Arcotheca calendula", "Hyalosperma glutinosum"), align = 'left')
+germ_effects_kbl %>% mutate(Effect = c("Intercept", "PC1", "PC2", "PC2^2", "PC1^2")) %>%
+kbl(align = 'lccccccccc', caption = "<b>Supplementary X</b>. Germination effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+    kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+    add_header_above(c("Germination" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+    row_spec(0, italic = T) %>%
+    column_spec(1, italic = F) %>%
+  column_spec(1:10, width = 4)
+  #column_spec(2, bold = ifelse(ends_with("*") <0.05, TRUE, FALSE))
+  
+#Figure out how to make ^2 superscript and
+# how to bold rows containing asterisks
 
-#italics not working for header! probably want this split across two rows, genus then species
-#also want to bold germination
-# and add sample sizes under species names
-#add asterisks depending on p-values
+## SURVIVAL ##  
+surv_model_list <- list(arcasurvfinalmod, hyglsurvfinalmod, larosurvfinalmod, peaisurvfinalmod, pldesurvfinalmod, trcysurvfinalmod, trorsurvfinalmod, verosurvfinalmod)
+effects = lapply(1:length(surv_model_list), function(x) {
+  as.data.frame(coef(summary(surv_model_list[[x]]))) %>% mutate(Species=paste0(x))})
+surv_effects_table <- do.call("rbind", effects)
+
+surv_effects_table <- cbind(Effect = rownames(surv_effects_table), surv_effects_table)
+rownames(surv_effects_table) <- NULL
+
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'std_PC1:std_logp1_totalabund')] <- 'PC1:Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry:std_PC1')] <- 'Dry:PC1'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet:std_PC1')] <- 'Wet:PC1'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry:I(std_logp1_totalabund^2)')] <- 'Dry:Neighbour abundance^2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet:I(std_logp1_totalabund^2)')] <- 'Wet:Neighbour abundance^2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry:std_logp1_totalabund')] <- 'Dry:Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet:std_logp1_totalabund')] <- 'Wet:Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'Dodder01')] <- 'Dodder'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'I(std_PC1^2)')] <- 'PC1^2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'I(std_PC2^2)')] <- 'PC2^2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'I(std_logp1_totalabund^2)')] <- 'Neighbour abundance^2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'std_logp1_totalabund')] <- 'Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'std_PC1')] <- 'PC1'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'std_PC2')] <- 'PC2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry')] <- 'Dry'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet')] <- 'Wet'
+
+surv_effects_table <- within(surv_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+surv_effects_table <- within(surv_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+surv_effects_table <- within(surv_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+surv_effects_table <- within(surv_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+surv_effects_table <- within(surv_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+surv_effects_table <- within(surv_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+surv_effects_table <- within(surv_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
+surv_effects_table <- within(surv_effects_table, Species[Species == '8'] <- 'Velleia rosea')
+
+surv_effects_table <- surv_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
+surv_effects_table <- surv_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                                            p_value <0.001~"***",
+                                                                            p_value <0.01~"**",
+                                                                            p_value <0.05~"*"))
+surv_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", surv_effects_table$Estimate, surv_effects_table$SE, surv_effects_table$p_asterisks)
+
+surv_effects_kbl <- surv_effects_table %>% select(Species, Effect, collated)
+
+#Not sure why Dry and Wet are duplicating, extensively troubleshooted and not sure, but grouping by effects works well
+surv_effects_kbl <- surv_effects_kbl %>% group_by(Species, Effect) %>% mutate(row = row_number()) %>%
+  pivot_wider(names_from = Species, values_from = collated) %>% select(-row)
+
+#Plotting with kableR
+surv_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b>. Survival effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("Survival" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
+  column_spec(1, italic = F) %>%
+  column_spec(1:9, width = 4)
+
+## FECUNDITY ##  
+seed_model_list <- list(arcaseedfinalmod, hyglseedfinalmod, laroseedfinalmod, peaiseedfinalmod, pldeseedfinalmod, trcyseedfinalmod, trorseedfinalmod, veroseedfinalmod)
+#glmmTMB model coefs need to be extracted slightly differently
+effects = lapply(1:length(seed_model_list), function(x) {
+  as.data.frame(coef(summary(seed_model_list[[x]]))[["cond"]]) %>% mutate(Species=paste0(x))})
+seed_effects_table <- do.call("rbind", effects)
+
+seed_effects_table <- cbind(Effect = rownames(seed_effects_table), seed_effects_table)
+rownames(seed_effects_table) <- NULL
+
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'std_PC1:std_logp1_totalabund')] <- 'PC1:Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentDry:std_PC1')] <- 'Dry:PC1'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentWet:std_PC1')] <- 'Wet:PC1'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentDry:I(std_logp1_totalabund^2)')] <- 'Dry:Neighbour abundance^2'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentWet:I(std_logp1_totalabund^2)')] <- 'Wet:Neighbour abundance^2'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentDry:std_logp1_totalabund')] <- 'Dry:Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentWet:std_logp1_totalabund')] <- 'Wet:Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'Dodder01')] <- 'Dodder'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'I(std_PC1^2)')] <- 'PC1^2'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'I(std_PC2^2)')] <- 'PC2^2'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'I(std_logp1_totalabund^2)')] <- 'Neighbour abundance^2'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'std_logp1_totalabund')] <- 'Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'std_PC1')] <- 'PC1'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'std_PC2')] <- 'PC2'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentDry')] <- 'Dry'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentWet')] <- 'Wet'
+
+seed_effects_table <- within(seed_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+seed_effects_table <- within(seed_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+seed_effects_table <- within(seed_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+seed_effects_table <- within(seed_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+seed_effects_table <- within(seed_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+seed_effects_table <- within(seed_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+seed_effects_table <- within(seed_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
+seed_effects_table <- within(seed_effects_table, Species[Species == '8'] <- 'Velleia rosea')
+
+seed_effects_table <- seed_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
+seed_effects_table <- seed_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                                            p_value <0.001~"***",
+                                                                            p_value <0.01~"**",
+                                                                            p_value <0.05~"*"))
+seed_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", seed_effects_table$Estimate, seed_effects_table$SE, seed_effects_table$p_asterisks)
+
+seed_effects_kbl <- seed_effects_table %>% select(Species, Effect, collated)
+
+seed_effects_kbl <- seed_effects_kbl %>% group_by(Species) %>% mutate(row = row_number()) %>%
+  pivot_wider(names_from = Species, values_from = collated) %>% select(-row)
+
+#Plotting with kableR
+seed_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b>. Fecundity effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("Fecundity" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
+  column_spec(1, italic = F) %>%
+  column_spec(1:9, width = 4)
+
+## LAMBDA ##  
+lambda_model_list <- list(arcalambdafinalmod, hygllambdafinalmod, larolambdafinalmod, peailambdafinalmod, pldelambdafinalmod, trcylambdafinalmod, trorlambdafinalmod, verolambdafinalmod)
+#glmmTMB model coefs need to be extracted slightly differently
+effects = lapply(1:length(lambda_model_list), function(x) {
+  as.data.frame(coef(summary(lambda_model_list[[x]]))) %>% mutate(Species=paste0(x))})
+lambda_effects_table <- do.call("rbind", effects)
+
+lambda_effects_table <- cbind(Effect = rownames(lambda_effects_table), lambda_effects_table)
+rownames(lambda_effects_table) <- NULL
+
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC1:neighbours01neighbours')] <- 'PC1:Neighbour presence'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentDry:I(std_PC1^2)')] <- 'Dry:PC1^2'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentWet:I(std_PC1^2)')] <- 'Wet:PC1^2'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'I(std_PC1^2)')] <- 'PC1^2'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'neighbours01neighbours')] <- 'Neighbour presence'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC1')] <- 'PC1'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC2')] <- 'PC2'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentDry')] <- 'Dry'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentWet')] <- 'Wet'
+
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '8'] <- 'Velleia rosea')
+
+lambda_effects_table <- lambda_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|t|)')
+lambda_effects_table <- lambda_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                                                p_value <0.001~"***",
+                                                                                p_value <0.01~"**",
+                                                                                p_value <0.05~"*"))
+lambda_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", lambda_effects_table$Estimate, lambda_effects_table$SE, lambda_effects_table$p_asterisks)
+
+lambda_effects_kbl <- lambda_effects_table %>% select(Species, Effect, collated)
+
+lambda_effects_kbl <- lambda_effects_kbl %>% group_by(Species) %>% mutate(row = row_number()) %>%
+  pivot_wider(names_from = Species, values_from = collated) %>% select(-row)
+
+#Plotting with kableR
+lambda_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b>. Population growth rate effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("Lambda" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
+  column_spec(1, italic = F) %>%
+  column_spec(1:9, width = 4)
+  
+######## Creating stacked bar chart with counts of effect responses ##########
+# Produce one graph per demographic rate - 4 total
+## Germination ##
+germtally <- germ_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
+                                                                   pos = sum(p_value<0.05 & Estimate>0),
+                                                                   neg = sum(p_value<0.05 & Estimate<0))
+#Manually adjusting for quadratic terms. 
+#PC1: 1 pos_quad (-1 pos peai). PC2: 2 neg_quad (-1 pos plde, -1 pos laro)
+germtally <- within(germtally, pos[Effect == 'std_PC1'] <- '5')
+germtally <- within(germtally, pos[Effect == 'std_PC2'] <- '2')
+germtally$pos_quad <- 0
+germtally <- within(germtally, pos_quad[Effect == 'std_PC1'] <- '1')
+germtally$neg_quad <- 0
+germtally <- within(germtally, pos_quad[Effect == 'std_PC2'] <- '2')
+
+germtally <- subset(germtally, Effect == "std_PC1" | Effect == "std_PC2")
+
+germtally$pos <- as.numeric(germtally$pos)
+#Pivotting longer for plotting
+germtally_long <- germtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
+#Reordering response types so that non-significant is at bottom? 
+#NS, pos, neg, pos_quad, neg_quad
+germtally_long$response_type <- factor(germtally_long$response_type, level = c("neg_quad", "pos_quad", "neg", "pos", "ns"))
+# c("ns", "pos", "neg", "pos_quad", "neg_quad")
+## Plotting as proportional bar chart
+a <- ggplot(germtally_long, aes(x = Effect, y = count))+
+  geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
+  scale_y_continuous(breaks = seq(0,10, by = 1))+
+  ylab("Count of effect responses")+
+  scale_x_discrete(labels = c("PC1", "PC2"))+
+  theme_classic()+
+  scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "pos_quad" = "grey20", "neg_quad" = "grey0"))+
+  ggtitle("(a)")
+
+## Survival ##
+# Need to fix my problem where I only included quadratic terms in a couple of interactions
+#Dry:NA and Wet:NA need to be fixed ** do this**
+survtally <- surv_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
+                                                                   pos = sum(p_value<0.05 & Estimate>0),
+                                                                   neg = sum(p_value<0.05 & Estimate<0))
+#PC1^2 (one plde, but ns and PC1 ns too) and PC2^2 (none) good as is 
+#ARCA has ns quadratic but significant linear response to neighbour abundance
+#NA: 1 pos_quad (-1 neg trcy). 
+
+#plotting to make sure this linear significant relationship is real, yes content that it is
+# ggplot(arcadata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
+#   geom_jitter(alpha = 0.4, width = 0.05, height = 0.05)+
+#   geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ x)+
+#   theme_classic()
+# testmod <- glm(surv_to_produce_seeds ~ std_logp1_totalabund, family = "binomial", arcadata)
+# summary(testmod)
+
+survtally <- within(survtally, neg[Effect == 'Neighbour abundance'] <- '1')
+survtally$pos_quad <- 0
+survtally <- within(survtally, pos_quad[Effect == 'Neighbour abundance'] <- '1')
+survtally <- filter(survtally, !Effect == "Neighbour abundance^2", !Effect == "Dry:Neighbour abundance^2", !Effect == "Wet:Neighbour abundance^2", !Effect == "Intercept", !Effect == "PC1^2")
+
+survtally$neg <- as.numeric(survtally$neg)
+survtally$pos_quad <- as.numeric(survtally$pos_quad)
+#Pivotting longer for plotting
+survtally_long <- survtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
+#Reordering response types so that non-significant is at bottom
+survtally_long$response_type <- factor(survtally_long$response_type, level = c("neg_quad", "pos_quad", "neg", "pos", "ns"))
+
+#Reorder the effects?
+#c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", .....)
+
+## Plotting as proportional bar chart
+b <- ggplot(survtally_long, aes(x = Effect, y = count))+
+  geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
+  scale_y_continuous(breaks = seq(0,10, by = 1))+
+  ylab("Count of effect responses")+
+ scale_x_discrete(labels = c("Dodder", "Dry", "Dry:N.A.", "Dry:PC1", "N.A.", "PC1", "PC1:N.A.", "PC2", "Wet", "Wet:N.A.", "Wet:PC1"))+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90))+
+  scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40", "pos_quad" = "grey20"))+
+  ggtitle("(b)")
+
+## Fecundity ##
+seedtally <- seed_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
+                                                                   pos = sum(p_value<0.05 & Estimate>0),
+                                                                   neg = sum(p_value<0.05 & Estimate<0))
+#PC1: vero and trcy ns PC1 and PC^2
+seedtally <- filter(seedtally, !Effect == "Intercept", !Effect == "PC1^2")
+#Pivotting longer for plotting
+seedtally_long <- seedtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
+#Reordering response types so that non-significant is at bottom
+seedtally_long$response_type <- factor(seedtally_long$response_type, level = c("neg_quad", "pos_quad", "neg", "pos", "ns"))
+
+#Reorder the effects?
+#c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", .....)
+
+## Plotting as proportional bar chart
+c <- ggplot(seedtally_long, aes(x = Effect, y = count))+
+  geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
+  scale_y_continuous(breaks = seq(0,10, by = 1))+
+  ylab("Count of effect responses")+
+ scale_x_discrete(labels = c("Dodder", "Dry", "Dry:N.A.", "Dry:PC1", "N.A.", "PC1", "PC1:N.A.", "PC2", "Wet", "Wet:N.A.", "Wet:PC1"))+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90))+
+  scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40"))+
+  ggtitle("(c)")
+
+## Lambda ##
+# Need to fix my problem where I only included quadratic terms in a couple of interactions
+#Dry:PC1^2 peai and Dry:PC1^2 ** do this**
+
+lambdatally <- lambda_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
+                                                                       pos = sum(p_value<0.05 & Estimate>0),
+                                                                       neg = sum(p_value<0.05 & Estimate<0))
+#PEAI has ns PC1^2 but significant linear response to PC1
+#plotting to make sure this linear significant relationship is real, yes content that it is
+# ggplot(lambdapeai, aes(x = std_PC1, y = lambda))+
+#   geom_jitter(alpha = 0.4, width = 0.05, height = 0.05)+
+#   geom_smooth(method = "lm")+
+#   theme_classic()
+# testmod <- lm(lambda ~ std_PC1, lambdapeai)
+# summary(testmod)
+lambdatally <- filter(lambdatally, !Effect == "Dry:PC1^2", !Effect == "Wet:PC1^2", !Effect == "Intercept", !Effect == "PC1^2")
+#Pivotting longer for plotting
+lambdatally_long <- lambdatally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
+#Reordering response types so that non-significant is at bottom
+lambdatally_long$response_type <- factor(lambdatally_long$response_type, level = c("neg", "pos", "ns"))
+
+#Reorder the effects?
+#c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", .....)
+
+## Plotting as proportional bar chart
+d <- ggplot(lambdatally_long, aes(x = Effect, y = count))+
+  geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
+  scale_y_continuous(breaks = seq(0,10, by = 1))+
+  ylab("Count of effect responses")+
+  theme_classic()+
+  theme(axis.text.x = element_text(angle = 90))+
+scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40"))+
+  ggtitle("(d)")
+
+grid.arrange(a, b, c, d)
+
+####### Making a map of Perenjori! ####
+library(ggplot2)
+library(dplyr)
+library(sf)
+#Read in the SA2 shapefile downloaded from the ABS
+#Data from ABS localities
+# https://data.gov.au/dataset/ds-wa-d2dc22c6-0840-448c-819f-b6fb21411517/details?q=
+#Following this guide: https://medium.com/analytics-vidhya/mapping-australia-in-r-6ce092c48b49
+
+ausplotdata <- read_sf("Data_and_code_from_others/SA2_2016_AUST.shp")
+head(ausplotdata)
+
+#filter the Australian SA2 shapefile for only WA
+waplotdata <- ausplotdata %>% filter(STE_NAME16 == "Western Australia")
+
+ggplot()+
+  geom_sf(data = ausplotdata)+
+  xlab("Longitude")+
+  ylab("Latitude") +
+  xlim(110,155)+
+  theme_classic()
+
+ggplot()+
+  geom_sf(data = ausplotdata)+
+  geom_sf(data = waplotdata, fill = "blue") +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  xlim(110,155)+
+  theme_classic()
+
+ggplot()+
+  geom_sf(data = waplotdata) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  theme_classic()
+
+#import a shapefile of state boundaries
+aus_state_data <- read_sf("Data_and_code_from_others/STE_2016_AUST.shp")
+
+ggplot()+
+  geom_sf(data = aus_state_data)+
+  theme_classic()
+
+#make a new dataset of cities in Australia (google the locations)
+#
+#"West Perenjori Nature Reserve", -29.46703, 116.20600
+wa_cities <- tribble(
+  ~city, ~lat, ~long, 
+  "Perth",-31.953512, 115.857048,
+  "Perenjori", -29.443172, 116.288301)
+
+
+#convert those two columns to geometry column with the st_as_sf() function. Google Maps uses the coordinate reference system 4326 (the GPS system).
+wa_cities_geometry <- wa_cities %>% 
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+ggplot() +
+  geom_sf(data=aus_state_data)+
+  geom_sf(data=wa_cities_geometry, size=1)+
+  geom_sf_label(data =wa_cities_geometry, aes(label = city))+
+  xlim(110,155)+
+  xlab("Longitude") +
+  ylab("Latitude") + 
+  theme_bw()
+
+#Using ggrepel package to try and offset city labels and give them points
+library(ggrepel)
+dev.off()
+pdf("Output/Figures/Perenjori_map.pdf")
+ggplot() + geom_sf(data = aus_state_data, fill = "white") + 
+  geom_text_repel(data= wa_cities,aes(x=long, y=lat, label=city), fontface = "bold",nudge_x = c(-3,3), nudge_y = c(-3,3)) +
+  geom_point(data = wa_cities, aes(x = long, y = lat), size = 3) +  
+  xlim(110,155)+
+  xlab("Longitude") +
+  ylab("Latitude") + 
+  theme_bw()
+dev.off()
+
+state_labels <- tribble(
+  ~state, ~lat, ~long, 
+  "Western Australia",-26.519050, 122.165609,
+  "Northern Territory", -19.567005, 133.587342,
+  "Victoria", -36.999911, 144.079037,
+  "New South Wales", -32.979835, 146.336442,
+  "Australian Capital Territory", -35.430785, 148.959320,
+  "Queensland", -22.880978, 144.214005,
+  "Tasmania", -41.900339, 146.462846,
+  "South Australia", -30.070128, 134.832533)
+state_labels_geometry <- state_labels %>% 
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+#with state labels
+ggplot() + geom_sf(data = aus_state_data, fill = "white") + 
+  geom_text_repel(data= wa_cities,aes(x=long, y=lat, label=city), fontface = "bold",nudge_x = c(-3,3), nudge_y = c(-3,3)) +
+  geom_point(data = wa_cities, aes(x = long, y = lat), size = 3)+
+  geom_sf_label(data = state_labels_geometry, aes(label = state), size = 2)+
+  xlim(110,155)+
+  xlab("Longitude") +
+  ylab("Latitude") + 
+  theme_bw()
+
+#making dataframe for my 4 open and 4 shaded blocks (colour coded)
+
+block_coords <- tribble(
+  ~block, ~lat, ~long, 
+  "Open 1", -29.4791851, 116.1986948,
+  "Open 2", -29.4794714,	116.1987961,
+  "Open 3", -29.4791268,	116.1982687,
+  "Open 4", -29.479611,	116.197514,
+  "Shade 1", -29.4792905,	116.1984353,
+  "Shade 2", -29.4790544,	116.1982767,
+  "Shade 3", -29.4795126,	116.19695,
+  "Shade 4", -29.4798626,	116.1968421)
 
 
 

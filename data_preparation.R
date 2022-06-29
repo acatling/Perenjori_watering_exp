@@ -389,8 +389,8 @@ vitaldata <- left_join(vitaldata, treatments)
 #LDMC still strange logged
 #WUE/D13C better logged but still left-skewed
 #PC1 - right-skewed, logging doesn't help
-with(vitaldata, pairs(~SLA + LDMC + mean_D13C + PC1, diag.panel = panel.hist))
-with(vitaldata, pairs(~log(SLA+2) + LDMC + log(mean_D13C+2) + PC1, diag.panel = panel.hist))
+#with(vitaldata, pairs(~SLA + LDMC + mean_D13C + PC1, diag.panel = panel.hist))
+#with(vitaldata, pairs(~log(SLA+2) + LDMC + log(mean_D13C+2) + PC1, diag.panel = panel.hist))
 #Logging and standardising variables
 vitaldata$log_SLA <-log(vitaldata$SLA)
 vitaldata$log_D13C <-log(vitaldata$mean_D13C)
@@ -852,8 +852,8 @@ popdata <- left_join(poplongdata, pcaplot)
 
 #What is the distribution of lambda data?
 #left-skewed, log it
-hist(popdata$lambda)
-hist(log(popdata$lambda)+1)
+#hist(popdata$lambda)
+#hist(log(popdata$lambda)+1)
 #Create column for log(lambda)+1
 popdata <- popdata %>% mutate(log_lambda_p1 = log(lambda)+1)
 
