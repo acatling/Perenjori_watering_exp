@@ -1,6 +1,6 @@
 ### Answering my specific questions
 # WA Perenjori 2020 Watering Experiment
-#Updated April 21st 2022
+#Updated July 2022
 
 #### Loading packages and data ####
 library(ggplot2)
@@ -13,6 +13,7 @@ library(gridExtra)
 library(ggExtra)
 library(cowplot)
 library(car)
+library(kableExtra)
 
 #Functions file
 source("R_functions/functions.R")
@@ -37,8 +38,6 @@ source("data_preparation.R")
 ## Note that neighbour abundance and PC2 are correlated, so will not model them together
 
 #### Is neighbour abundance correlated with abiotic environmental factors or diversity? ####
-###Trying to plot them side by side as pdf
-# All of the below variables are standardised - I don't think that matters
 ##PC1
 pc1plot1 <- ggplot(vitaldata, aes(x = std_PC1, y = log(Total_abundance+1)))+
   geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
@@ -76,6 +75,8 @@ waterplot2 <- ggplot(datanonly, aes(x = Treatment, y = log(Total_abundance+1)))+
   geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
   ylab("")+
   theme_classic()
+
+dev.off()
 pdf("Output/Figures/n_abundance_corr.pdf")
   #grid.arrange(pc1plot1, pc1plot2, pc2plot1, pc2plot2, waterplot1, waterplot2, ncol = 2)
 #hjust adjusts position of label in cowplot
@@ -108,9 +109,28 @@ modelabundpc1 <- lm(log(Total_abundance+1) ~ std_PC1, datanonly)
 summary(modelabundpc1)
 modelabundpc2 <- lm(log(Total_abundance+1) ~ std_PC2, datanonly)
 summary(modelabundpc2)
+modelabundpc2b <- lm(log(Total_abundance+1) ~ std_PC2, vitaldata)
+summary(modelabundpc2b)
+modelabundpc2c <- lm(log(Total_abundance+1) ~ std_PC2 + std_PC1, vitaldata)
+summary(modelabundpc2c)
+vif(modelabundpc2c)
+modelabundpc2d <- lm(No_viable_seeds_grouped ~ std_logp1_totalabund + std_PC1 + std_PC2, vitaldata)
+summary(modelabundpc2d)
+vif(modelabundpc2d)
+
+## Is neighbour abundance significantly higher in watered plots?
 modelabundwater <- aov(log(Total_abundance+1) ~ Treatment, datanonly)
 summary(modelabundwater)
 TukeyHSD(modelabundwater)
+#yes, wet higher than ambient and dry
+
+datanonly$Treatment <- factor(datanonly$Treatment, level = c("Ambient", "Dry", "Wet"))
+modelabundwater2 <- lmer(log(Total_abundance+1) ~ Treatment + (1|Site/Plot), datanonly)
+dharmamod <- simulateResiduals(modelabundwater2)
+plot(dharmamod)
+summary(modelabundwater2)
+#no, not when accounting for differences between plots
+#terrible residuals, why?
 
 ### More plots
 ##Plotting PC1 vs abund for watering treatments
@@ -134,19 +154,40 @@ plot_grid(waterpc1plot, waterpc2plot, ncol = 1, labels = c("A", "B")) +
   theme(plot.margin = unit(c(1,50,1,50), "points"))
 dev.off()
 
+### How is neighbour abundance distributed across species across abiotic env? ####
+sppc1abund <- ggplot(vitaldata, aes(x = std_PC1, y = logp1_totalabund))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()+
+  facet_wrap(~Species)
+sppc2abund <- ggplot(vitaldata, aes(x = std_PC2, y = logp1_totalabund))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  ylab("log(Neighbour abundance + 1)")+
+  theme_classic()+
+  facet_wrap(~Species)
+# Most species don't have data for high neighbour abundance at low values of PC2
+# POLE doesn't have much coverage for low values of PC2 or PC1 (lesser extent)
+# All in all it's great coverage!
+#Try cowplot for plotting
+#The order of edges for plot.margin is unit(c(top, right, bottom, left), units)
+pdf("Output/Figures/nbh_coverage.pdf")
+plot_grid(sppc1abund, sppc2abund, ncol = 1, labels = c("A", "B")) + 
+  theme(plot.margin = unit(c(1,50,1,50), "points"))
+dev.off()
+
 #### Does the diversity of neighbours influence vital rates? ####
 # Can only look at this in subplots that have neighbours, otherwise data are zero conflated with respect to SDI and neighbour abundance
 #datanonly is vitaldata filtered to Total_abundance > 0 
 
 ### Is neighbour abundance correlated with diversity?
-# Simpson's diversity index and species richness
-ggplot(datanonly, aes(x = logp1_totalabund, y = sp_richness))+
+# Simpson's diversity index, Shannon Diversity Index and species richness
+ggplot(datanonly, aes(x = logp1_totalabund, y = log(sp_richness)))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
   geom_smooth()+
   theme_classic()+
   my_theme
 
-modelabundrichness <- lm(logp1_totalabund ~ sp_richness, datanonly)
+modelabundrichness <- lm(logp1_totalabund ~ log(sp_richness), datanonly)
 summary(modelabundrichness)
 
 ggplot(datanonly, aes(x = logp1_totalabund, y = SDI))+
@@ -158,7 +199,16 @@ ggplot(datanonly, aes(x = logp1_totalabund, y = SDI))+
 modelabundrichness <- lm(logp1_totalabund ~ SDI, datanonly)
 summary(modelabundrichness)
 
-ggplot(datanonly, aes(x = SDI, y = sp_richness))+
+ggplot(datanonly, aes(x = logp1_totalabund, y = shannon))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+modelabundrichness <- lm(logp1_totalabund ~ shannon, datanonly)
+summary(modelabundrichness)
+
+ggplot(datanonly, aes(x = SDI, y = log(sp_richness)))+
   geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
   geom_smooth()+
   theme_classic()+
@@ -167,28 +217,508 @@ ggplot(datanonly, aes(x = SDI, y = sp_richness))+
 modelrichnessSDI <- lm(SDI ~ sp_richness, datanonly)
 summary(modelrichnessSDI)
 
+ggplot(datanonly, aes(x = SDI, y = shannon))+
+  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
+  geom_smooth()+
+  theme_classic()+
+  my_theme
+
+modelrichnessSDI <- lm(SDI ~ shannon, datanonly)
+summary(modelrichnessSDI)
+
 ### Testing variance inflation factors with species richness 
 arcatest <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + sp_richness + (1|Site/Plot),
                   family = binomial, arcadata)
 summary(arcatest)
 vif(arcatest)
+#sp richness > 3!
 
 arcatest2 <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
                    family = binomial, arcadata)
 summary(arcatest2)
 vif(arcatest2)
 
+arcatest4 <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + shannon + (1|Site/Plot),
+                   family = binomial, arcadata)
+summary(arcatest4)
+vif(arcatest4)
+#shannon and SDI 7
+
+#only using shannon! as a measure of diversity
+
 #Create a model per species
 # Survival
 for (i in 1:length(specieslist)){
   print(specieslist[i])
-  survival <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
+  survival <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + shannon + (1|Site/Plot),
                     family = binomial, data = filter(datanonly, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   print(summary(survival))
 }
 #POLE didn't converge, it doesn't have much data at all with neighbours
 #TRCY significant positive response to SDI, huge estimate
 # TROR significant positive response to SDI too
+
+### Quantifying variance in vital rates explained by abiotic only vs biotic only ####
+## Another way of this answering this question, instead of just looking at # of significant interactions
+### Survival ###
+### Abiotic only - additive
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalabiotic <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                           family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  print(summary(survivalabiotic))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmod", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+#Extracting values for theoretical marginal R squared
+summary(abioticmodARCA)
+arcaabiotic <- r.squaredGLMM(abioticmodARCA)[1,1]
+summary(abioticmodHYGL)
+hyglabiotic <- r.squaredGLMM(abioticmodHYGL)[1,1]
+summary(abioticmodLARO)
+laroabiotic <- r.squaredGLMM(abioticmodLARO)[1,1]
+summary(abioticmodPEAI)
+peaiabiotic <- r.squaredGLMM(abioticmodPEAI)[1,1]
+summary(abioticmodPLDE)
+pldeabiotic <- r.squaredGLMM(abioticmodPLDE)[1,1]
+summary(abioticmodPOLE)
+poleabiotic <- r.squaredGLMM(abioticmodPOLE)[1,1]
+summary(abioticmodTRCY)
+trcyabiotic <- r.squaredGLMM(abioticmodTRCY)[1,1]
+summary(abioticmodTROR)
+trorabiotic <- r.squaredGLMM(abioticmodTROR)[1,1]
+summary(abioticmodVERO)
+veroabiotic <- r.squaredGLMM(abioticmodVERO)[1,1]
+
+### Biotic only - additive
+# Need optimiser to converge
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalbiotic <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                          family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+  print(summary(survivalbiotic))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmod", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+
+summary(bioticmodARCA)
+arcabiotic <- r.squaredGLMM(bioticmodARCA)[1,1]
+summary(bioticmodHYGL)
+hyglbiotic <- r.squaredGLMM(bioticmodHYGL)[1,1]
+summary(bioticmodLARO)
+larobiotic <- r.squaredGLMM(bioticmodLARO)[1,1]
+summary(bioticmodPEAI)
+peaibiotic <- r.squaredGLMM(bioticmodPEAI)[1,1]
+summary(bioticmodPLDE)
+pldebiotic <- r.squaredGLMM(bioticmodPLDE)[1,1]
+summary(bioticmodPOLE)
+polebiotic <- r.squaredGLMM(bioticmodPOLE)[1,1]
+summary(bioticmodTRCY)
+trcybiotic <- r.squaredGLMM(bioticmodTRCY)[1,1]
+summary(bioticmodTROR)
+trorbiotic <- r.squaredGLMM(bioticmodTROR)[1,1]
+summary(bioticmodVERO)
+verobiotic <- r.squaredGLMM(bioticmodVERO)[1,1]
+
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+rsquaredtable <- matrix(rep(1, times=2), ncol=2, nrow = 9)
+#define column names and row names of matrix
+colnames(rsquaredtable) <- c('R squared biotic model', 'R squared abiotic model')
+rownames(rsquaredtable) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
+#convert matrix to table 
+rsquaredtable <- as.data.frame(rsquaredtable)
+#view table 
+rsquaredtable
+##Replace values with appropriate ones
+#Biotic model
+rsquaredtable[1,1] <- arcabiotic
+rsquaredtable[2,1] <- hyglbiotic
+rsquaredtable[3,1] <- larobiotic
+rsquaredtable[4,1] <- peaibiotic
+rsquaredtable[5,1] <- pldebiotic
+rsquaredtable[6,1] <- polebiotic
+rsquaredtable[7,1] <- trcybiotic
+rsquaredtable[8,1] <- trorbiotic
+rsquaredtable[9,1] <- verobiotic
+#Abiotic model
+rsquaredtable[1,2] <- arcaabiotic
+rsquaredtable[2,2] <- hyglabiotic
+rsquaredtable[3,2] <- laroabiotic
+rsquaredtable[4,2] <- peaiabiotic
+rsquaredtable[5,2] <- pldeabiotic
+rsquaredtable[6,2] <- poleabiotic
+rsquaredtable[7,2] <- trcyabiotic
+rsquaredtable[8,2] <- trorabiotic
+rsquaredtable[9,2] <- veroabiotic
+
+#Export table as a csv file
+write.csv(rsquaredtable,"Output/Tables/surv_rsquaredtable.csv")
+
+####
+### Fecundity ###
+### Abiotic only
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  abioticseed <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                         family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(abioticseed))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+#Extracting values for theoretical marginal R squared
+summary(abioticmodseedARCA)
+arcaabioticseed <- r.squaredGLMM(abioticmodseedARCA)[1,1]
+summary(abioticmodseedHYGL)
+hyglabioticseed <- r.squaredGLMM(abioticmodseedHYGL)[1,1]
+summary(abioticmodseedLARO)
+laroabioticseed <- r.squaredGLMM(abioticmodseedLARO)[1,1]
+summary(abioticmodseedPEAI)
+peaiabioticseed <- r.squaredGLMM(abioticmodseedPEAI)[1,1]
+summary(abioticmodseedPLDE)
+pldeabioticseed <- r.squaredGLMM(abioticmodseedPLDE)[1,1]
+summary(abioticmodseedPOLE)
+poleabioticseed <- r.squaredGLMM(abioticmodseedPOLE)[1,1]
+summary(abioticmodseedTRCY)
+trcyabioticseed <- r.squaredGLMM(abioticmodseedTRCY)[1,1]
+summary(abioticmodseedTROR)
+trorabioticseed <- r.squaredGLMM(abioticmodseedTROR)[1,1]
+summary(abioticmodseedVERO)
+veroabioticseed <- r.squaredGLMM(abioticmodseedVERO)[1,1]
+
+### Biotic only
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  bioticseed <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                        family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(bioticseed))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+
+summary(bioticmodseedARCA)
+arcabioticseed <- r.squaredGLMM(bioticmodseedARCA)[1,1]
+summary(bioticmodseedHYGL)
+hyglbioticseed <- r.squaredGLMM(bioticmodseedHYGL)[1,1]
+summary(bioticmodseedLARO)
+larobioticseed <- r.squaredGLMM(bioticmodseedLARO)[1,1]
+summary(bioticmodseedPEAI)
+peaibioticseed <- r.squaredGLMM(bioticmodseedPEAI)[1,1]
+summary(bioticmodseedPLDE)
+pldebioticseed <- r.squaredGLMM(bioticmodseedPLDE)[1,1]
+summary(bioticmodseedPOLE)
+polebioticseed <- r.squaredGLMM(bioticmodseedPOLE)[1,1]
+summary(bioticmodseedTRCY)
+trcybioticseed <- r.squaredGLMM(bioticmodseedTRCY)[1,1]
+summary(bioticmodseedTROR)
+trorbioticseed <- r.squaredGLMM(bioticmodseedTROR)[1,1]
+summary(bioticmodseedVERO)
+verobioticseed <- r.squaredGLMM(bioticmodseedVERO)[1,1]
+
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+rsquaredtableseed <- matrix(rep(1, times=2), ncol=2, nrow = 9)
+#define column names and row names of matrix
+colnames(rsquaredtableseed) <- c('R squared biotic model', 'R squared abiotic model')
+rownames(rsquaredtableseed) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
+#convert matrix to table 
+rsquaredtableseed <- as.data.frame(rsquaredtableseed)
+#view table 
+rsquaredtableseed
+##Replace values with appropriate ones
+#Biotic model
+rsquaredtableseed[1,1] <- arcabioticseed
+rsquaredtableseed[2,1] <- hyglbioticseed
+rsquaredtableseed[3,1] <- larobioticseed
+rsquaredtableseed[4,1] <- peaibioticseed
+rsquaredtableseed[5,1] <- pldebioticseed
+rsquaredtableseed[6,1] <- polebioticseed
+rsquaredtableseed[7,1] <- trcybioticseed
+rsquaredtableseed[8,1] <- trorbioticseed
+rsquaredtableseed[9,1] <- verobioticseed
+#Abiotic model
+rsquaredtableseed[1,2] <- arcaabioticseed
+rsquaredtableseed[2,2] <- hyglabioticseed
+rsquaredtableseed[3,2] <- laroabioticseed
+rsquaredtableseed[4,2] <- peaiabioticseed
+rsquaredtableseed[5,2] <- pldeabioticseed
+rsquaredtableseed[6,2] <- poleabioticseed
+rsquaredtableseed[7,2] <- trcyabioticseed
+rsquaredtableseed[8,2] <- trorabioticseed
+rsquaredtableseed[9,2] <- veroabioticseed
+
+#Export table as a csv file
+write.csv(rsquaredtableseed,"Output/Tables/seed_rsquaredtable.csv")
+
+###### Population growth rate, lambda ###
+### Abiotic only
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  abioticlambda <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                        data = filter(popdata, Species == specieslist[i]))
+  print(summary(abioticlambda))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmodlambda", specieslist[i])
+  assign(nam, glmmTMB(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                      data = filter(popdata, Species == specieslist[i])))
+}
+#Extracting values for theoretical marginal R squared
+summary(abioticmodlambdaARCA)
+arcaabioticlambda <- r.squaredGLMM(abioticmodlambdaARCA)[1,1]
+summary(abioticmodlambdaHYGL)
+hyglabioticlambda <- r.squaredGLMM(abioticmodlambdaHYGL)[1,1]
+summary(abioticmodlambdaLARO)
+laroabioticlambda <- r.squaredGLMM(abioticmodlambdaLARO)[1,1]
+summary(abioticmodlambdaPEAI)
+peaiabioticlambda <- r.squaredGLMM(abioticmodlambdaPEAI)[1,1]
+summary(abioticmodlambdaPLDE)
+pldeabioticlambda <- r.squaredGLMM(abioticmodlambdaPLDE)[1,1]
+summary(abioticmodlambdaPOLE)
+poleabioticlambda <- r.squaredGLMM(abioticmodlambdaPOLE)[1,1]
+summary(abioticmodlambdaTRCY)
+trcyabioticlambda <- r.squaredGLMM(abioticmodlambdaTRCY)[1,1]
+summary(abioticmodlambdaTROR)
+trorabioticlambda <- r.squaredGLMM(abioticmodlambdaTROR)[1,1]
+summary(abioticmodlambdaVERO)
+veroabioticlambda <- r.squaredGLMM(abioticmodlambdaVERO)[1,1]
+
+### Biotic only - hm, only have categorical neighbours.... 
+#unless I could calculate high and low shannon? Consider this*
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survivalbioticlambda <- lmer(log_lambda_p1 ~ neighbours01 + (1|Site/Plot), 
+                               data = filter(popdata, Species == specieslist[i]))
+  print(summary(survivalbioticlambda))
+}
+
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmodlambda", specieslist[i])
+  assign(nam, lmer(log_lambda_p1 ~ neighbours01 + (1|Site/Plot), 
+                   data = filter(popdata, Species == specieslist[i])))
+}
+
+summary(bioticmodlambdaARCA)
+arcabioticlambda <- r.squaredGLMM(bioticmodlambdaARCA)[1,1]
+summary(bioticmodlambdaHYGL)
+hyglbioticlambda <- r.squaredGLMM(bioticmodlambdaHYGL)[1,1]
+summary(bioticmodlambdaLARO)
+larobioticlambda <- r.squaredGLMM(bioticmodlambdaLARO)[1,1]
+summary(bioticmodlambdaPEAI)
+peaibioticlambda <- r.squaredGLMM(bioticmodlambdaPEAI)[1,1]
+summary(bioticmodlambdaPLDE)
+pldebioticlambda <- r.squaredGLMM(bioticmodlambdaPLDE)[1,1]
+summary(bioticmodlambdaPOLE)
+polebioticlambda <- r.squaredGLMM(bioticmodlambdaPOLE)[1,1]
+summary(bioticmodlambdaTRCY)
+trcybioticlambda <- r.squaredGLMM(bioticmodlambdaTRCY)[1,1]
+summary(bioticmodlambdaTROR)
+trorbioticlambda <- r.squaredGLMM(bioticmodlambdaTROR)[1,1]
+summary(bioticmodlambdaVERO)
+verobioticlambda <- r.squaredGLMM(bioticmodlambdaVERO)[1,1]
+
+#Create table to put these values in
+#create matrix with 2 columns filled with random value, 1
+rsquaredtablelambda <- matrix(rep(1, times=2), ncol=2, nrow = 9)
+#define column names and row names of matrix
+colnames(rsquaredtablelambda) <- c('R squared biotic model', 'R squared abiotic model')
+rownames(rsquaredtablelambda) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
+#convert matrix to table 
+rsquaredtablelambda <- as.data.frame(rsquaredtablelambda)
+#view table 
+rsquaredtablelambda
+##Replace values with appropriate ones
+#Biotic model
+rsquaredtablelambda[1,1] <- arcabioticlambda
+rsquaredtablelambda[2,1] <- hyglbioticlambda
+rsquaredtablelambda[3,1] <- larobioticlambda
+rsquaredtablelambda[4,1] <- peaibioticlambda
+rsquaredtablelambda[5,1] <- pldebioticlambda
+rsquaredtablelambda[6,1] <- polebioticlambda
+rsquaredtablelambda[7,1] <- trcybioticlambda
+rsquaredtablelambda[8,1] <- trorbioticlambda
+rsquaredtablelambda[9,1] <- verobioticlambda
+#Abiotic model
+rsquaredtablelambda[1,2] <- arcaabioticlambda
+rsquaredtablelambda[2,2] <- hyglabioticlambda
+rsquaredtablelambda[3,2] <- laroabioticlambda
+rsquaredtablelambda[4,2] <- peaiabioticlambda
+rsquaredtablelambda[5,2] <- pldeabioticlambda
+rsquaredtablelambda[6,2] <- poleabioticlambda
+rsquaredtablelambda[7,2] <- trcyabioticlambda
+rsquaredtablelambda[8,2] <- trorabioticlambda
+rsquaredtablelambda[9,2] <- veroabioticlambda
+
+#Export table as a csv file
+write.csv(rsquaredtablelambda,"Output/Tables/lambda_rsquaredtable.csv")
+
+### Merge them all into a nice table
+### Binding survival, fecundity and lambda tables together ###
+rsquaredtablemerged <- cbind(rsquaredtable, rsquaredtableseed, rsquaredtablelambda)
+#Changing row and column names
+rownames(rsquaredtablemerged) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+colnames(rsquaredtablemerged) <- c("biotic", "abiotic", "biotic", "abiotic", "biotic", "abiotic")
+
+#Plotting with kableR
+rsquaredtablemerged %>% kbl(caption = "<b>Supplementary X</b>. R squared values from abiotic and biotic factor only models for survival, fecundity and population growth rate.", digits = 2) %>%
+  kable_classic(full_width = F, html_font = "Times") %>%
+  column_spec(1, italic = T) %>%
+  #row_spec(0, bold = T) %>%
+  add_header_above(c("", "Survival" = 2, "Fecundity" = 2, "Lambda" = 2))
+
+#Struggling to save this using save_kable and as_image() atm.
+#Can copy it from the Viewer using copy to clipboard, maintain aspect ratio, first value 500
+
+#### AIC Model Selection Abiotic vs Biotic ####
+## Rerunning the models
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmodsurv", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmodsurv", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("abioticmodlambda", specieslist[i])
+  assign(nam, glmmTMB(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+                      data = filter(popdata, Species == specieslist[i])))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("bioticmodlambda", specieslist[i])
+  assign(nam, lmer(log_lambda_p1 ~ neighbours01 + (1|Site/Plot), 
+                   data = filter(popdata, Species == specieslist[i])))
+}
+## Abiotic and biotic together
+for (i in 1:length(specieslist)){
+  nam <- paste0("bothmodsurv", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("bothmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + shannon + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("bothmodlambda", specieslist[i])
+  assign(nam, glmmTMB(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), 
+                      data = filter(popdata, Species == specieslist[i])))
+}
+### Abiotic and biotic interacting
+for (i in 1:length(specieslist)){
+  nam <- paste0("intmodsurv", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + shannon + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+}
+for (i in 1:length(specieslist)){
+  nam <- paste0("intmodseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + shannon + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+}
+#one isn't converging - which? POLE. Not a problem
+for (i in 1:length(specieslist)){
+  nam <- paste0("intmodlambda", specieslist[i])
+  assign(nam, glmmTMB(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), 
+                      data = filter(popdata, Species == specieslist[i])))
+}
+
+### Survival
+a <- AIC(bioticmodsurvARCA, abioticmodsurvARCA, bothmodsurvARCA, intmodsurvARCA)
+b <- AIC(bioticmodsurvHYGL, abioticmodsurvHYGL, bothmodsurvHYGL, intmodsurvHYGL)
+c <- AIC(bioticmodsurvLARO, abioticmodsurvLARO, bothmodsurvLARO, intmodsurvLARO)
+d <- AIC(bioticmodsurvPEAI, abioticmodsurvPEAI, bothmodsurvPEAI, intmodsurvPEAI)
+e <- AIC(bioticmodsurvPLDE, abioticmodsurvPLDE, bothmodsurvPLDE, intmodsurvPLDE)
+f <- AIC(bioticmodsurvPOLE, abioticmodsurvPOLE, bothmodsurvPOLE, intmodsurvPOLE)
+g <- AIC(bioticmodsurvTRCY, abioticmodsurvTRCY, bothmodsurvTRCY, intmodsurvTRCY)
+h <- AIC(bioticmodsurvTROR, abioticmodsurvTROR, bothmodsurvTROR, intmodsurvTROR)
+i <- AIC(bioticmodsurvVERO, abioticmodsurvVERO, bothmodsurvVERO, intmodsurvVERO)
+### Fecundity
+aseed <- AIC(bioticmodseedARCA, abioticmodseedARCA, bothmodseedARCA, intmodseedARCA)
+bseed <- AIC(bioticmodseedHYGL, abioticmodseedHYGL, bothmodseedHYGL, intmodseedHYGL)
+cseed <- AIC(bioticmodseedLARO, abioticmodseedLARO, bothmodseedLARO, intmodseedLARO)
+dseed <- AIC(bioticmodseedPEAI, abioticmodseedPEAI, bothmodseedPEAI, intmodseedPEAI)
+eseed <- AIC(bioticmodseedPLDE, abioticmodseedPLDE, bothmodseedPLDE, intmodseedPLDE)
+fseed <- AIC(bioticmodseedTRCY, abioticmodseedTRCY, bothmodseedTRCY, intmodseedTRCY)
+gseed <- AIC(bioticmodseedTROR, abioticmodseedTROR, bothmodseedTROR, intmodseedTROR)
+hseed <- AIC(bioticmodseedVERO, abioticmodseedVERO, bothmodseedVERO, intmodseedVERO)
+### Lambda
+alambda <- AIC(bioticmodlambdaARCA, abioticmodlambdaARCA, bothmodlambdaARCA, intmodlambdaARCA)
+blambda <- AIC(bioticmodlambdaHYGL, abioticmodlambdaHYGL, bothmodlambdaHYGL, intmodlambdaHYGL)
+clambda <- AIC(bioticmodlambdaLARO, abioticmodlambdaLARO, bothmodlambdaLARO, intmodlambdaLARO)
+dlambda <- AIC(bioticmodlambdaPEAI, abioticmodlambdaPEAI, bothmodlambdaPEAI, intmodlambdaPEAI)
+elambda <- AIC(bioticmodlambdaPLDE, abioticmodlambdaPLDE, bothmodlambdaPLDE, intmodlambdaPLDE)
+flambda <- AIC(bioticmodlambdaTRCY, abioticmodlambdaTRCY, bothmodlambdaTRCY, intmodlambdaTRCY)
+glambda <- AIC(bioticmodlambdaTROR, abioticmodlambdaTROR, bothmodlambdaTROR, intmodlambdaTROR)
+hlambda <- AIC(bioticmodlambdaVERO, abioticmodlambdaVERO, bothmodlambdaVERO, intmodlambdaVERO)
+
+## Presenting them in tables
+### Survival
+surv_AIC <- cbind(a, b[,2], c[,2], d[,2], e[,2], f[,2], g[,2], h[,2], i[,2])
+colnames(surv_AIC) <- c('df', "Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+rownames(surv_AIC) <- c('Biotic', 'Abiotic', 'Both', 'Interaction')
+surv_AIC <- surv_AIC %>% rownames_to_column("Model")
+#Plotting with kableR
+surv_AIC %>%
+  kbl(align = 'lcccccccccc', caption = "<b>Test</b>. Testing", digits = 1) %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("Survival" = 11), align = "l", italic = T, background = "lightgrey")
+  #column_spec(3, bold = ifelse(min(surv_AIC[3]), TRUE, FALSE))
+  #column_spec(4, bold = min(surv_AIC[4]))
+  #cell_spec(surv_AIC[1,5], bold = T)
+#Can't figure out conditional bolding
+#mutate(`Arctotheca calendula` = cell_spec(`Arcotheca calendula`, bold = ifelse(min(surv_AIC$`Arctotheca calendula`), TRUE, FALSE)))
+
+### Fecundity
+seed_AIC <- cbind(aseed, bseed[,2], cseed[,2], dseed[,2], eseed[,2], fseed[,2], gseed[,2], hseed[,2])
+colnames(seed_AIC) <- c('df', "Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+rownames(seed_AIC) <- c('Biotic', 'Abiotic', 'Both', 'Interaction')
+seed_AIC <- seed_AIC %>% rownames_to_column("Model")
+seed_AIC %>%
+  kbl(align = 'lccccccccc', digits = 1) %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("Fecundity" = 10), align = "l", italic = T, background = "lightgrey")
+
+### Lambda
+lambda_AIC <- cbind(alambda, blambda[,2], clambda[,2], dlambda[,2], elambda[,2], flambda[,2], glambda[,2], hlambda[,2])
+colnames(lambda_AIC) <- c('df', "Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+rownames(lambda_AIC) <- c('Biotic', 'Abiotic', 'Both', 'Interaction')
+lambda_AIC <- lambda_AIC %>% rownames_to_column("Model")
+lambda_AIC %>%
+  kbl(align = 'lccccccccc', digits = 1) %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("Lambda" = 10), align = "l", italic = T, background = "lightgrey")
+#resize 600
+
 ### Looking at distribution of data - linear or quadratic? ####
 #Meeting with John 13/03
 #Watering*N*Cover
@@ -441,7 +971,6 @@ polesimplemoddharma2 <- simulateResiduals(polesimplemod2)
 plot(polesimplemoddharma2)
 #bad dharma
 
-##########
 ### Checking model fits and vif ####
 ## Checking for multicollinearity in models using variance inflation factor
 # VIF over 5 is a problem
@@ -638,27 +1167,6 @@ ggplot(plotvar, aes(x = std_PC1, y = std_PC2))+
   theme_classic()
 modpc1pc2 <- lm(std_PC2 ~ std_PC1, plotvar)
 summary(modpc1pc2)
-### How is neighbour abundance distributed across species across abiotic env? ####
-sppc1abund <- ggplot(vitaldata, aes(x = std_PC1, y = logp1_totalabund))+
-  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
-  ylab("log(Neighbour abundance + 1)")+
-  theme_classic()+
-  facet_wrap(~Species)
-sppc2abund <- ggplot(vitaldata, aes(x = std_PC2, y = logp1_totalabund))+
-  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
-  ylab("log(Neighbour abundance + 1)")+
-  theme_classic()+
-  facet_wrap(~Species)
-# Most species don't have data for high neighbour abundance at low values of PC2
-# POLE doesn't have much coverage for low values of PC2 or PC1 (lesser extent)
-# All in all it's great coverage!
-#Try cowplot for plotting
-#The order of edges for plot.margin is unit(c(top, right, bottom, left), units)
-pdf("Output/Figures/nbh_coverage.pdf")
-plot_grid(sppc1abund, sppc2abund, ncol = 1, labels = c("A", "B")) + 
-  theme(plot.margin = unit(c(1,50,1,50), "points"))
-dev.off()
-
 #### Question 1 relative importance A. and B. factors####
 ##What is the relative importance of abiotic and biotic factors for survival and fecundity?
 #Additive model: response ~ total_abundance + water + PC1 + PC2 + PC3 + RE
@@ -781,8 +1289,6 @@ plot_models(lambdamodels, transform = NULL, vline.color = "grey", legend.title =
   theme_classic()+
   scale_colour_discrete(labels = c("VERO", "TROR", "TRCY", "PLDE", "PEAI", "LARO", "HYGL", "ARCA"))
 
-##########
-
 # #Plots of significant with neighbour abundance (ARCA and TROR) -- haven't updated
 # par(mfrow=c(2,1))
 # x_to_plot<-seq.func(vitaldata$std_logp1_totalabund)
@@ -795,7 +1301,7 @@ plot_models(lambdamodels, transform = NULL, vline.color = "grey", legend.title =
 # trorpred <- glmm.predict(mod = trorsurvmod2, newdat = trorpreddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 # plot.CI.func(x.for.plot = x_to_plot, pred = arcapred$y, upper = arcapred$upper, lower = arcapred$lower, env.colour = "blue", env.trans = 50, line.colour = "blue", line.weight = 2, line.type = 1)
 
-### Plotting with all species together
+### Plotting with all species together ####
 species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
 dev.off()
 pdf("Output/Figures/survival_PC1.pdf", width=21, height=21)
@@ -863,7 +1369,6 @@ for(i in 1:length(species.list.s)){
 }
 dev.off()
 
-##################################################################
 ### Q1 - Viable seed production #####
 # Should I use No_viable_seeds_grouped or seeds_percent???
 #Using No_viable_seeds_grouped for individual species models
@@ -1361,7 +1866,7 @@ plot.CI.func(x.for.plot=seq.func(popdata$std_log_D13C), pred=pred.sla.slope.regr
              upper=pred.sla.slope.regression + 1.96*sla.slope.regression.SEs,
              lower=pred.sla.slope.regression - 1.96*sla.slope.regression.SEs,
              env.colour='pink', env.trans=40, line.colour='red', line.weight=3, line.type=1)
-################ Panel four traits ##########
+#### Panel four traits ##########
 ###Making a panel with four figures representing significant trait relationships
 #A - fecundity-PC1 modulated by SLA; C - fecundity-PC2 modulated by SLA
 # B - lambda-PC1 modulated by D13C; D - lambda-TreatmentWet modulated by D13C
@@ -1565,335 +2070,88 @@ ggplot(vitaldata, aes(x = std_PC2, y = surv_to_produce_seeds, colour = Treatment
 
 
 
-### Quantifying variance in vital rates explained by abiotic only vs biotic only ####
-## Another way of this answering this question, instead of just looking at # of significant interactions
-### Survival ###
-library(MuMIn)
-### Abiotic only
+#### Strength of intraspecific vs interspecific interactions ####
+#Converge issues with interspecific and intraspecific models
+# Total abundance
 for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  survivalabiotic <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
-                           family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-  print(summary(survivalabiotic))
-}
-
-for (i in 1:length(specieslist)){
-  nam <- paste0("abioticmod", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
+  nam <- paste0("totalsurv", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
                     family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 }
-#Extracting values for theoretical marginal R squared
-summary(abioticmodARCA)
-arcaabiotic <- r.squaredGLMM(abioticmodARCA)[1,1]
-summary(abioticmodHYGL)
-hyglabiotic <- r.squaredGLMM(abioticmodHYGL)[1,1]
-summary(abioticmodLARO)
-laroabiotic <- r.squaredGLMM(abioticmodLARO)[1,1]
-summary(abioticmodPEAI)
-peaiabiotic <- r.squaredGLMM(abioticmodPEAI)[1,1]
-summary(abioticmodPLDE)
-pldeabiotic <- r.squaredGLMM(abioticmodPLDE)[1,1]
-summary(abioticmodPOLE)
-poleabiotic <- r.squaredGLMM(abioticmodPOLE)[1,1]
-summary(abioticmodTRCY)
-trcyabiotic <- r.squaredGLMM(abioticmodTRCY)[1,1]
-summary(abioticmodTROR)
-trorabiotic <- r.squaredGLMM(abioticmodTROR)[1,1]
-summary(abioticmodVERO)
-veroabiotic <- r.squaredGLMM(abioticmodVERO)[1,1]
-
-### Biotic only
-# Need optimiser to converge
+# Inter and intra abundance
 for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  survivalbiotic <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
-                          family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-  print(summary(survivalbiotic))
-}
-
-for (i in 1:length(specieslist)){
-  nam <- paste0("bioticmod", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
+  nam <- paste0("interintrasurv", specieslist[i])
+  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_interabund + std_logp1_intraabund + Dodder01 + (1|Site/Plot), 
                     family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 }
 
-summary(bioticmodARCA)
-arcabiotic <- r.squaredGLMM(bioticmodARCA)[1,1]
-summary(bioticmodHYGL)
-hyglbiotic <- r.squaredGLMM(bioticmodHYGL)[1,1]
-summary(bioticmodLARO)
-larobiotic <- r.squaredGLMM(bioticmodLARO)[1,1]
-summary(bioticmodPEAI)
-peaibiotic <- r.squaredGLMM(bioticmodPEAI)[1,1]
-summary(bioticmodPLDE)
-pldebiotic <- r.squaredGLMM(bioticmodPLDE)[1,1]
-summary(bioticmodPOLE)
-polebiotic <- r.squaredGLMM(bioticmodPOLE)[1,1]
-summary(bioticmodTRCY)
-trcybiotic <- r.squaredGLMM(bioticmodTRCY)[1,1]
-summary(bioticmodTROR)
-trorbiotic <- r.squaredGLMM(bioticmodTROR)[1,1]
-summary(bioticmodVERO)
-verobiotic <- r.squaredGLMM(bioticmodVERO)[1,1]
-
-#Create table to put these values in
-#create matrix with 2 columns filled with random value, 1
-rsquaredtable <- matrix(rep(1, times=2), ncol=2, nrow = 9)
-#define column names and row names of matrix
-colnames(rsquaredtable) <- c('R squared biotic model', 'R squared abiotic model')
-rownames(rsquaredtable) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
-#convert matrix to table 
-rsquaredtable <- as.data.frame(rsquaredtable)
-#view table 
-rsquaredtable
-##Replace values with appropriate ones
-#Biotic model
-rsquaredtable[1,1] <- arcabiotic
-rsquaredtable[2,1] <- hyglbiotic
-rsquaredtable[3,1] <- larobiotic
-rsquaredtable[4,1] <- peaibiotic
-rsquaredtable[5,1] <- pldebiotic
-rsquaredtable[6,1] <- polebiotic
-rsquaredtable[7,1] <- trcybiotic
-rsquaredtable[8,1] <- trorbiotic
-rsquaredtable[9,1] <- verobiotic
-#Abiotic model
-rsquaredtable[1,2] <- arcaabiotic
-rsquaredtable[2,2] <- hyglabiotic
-rsquaredtable[3,2] <- laroabiotic
-rsquaredtable[4,2] <- peaiabiotic
-rsquaredtable[5,2] <- pldeabiotic
-rsquaredtable[6,2] <- poleabiotic
-rsquaredtable[7,2] <- trcyabiotic
-rsquaredtable[8,2] <- trorabiotic
-rsquaredtable[9,2] <- veroabiotic
-
-#Export table as a csv file
-write.csv(rsquaredtable,"Output/Tables/surv_rsquaredtable.csv")
-
-####
-
-### Fecundity ###
-### Abiotic only
+#Total
 for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  abioticseed <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
-                           family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
-  print(summary(abioticseed))
+  nam <- paste0("totalseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
 }
-
+#Intra and interspecific
 for (i in 1:length(specieslist)){
-  nam <- paste0("abioticmodseed", specieslist[i])
-  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
-                    family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
+  nam <- paste0("interintraseed", specieslist[i])
+  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_interabund + std_logp1_intraabund + Dodder01 + (1|Site/Plot), 
+                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
 }
-#Extracting values for theoretical marginal R squared
-summary(abioticmodseedARCA)
-arcaabioticseed <- r.squaredGLMM(abioticmodseedARCA)[1,1]
-summary(abioticmodseedHYGL)
-hyglabioticseed <- r.squaredGLMM(abioticmodseedHYGL)[1,1]
-summary(abioticmodseedLARO)
-laroabioticseed <- r.squaredGLMM(abioticmodseedLARO)[1,1]
-summary(abioticmodseedPEAI)
-peaiabioticseed <- r.squaredGLMM(abioticmodseedPEAI)[1,1]
-summary(abioticmodseedPLDE)
-pldeabioticseed <- r.squaredGLMM(abioticmodseedPLDE)[1,1]
-summary(abioticmodseedPOLE)
-poleabioticseed <- r.squaredGLMM(abioticmodseedPOLE)[1,1]
-summary(abioticmodseedTRCY)
-trcyabioticseed <- r.squaredGLMM(abioticmodseedTRCY)[1,1]
-summary(abioticmodseedTROR)
-trorabioticseed <- r.squaredGLMM(abioticmodseedTROR)[1,1]
-summary(abioticmodseedVERO)
-veroabioticseed <- r.squaredGLMM(abioticmodseedVERO)[1,1]
+## Survival
+dev.off()
+pdf("Output/Figures/survival_intra_inter.pdf")
+ggplot(vitaldata)+
+  geom_jitter(aes(x = log(Inter_abundance+1), y = surv_to_produce_seeds, colour = "Interspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
+  geom_jitter(aes(x = log(Intra_abundance+1), y = surv_to_produce_seeds, colour = "Intraspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
+  geom_smooth(aes(x = log(Inter_abundance+1), y = surv_to_produce_seeds, colour = "Interspecific"), method = "lm")+
+  geom_smooth(aes(x = log(Intra_abundance+1), y = surv_to_produce_seeds, colour = "Intraspecific"), method = "lm")+
+  ylab("Survival probability")+
+  xlab("log(Neighbour abundance+1)")+
+  ylim(-0.5,1.5)+
+  theme_classic()+
+  scale_colour_manual(values = c("Interspecific"="forestgreen", "Intraspecific"="orchid"), name = NULL)+
+  theme(axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        strip.text.x = element_text(size = 12, face = "italic"))+
+        # legend.text = element_text(size = 10),
+        # legend.title = element_blank()+
+  facet_wrap(~Species)
+dev.off()
 
-### Biotic only
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  bioticseed <- glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
-                          family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
-  print(summary(bioticseed))
-}
+## Fecundity
+dev.off()
+pdf("Output/Figures/seed_intra_inter.pdf")
+ggplot(seedmodeldata)+
+  geom_jitter(aes(x = log(Inter_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Interspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
+  geom_jitter(aes(x = log(Intra_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Intraspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
+  geom_smooth(aes(x = log(Inter_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Interspecific"), method = "lm")+
+  geom_smooth(aes(x = log(Intra_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Intraspecific"), method = "lm")+
+  ylab("log(Viable seed production+1)")+
+  xlab("log(Neighbour abundance+1)")+
+  theme_classic()+
+  scale_colour_manual(values = c("Interspecific"="forestgreen", "Intraspecific"="orchid"), name = NULL)+
+  theme(axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        strip.text.x = element_text(size = 12, face = "italic"))+
+  # legend.text = element_text(size = 10),
+  # legend.title = element_blank()+
+  facet_wrap(~Species)
+dev.off()
 
-for (i in 1:length(specieslist)){
-  nam <- paste0("bioticmodseed", specieslist[i])
-  assign(nam, glmmTMB(No_viable_seeds_grouped ~ std_logp1_totalabund + Dodder01 + SDI + (1|Site/Plot), 
-                    family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
-}
+#### Calculating germination, survival and seed production rate by species ####
+#percent germ calculated at the subplot level, #seeds germinated/#seeds sown
+#this is the average proportion that germinated
+test <- vitaldata %>% group_by(Species) %>% summarise(mean_germ = mean(percent_germ, na.rm = TRUE),
+                                                      sd_germ = sd(percent_germ, na.rm = TRUE))
+test2 <- seedmodeldata %>% group_by(Species) %>% summarise(mean_seed = mean(No_viable_seeds_grouped, na.rm = TRUE),
+                                                      sd_seed = sd(No_viable_seeds_grouped, na.rm = TRUE))
+tst3 <- left_join(test,test2)
 
-summary(bioticmodseedARCA)
-arcabioticseed <- r.squaredGLMM(bioticmodseedARCA)[1,1]
-summary(bioticmodseedHYGL)
-hyglbioticseed <- r.squaredGLMM(bioticmodseedHYGL)[1,1]
-summary(bioticmodseedLARO)
-larobioticseed <- r.squaredGLMM(bioticmodseedLARO)[1,1]
-summary(bioticmodseedPEAI)
-peaibioticseed <- r.squaredGLMM(bioticmodseedPEAI)[1,1]
-summary(bioticmodseedPLDE)
-pldebioticseed <- r.squaredGLMM(bioticmodseedPLDE)[1,1]
-summary(bioticmodseedPOLE)
-polebioticseed <- r.squaredGLMM(bioticmodseedPOLE)[1,1]
-summary(bioticmodseedTRCY)
-trcybioticseed <- r.squaredGLMM(bioticmodseedTRCY)[1,1]
-summary(bioticmodseedTROR)
-trorbioticseed <- r.squaredGLMM(bioticmodseedTROR)[1,1]
-summary(bioticmodseedVERO)
-verobioticseed <- r.squaredGLMM(bioticmodseedVERO)[1,1]
-
-#Create table to put these values in
-#create matrix with 2 columns filled with random value, 1
-rsquaredtableseed <- matrix(rep(1, times=2), ncol=2, nrow = 9)
-#define column names and row names of matrix
-colnames(rsquaredtableseed) <- c('R squared biotic model', 'R squared abiotic model')
-rownames(rsquaredtableseed) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
-#convert matrix to table 
-rsquaredtableseed <- as.data.frame(rsquaredtableseed)
-#view table 
-rsquaredtableseed
-##Replace values with appropriate ones
-#Biotic model
-rsquaredtableseed[1,1] <- arcabioticseed
-rsquaredtableseed[2,1] <- hyglbioticseed
-rsquaredtableseed[3,1] <- larobioticseed
-rsquaredtableseed[4,1] <- peaibioticseed
-rsquaredtableseed[5,1] <- pldebioticseed
-rsquaredtableseed[6,1] <- polebioticseed
-rsquaredtableseed[7,1] <- trcybioticseed
-rsquaredtableseed[8,1] <- trorbioticseed
-rsquaredtableseed[9,1] <- verobioticseed
-#Abiotic model
-rsquaredtableseed[1,2] <- arcaabioticseed
-rsquaredtableseed[2,2] <- hyglabioticseed
-rsquaredtableseed[3,2] <- laroabioticseed
-rsquaredtableseed[4,2] <- peaiabioticseed
-rsquaredtableseed[5,2] <- pldeabioticseed
-rsquaredtableseed[6,2] <- poleabioticseed
-rsquaredtableseed[7,2] <- trcyabioticseed
-rsquaredtableseed[8,2] <- trorabioticseed
-rsquaredtableseed[9,2] <- veroabioticseed
-
-#Export table as a csv file
-write.csv(rsquaredtableseed,"Output/Tables/seed_rsquaredtable.csv")
-
-###### Population growth rate, lambda ###
-### Abiotic only
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  abioticlambda <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
-                                   data = filter(popdata, Species == specieslist[i]))
-  print(summary(abioticlambda))
-}
-
-for (i in 1:length(specieslist)){
-  nam <- paste0("abioticmodlambda", specieslist[i])
-  assign(nam, glmmTMB(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + (1|Site/Plot), 
-                      data = filter(popdata, Species == specieslist[i])))
-}
-#Extracting values for theoretical marginal R squared
-summary(abioticmodlambdaARCA)
-arcaabioticlambda <- r.squaredGLMM(abioticmodlambdaARCA)[1,1]
-summary(abioticmodlambdaHYGL)
-hyglabioticlambda <- r.squaredGLMM(abioticmodlambdaHYGL)[1,1]
-summary(abioticmodlambdaLARO)
-laroabioticlambda <- r.squaredGLMM(abioticmodlambdaLARO)[1,1]
-summary(abioticmodlambdaPEAI)
-peaiabioticlambda <- r.squaredGLMM(abioticmodlambdaPEAI)[1,1]
-summary(abioticmodlambdaPLDE)
-pldeabioticlambda <- r.squaredGLMM(abioticmodlambdaPLDE)[1,1]
-summary(abioticmodlambdaPOLE)
-poleabioticlambda <- r.squaredGLMM(abioticmodlambdaPOLE)[1,1]
-summary(abioticmodlambdaTRCY)
-trcyabioticlambda <- r.squaredGLMM(abioticmodlambdaTRCY)[1,1]
-summary(abioticmodlambdaTROR)
-trorabioticlambda <- r.squaredGLMM(abioticmodlambdaTROR)[1,1]
-summary(abioticmodlambdaVERO)
-veroabioticlambda <- r.squaredGLMM(abioticmodlambdaVERO)[1,1]
-
-### Biotic only - hm, only have categorical neighbours....
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
-  survivalbioticlambda <- lmer(log_lambda_p1 ~ neighbours01 + (1|Site/Plot), 
-                                  data = filter(popdata, Species == specieslist[i]))
-  print(summary(survivalbioticlambda))
-}
-
-for (i in 1:length(specieslist)){
-  nam <- paste0("bioticmodlambda", specieslist[i])
-  assign(nam, lmer(log_lambda_p1 ~ neighbours01 + (1|Site/Plot), 
-                      data = filter(popdata, Species == specieslist[i])))
-}
-
-summary(bioticmodlambdaARCA)
-arcabioticlambda <- r.squaredGLMM(bioticmodlambdaARCA)[1,1]
-summary(bioticmodlambdaHYGL)
-hyglbioticlambda <- r.squaredGLMM(bioticmodlambdaHYGL)[1,1]
-summary(bioticmodlambdaLARO)
-larobioticlambda <- r.squaredGLMM(bioticmodlambdaLARO)[1,1]
-summary(bioticmodlambdaPEAI)
-peaibioticlambda <- r.squaredGLMM(bioticmodlambdaPEAI)[1,1]
-summary(bioticmodlambdaPLDE)
-pldebioticlambda <- r.squaredGLMM(bioticmodlambdaPLDE)[1,1]
-summary(bioticmodlambdaPOLE)
-polebioticlambda <- r.squaredGLMM(bioticmodlambdaPOLE)[1,1]
-summary(bioticmodlambdaTRCY)
-trcybioticlambda <- r.squaredGLMM(bioticmodlambdaTRCY)[1,1]
-summary(bioticmodlambdaTROR)
-trorbioticlambda <- r.squaredGLMM(bioticmodlambdaTROR)[1,1]
-summary(bioticmodlambdaVERO)
-verobioticlambda <- r.squaredGLMM(bioticmodlambdaVERO)[1,1]
-
-#Create table to put these values in
-#create matrix with 2 columns filled with random value, 1
-rsquaredtablelambda <- matrix(rep(1, times=2), ncol=2, nrow = 9)
-#define column names and row names of matrix
-colnames(rsquaredtablelambda) <- c('R squared biotic model', 'R squared abiotic model')
-rownames(rsquaredtablelambda) <- c('ARCA', 'HYGL', 'LARO', 'PEAI', 'POLE', 'PLDE', 'TRCY', 'TROR', 'VERO')
-#convert matrix to table 
-rsquaredtablelambda <- as.data.frame(rsquaredtablelambda)
-#view table 
-rsquaredtablelambda
-##Replace values with appropriate ones
-#Biotic model
-rsquaredtablelambda[1,1] <- arcabioticlambda
-rsquaredtablelambda[2,1] <- hyglbioticlambda
-rsquaredtablelambda[3,1] <- larobioticlambda
-rsquaredtablelambda[4,1] <- peaibioticlambda
-rsquaredtablelambda[5,1] <- pldebioticlambda
-rsquaredtablelambda[6,1] <- polebioticlambda
-rsquaredtablelambda[7,1] <- trcybioticlambda
-rsquaredtablelambda[8,1] <- trorbioticlambda
-rsquaredtablelambda[9,1] <- verobioticlambda
-#Abiotic model
-rsquaredtablelambda[1,2] <- arcaabioticlambda
-rsquaredtablelambda[2,2] <- hyglabioticlambda
-rsquaredtablelambda[3,2] <- laroabioticlambda
-rsquaredtablelambda[4,2] <- peaiabioticlambda
-rsquaredtablelambda[5,2] <- pldeabioticlambda
-rsquaredtablelambda[6,2] <- poleabioticlambda
-rsquaredtablelambda[7,2] <- trcyabioticlambda
-rsquaredtablelambda[8,2] <- trorabioticlambda
-rsquaredtablelambda[9,2] <- veroabioticlambda
-
-#Export table as a csv file
-write.csv(rsquaredtablelambda,"Output/Tables/lambda_rsquaredtable.csv")
-
-### Merge them all into a nice table
-### code from other table below, need to update:
-
-### Binding survival, fecundity and lambda tables together ###
-rsquaredtablemerged <- cbind(rsquaredtable, rsquaredtableseed, rsquaredtablelambda)
-#Changing row and column names
-rownames(rsquaredtablemerged) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
-colnames(rsquaredtablemerged) <- c("biotic", "abiotic", "biotic", "abiotic", "biotic", "abiotic")
-
-#Plotting with kableR
-rsquaredtablemerged %>% kbl(caption = "<b>Supplementary X</b>. R squared values from abiotic and biotic factor only models for survival, fecundity and population growth rate.", digits = 2) %>%
-  kable_classic(full_width = F, html_font = "Times") %>%
-  column_spec(1, italic = T) %>%
-  #row_spec(0, bold = T) %>%
-  add_header_above(c("", "Survival" = 2, "Fecundity" = 2, "Lambda" = 2))
-
-#Struggling to save this using save_kable and as_image() atm.
-#Can copy it from the Viewer using copy to clipboard, maintain aspect ratio, first value 500
-
-
+ggplot(seedmodeldata, aes(x = Treatment, y = log(No_viable_seeds_grouped+1)))+
+  geom_boxplot()+
+  geom_jitter(alpha = 0.2)+
+  theme_classic()
+mod1 <- lmer(log(No_viable_seeds_grouped+1) ~ Treatment + (1|Site/Plot), seedmodeldata)
+summary(mod1)

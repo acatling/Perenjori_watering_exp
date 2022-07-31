@@ -15,7 +15,6 @@ source("R_functions/functions.R")
 
 #Packages
 library(ggplot2)
-library(lmerTest)
 library(DHARMa)
 library(glmmTMB)
 library(kableExtra)
@@ -41,6 +40,7 @@ my_theme <- theme(axis.title.x = element_text(size = 14, face = 'bold'),
 
 ### Germination ###
 ## PEAI - quadratic PC1 germination
+#LARO - quadratic PC1 germination
 ## All other species - linear PC1 germination
 for (i in 1:length(specieslist)){
   print(specieslist[i])
@@ -75,8 +75,9 @@ for(i in 1:length(species.list.s)){
 }
 dev.off()
 
-## LARO - quadratic PC2 germination
 ## PLDE - quadratic PC2 germination
+## HYGL - quadratic PC2 germination
+## ARCA - quadratic PC2 germination
 ## All other species - linear PC2 germination
 for (i in 1:length(specieslist)){
   print(specieslist[i])
@@ -109,6 +110,17 @@ for(i in 1:length(species.list.s)){
   }
 }
 dev.off()
+#POLE not converging for linear model
+# poletestmod <- glmer(cbind(total_germ, total_no_germ)~std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = binomial, poledata)
+# summary(poletestmod)
+# poletestmod2 <- glmer(cbind(total_germ, total_no_germ)~std_PC2 + (1|Site/Plot), family = binomial, poledata)
+# summary(poletestmod2)
+# poletestmod2 <- glmer(cbind(total_germ, total_no_germ)~std_PC2 + (1|Site/Plot), family = binomial, poledata)
+# 
+# ggplot(poledata, aes(x = std_PC2, y = percent_germ))+
+#   geom_jitter(alpha = 0.3)+
+#   geom_smooth()+
+#   theme_classic()
 
 ### Survival ###
 ## PLDE - quadratic survival ~ PC1
@@ -179,18 +191,16 @@ for(i in 1:length(species.list.s)){
 }
 dev.off()
 
-### ARCA - quadratic neighbour abundance survival
 ### TRCY - quadratic neighbour abundance survival
 ## All other species linear
-#HYGL isn't converging now?! ugh says it has 100 observations but filter(Species == "HYGL" & !is.na(Total_abundance)) gives 102 observations...
-ggplot(hygldata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
-  geom_jitter(alpha = 0.4, width = 0.05, height = 0.05)+
-  geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ poly(x, 2))+
-  theme_classic()
-#It's not even remotely quadratic, could that be the problem? Do not include quadratic term
-hyglsurvnamodel <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), 
-                         family = binomial, hygldata)
-summary(hyglsurvnamodel)
+# #ARCA linear model not converging
+# ggplot(arcadata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
+#   geom_jitter(alpha = 0.4, width = 0.05, height = 0.05)+
+#   geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ poly(x, 2))+
+#   theme_classic()
+# 
+# hyglsurvnamodel2 <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + (1|Site/Plot), 
+#                          family = binomial, arcadata)
 
 for (i in 1:length(specieslist)){
   print(specieslist[i])
@@ -228,9 +238,9 @@ dev.off()
 
 ### Fecundity ###
 #Note that I have to use different datasets - seedmodeldata/seedarca/species.list.f
-arcaspquad1 <- glmmTMB(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = nbinom2, seedarca)
-summary(arcaspquad1)
-coef(summary(arcaspquad1))$cond[3,4]
+# arcaspquad1 <- glmmTMB(No_viable_seeds_grouped ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = nbinom2, seedarca)
+# summary(arcaspquad1)
+# coef(summary(arcaspquad1))$cond[3,4]
 #Figured out two ways to extract the p value from glmmTMB models
 # 1: two steps:
 #test <- coef(summary(arcaspquad1))[["cond"]]
@@ -421,7 +431,7 @@ dev.off()
 
 #Can't look at lambda ~ continuous neighbour abundance
 
-### Making a table with these significance values ####
+### Making a table with quadratic significance values ####
 ## Germination
 #Create table to put these values in
 germquadtable <- matrix(ncol=2, nrow = 9)
@@ -672,114 +682,97 @@ vitalquadpvalues %>%
 
 #### Modelling vital rates in response to all factors #### 
 ### Germination ###
-## ARCA
-arcagermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                        family = binomial, arcadata)
-arcagermmod1dharma <- simulateResiduals(arcagermmod1)
+## ARCA - has quadratic germ ~ PC2
+arcagermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + I(std_PC2^2) + (1|Site/Plot), 
+                          family = binomial, arcadata)
+arcagermmod1dharma <- simulateResiduals(arcagermfinalmod)
 plot(arcagermmod1dharma)
-#Not too bad
-vif(arcagermmod1)
-summary(arcagermmod1)
-arcagermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                      family = binomial, arcadata)
+#Not great
+vif(arcagermfinalmod)
 summary(arcagermfinalmod)
+testDispersion(arcagermfinalmod)
 
-## HYGL
-hyglgermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                      family = binomial, hygldata)
-hyglgermmod1dharma <- simulateResiduals(hyglgermmod1)
+# ggplot(arcadata, aes(x = std_PC1, y = percent_germ))+
+#   geom_jitter(alpha=0.4)+
+#   geom_smooth()+
+#   theme_classic()
+
+## HYGL- has quadratic germ ~ PC2
+hyglgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + I(std_PC2^2) + (1|Site/Plot), 
+                          family = binomial, hygldata)
+hyglgermmod1dharma <- simulateResiduals(hyglgermfinalmod)
 plot(hyglgermmod1dharma)
 #Not great residuals
-vif(hyglgermmod1)
-summary(hyglgermmod1)
-hyglgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                          family = binomial, hygldata)
+vif(hyglgermfinalmod)
+summary(hyglgermfinalmod)
 
-## LARO - has quadratic germ ~ PC2
-larogermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 +
-                        I(std_PC2^2) + (1|Site/Plot), 
-                      family = binomial, larodata)
-larogermmod1dharma <- simulateResiduals(larogermmod1)
-plot(larogermmod1dharma)
-#not too bad
-vif(larogermmod1)
-summary(larogermmod1)
+## LARO - has quadratic germ ~ PC1
 larogermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 +
-                            I(std_PC2^2) + (1|Site/Plot), 
+                            I(std_PC1^2) + (1|Site/Plot), 
                           family = binomial, larodata)
+larogermmod1dharma <- simulateResiduals(larogermfinalmod)
+plot(larogermmod1dharma)
+#not great
+vif(larogermfinalmod)
+summary(larogermfinalmod)
 
 ## PEAI - has quadratic germ ~ PC1
-peaigermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + 
-                        I(std_PC1^2) + (1|Site/Plot), 
-                      family = binomial, peaidata)
-peaigermmod1dharma <- simulateResiduals(peaigermmod1)
-plot(peaigermmod1dharma)
-#Not too bad residuals, dispersion test and KS test significant though
-vif(peaigermmod1)
-summary(peaigermmod1)
 peaigermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + 
                             I(std_PC1^2) + (1|Site/Plot), 
                           family = binomial, peaidata)
+peaigermmod1dharma <- simulateResiduals(peaigermfinalmod)
+plot(peaigermmod1dharma)
+#Not great residuals, dispersion test and KS test significant
+vif(peaigermfinalmod)
+summary(peaigermfinalmod)
 
 ## PLDE - has quadratic germ ~ PC2
-pldegermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + 
-                        I(std_PC2^2) + (1|Site/Plot), 
-                      family = binomial, pldedata)
-pldegermmod1dharma <- simulateResiduals(pldegermmod1)
-plot(pldegermmod1dharma)
-#Not too bad residuals, KS, dispersion and outlier tests significant though
-vif(pldegermmod1)
-summary(pldegermmod1)
 pldegermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + 
                             I(std_PC2^2)  + (1|Site/Plot), 
                           family = binomial, pldedata)
+pldegermmod1dharma <- simulateResiduals(pldegermfinalmod)
+plot(pldegermmod1dharma)
+#Not too bad residuals, KS, dispersion and outlier tests significant though
+vif(pldegermfinalmod)
+summary(pldegermfinalmod)
 
 ## POLE
-polegermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                      family = binomial, poledata)
-polegermmod1dharma <- simulateResiduals(polegermmod1)
-plot(polegermmod1dharma)
-#good
-vif(polegermmod1)
-summary(polegermmod1)
 polegermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
                           family = binomial, poledata)
+polegermmod1dharma <- simulateResiduals(polegermfinalmod)
+plot(polegermmod1dharma)
+#good
+vif(polegermfinalmod)
+summary(polegermfinalmod)
 
 ## TRCY
-trcygermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                      family = binomial, trcydata)
-trcygermmod1dharma <- simulateResiduals(trcygermmod1)
-plot(trcygermmod1dharma)
-#Not too bad residuals, KS, dispersion and outlier tests significant though
-vif(trcygermmod1)
-summary(trcygermmod1)
 trcygermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
                           family = binomial, trcydata)
+trcygermmod1dharma <- simulateResiduals(trcygermfinalmod)
+plot(trcygermmod1dharma)
+#terrible
+vif(trcygermfinalmod)
+summary(trcygermfinalmod)
 
 ## TROR
-trorgermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                      family = binomial, trordata)
-trorgermmod1dharma <- simulateResiduals(trorgermmod1)
-plot(trorgermmod1dharma)
-#Not great residuals, KS test significant
-vif(trorgermmod1)
-summary(trorgermmod1)
 trorgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
                           family = binomial, trordata)
+trorgermmod1dharma <- simulateResiduals(trorgermfinalmod)
+plot(trorgermmod1dharma)
+#Not great residuals, KS test significant
+vif(trorgermfinalmod)
+summary(trorgermfinalmod)
 
 ## VERO
-verogermmod1 <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
-                      family = binomial, verodata)
-verogermmod1dharma <- simulateResiduals(verogermmod1)
-plot(verogermmod1dharma)
-#Not great residuals, KS and dispersion tests significant
-vif(verogermmod1)
-summary(verogermmod1)
 verogermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + (1|Site/Plot), 
                           family = binomial, verodata)
+verogermmod1dharma <- simulateResiduals(verogermfinalmod)
+plot(verogermmod1dharma)
+#Not great residuals, KS and dispersion tests significant
+vif(verogermfinalmod)
+summary(verogermfinalmod)
 
 ### Survival ###
-
 ## ARCA - quadratic surv ~ NA
 arcasurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
                         Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + 
@@ -799,6 +792,13 @@ arcasurvfinalmoddharma <- simulateResiduals(arcasurvfinalmod)
 plot(arcasurvfinalmoddharma)
 #good 
 summary(arcasurvfinalmod)
+#NA^2 is not significant but NA is - trying to plot it to see if NA truly is sig
+# with(arcadata, plot(jitter(surv_to_produce_seeds, amount = 0.05) ~ std_logp1_totalabund))
+# curve(plogis(cbind(1, 0, 0, 0, 0, x, 0, 0, 0*0, 0*0)%*%fixef(arcasurvfinalmod)), add = TRUE)
+# ggplot(arcadata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
+#   geom_jitter()+
+#   geom_smooth()+
+#   theme_classic()
 
 ## HYGL - needs optimiser to  converge
 hyglsurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
@@ -809,9 +809,9 @@ plot(hyglsurvmod1dharma)
 #good
 vif(hyglsurvmod1)
 summary(hyglsurvmod1)
-# Model simplification step - Significant Dry:PC1, Wet:PC1, Wet:NA, PC1:NA, keeping all
+# Model simplification step - Significant Dry:PC1, Wet:PC1, removing others
 hyglsurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
-                            Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+                            Treatment:std_PC1 + (1|Site/Plot), 
                           family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), hygldata)
 summary(hyglsurvfinalmod)
 
@@ -840,12 +840,12 @@ plot(larosurvfinalmoddharma)
 summary(larosurvfinalmod)
 
 # Testing why surv ~ NA isn't significant for laro even though it looks it on plots
-larosimplemod <- glm(surv_to_produce_seeds ~ std_logp1_totalabund, family = "binomial", larodata)
-summary(larosimplemod)
-#almost but not quite
-larosimplemod2 <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + (1|Site/Plot), family = "binomial", larodata)
-summary(larosimplemod2)
-#random effects barely make a difference
+# larosimplemod <- glm(surv_to_produce_seeds ~ std_logp1_totalabund, family = "binomial", larodata)
+# summary(larosimplemod)
+# #just
+# larosimplemod2 <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + (1|Site/Plot), family = "binomial", larodata)
+# summary(larosimplemod2)
+# #random make a small difference
 
 ## PEAI 
 peaisurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
@@ -856,8 +856,9 @@ plot(peaisurvmod1dharma)
 #good
 vif(peaisurvmod1)
 summary(peaisurvmod1)
-# Model simplification step - Nothing significant, removing all
-peaisurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+# Model simplification step - significant PC1:NA, removing others
+peaisurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + 
+                            + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
                           family = binomial, peaidata)
 peaisurvfinalmoddharma <- simulateResiduals(peaisurvfinalmod)
 plot(peaisurvfinalmoddharma)
@@ -871,7 +872,7 @@ pldesurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + st
                         family = binomial, pldedata)
 pldesurvmod1dharma <- simulateResiduals(pldesurvmod1)
 plot(pldesurvmod1dharma)
-#good
+#okay
 vif(pldesurvmod1)
 summary(pldesurvmod1)
 # Model simplification step - Nothing significant, removing all
@@ -884,22 +885,22 @@ plot(pldesurvfinalmoddharma)
 summary(pldesurvfinalmod)
 
 ## POLE
-#Problem here*, with estimates
+#problem here?
 polesurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
                         Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
                       family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), poledata)
 polesurvmod1dharma <- simulateResiduals(polesurvmod1)
 plot(polesurvmod1dharma)
-#not too bad
+#okay
 vif(polesurvmod1)
 summary(polesurvmod1)
 # Model simplification step - Nothing significant, removing all
-# polesurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
-#                           family = binomial, poledata)
-# polesurvfinalmoddharma <- simulateResiduals(polesurvfinalmod)
-# plot(polesurvfinalmoddharma)
-# #good
-# summary(polesurvfinalmod)
+polesurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot),
+                          family = binomial, poledata)
+polesurvfinalmoddharma <- simulateResiduals(polesurvfinalmod)
+plot(polesurvfinalmoddharma)
+#okay
+summary(polesurvfinalmod)
 
 ## TRCY - quadratic surv ~ NA
 trcysurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
@@ -912,12 +913,13 @@ plot(trcysurvmod1dharma)
 vif(trcysurvmod1)
 summary(trcysurvmod1)
 # Model simplification step - Significant Wet:PC1, Wet:NA^2, removing all others
-#CHECK THIS * If wet:NA^2 is significant, keep both Treatment:NA and Treatment:NA^2
+#Where quadratic terms are significant, only keeping quadratic term (not main term as well, only adjusting curvature, not slope too)
 trcysurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + 
                             I(std_logp1_totalabund^2) + Treatment:std_PC1 + Treatment:I(std_logp1_totalabund^2) + (1|Site/Plot), 
                           family = binomial, trcydata)
 trcysurvfinalmoddharma <- simulateResiduals(trcysurvfinalmod)
 plot(trcysurvfinalmoddharma)
+vif(trcysurvfinalmod)
 #not too bad
 summary(trcysurvfinalmod)
 
@@ -976,6 +978,26 @@ arcaseedfinalmoddharma <- simulateResiduals(arcaseedfinalmod)
 plot(arcaseedfinalmoddharma)
 #good
 summary(arcaseedfinalmod)
+r.squaredGLMM(arcaseedfinalmod)
+# ### PC2 and neighbour abund are correlated, so seeing how model differs when I remove each
+# arcaseedfinalmod2 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_logp1_totalabund + Dodder01 + 
+#                               Treatment:std_logp1_totalabund + (1|Site/Plot), 
+#                             family = nbinom2, seedarca)
+# arcaseedfinalmoddharma2 <- simulateResiduals(arcaseedfinalmod2)
+# plot(arcaseedfinalmoddharma2)
+# #good
+# summary(arcaseedfinalmod2)
+# r.squaredGLMM(arcaseedfinalmod2)
+# #
+# arcaseedfinalmod3 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + Dodder01 + 
+#                                (1|Site/Plot), 
+#                              family = nbinom2, seedarca)
+# arcaseedfinalmoddharma3 <- simulateResiduals(arcaseedfinalmod3)
+# plot(arcaseedfinalmoddharma3)
+# #good
+# summary(arcaseedfinalmod3)
+# r.squaredGLMM(arcaseedfinalmod3)
+# AIC(arcaseedfinalmod, arcaseedfinalmod2, arcaseedfinalmod3)
 
 ## HYGL
 hyglseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
@@ -1018,9 +1040,9 @@ peaiseedmod1dharma <- simulateResiduals(peaiseedmod1)
 plot(peaiseedmod1dharma)
 #good
 summary(peaiseedmod1)
-# Model simplification step - Nothing significant, removing all
-peaiseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
-                            family = nbinom2, seedpeai)
+# Model simplification step - Significant Wet:NA, removing others
+peaiseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + 
+                              Treatment:std_logp1_totalabund + (1|Site/Plot), seedpeai)
 peaiseedfinalmoddharma <- simulateResiduals(peaiseedfinalmod)
 plot(peaiseedfinalmoddharma)
 #good
@@ -1044,14 +1066,14 @@ summary(pldeseedfinalmod)
 
 ## POLE - can't use this data, only 19 observations 
 #Not converging with glmer.nb or glmm TMB
-poleseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
-                          Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
-                        family = nbinom2, seedpole)
-# Model simplification step - Removing all interactions, seeing if simple model will fit
-poleseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
-                            family = nbinom2, seedpole)
-poleseedfinalmoddharma <- simulateResiduals(poleseedfinalmod)
-plot(poleseedfinalmoddharma)
+# poleseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+#                           Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+#                         family = nbinom2, seedpole)
+# # Model simplification step - Removing all interactions, seeing if simple model will fit
+# poleseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+#                             family = nbinom2, seedpole)
+# poleseedfinalmoddharma <- simulateResiduals(poleseedfinalmod)
+# plot(poleseedfinalmoddharma)
 #terrible residuals
 
 ## TRCY
@@ -1064,7 +1086,7 @@ plot(trcyseedmod1dharma)
 summary(trcyseedmod1)
 # Model simplification step - Nothing significant, removing all
 trcyseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + 
-                              I(std_PC1^2) + (1|Site/Plot), 
+                             + (1|Site/Plot), 
                             family = nbinom2, seedtrcy)
 trcyseedfinalmoddharma <- simulateResiduals(trcyseedfinalmod)
 plot(trcyseedfinalmoddharma)
@@ -1145,8 +1167,8 @@ plot(larolambdamod1dharma)
 #okay
 vif(larolambdamod1)
 summary(larolambdamod1)
-#Model simplification step - No significant interactions, removing all interactions
-larolambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdalaro)
+#Model simplification step - Significant PC1:neighbours, removing others
+larolambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdalaro)
 larolambdafinalmoddharma <- simulateResiduals(larolambdafinalmod)
 plot(larolambdafinalmoddharma)
 #not great
@@ -1161,9 +1183,9 @@ plot(peailambdamod1dharma)
 #okay, dispersion test significant
 vif(peailambdamod1)
 summary(peailambdamod1)
-#Model simplification step - Significant Wet:PC1^2, removing all other interactions
+#Model simplification step - Significant Wet:PC1, removing all other interactions
 peailambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
-                             I(std_PC1^2) + Treatment:I(std_PC1^2) + (1|Site/Plot), lambdapeai)
+                             I(std_PC1^2) + Treatment:std_PC1 + (1|Site/Plot), lambdapeai)
 peailambdafinalmoddharma <- simulateResiduals(peailambdafinalmod)
 plot(peailambdafinalmoddharma)
 #good
@@ -1183,7 +1205,7 @@ pldelambdafinalmoddharma <- simulateResiduals(pldelambdafinalmod)
 plot(pldelambdafinalmoddharma)
 #bad residuals
 summary(pldelambdafinalmod)
-with(lambdaplde, plot(log_lambda_p1 ~ std_PC1))
+#with(lambdaplde, plot(log_lambda_p1 ~ std_PC1))
 
 ##POLE
 polelambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
@@ -1358,11 +1380,11 @@ par(mfrow=c(8,3), oma = c(5, 20, 5, 1), mar =c(3.5,6,1,1))
 #square doesn't work, too small
 #par(pty="s")
 #ARCA
-#Survival - quadratic
+#Survival - linear model won't converge with Site included
 plot(surv_to_produce_seeds ~ jitter(std_logp1_totalabund, 15), xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab = NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, arcadata)
-model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = binomial, arcadata)
+model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|plotid), family = binomial, arcadata)
 x_to_plot<-seq.func(arcadata$std_logp1_totalabund)
-preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
@@ -1437,7 +1459,6 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
 stripchart(log_lambda_p1 ~ neighbours01, lambdapeai, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 4.1, "*", cex = 4, col = "red")
 
 #Adding PLDE
 #Survival
@@ -1549,7 +1570,6 @@ mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRU
 
 dev.off()
 
-###########################################################
 #### PC1 ####
 #Adding in germination
 #Lambda no longer boxplot, continuous
@@ -1622,11 +1642,11 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 
 #Adding LARO
-#Germination
+#Germination - quadratic
 plot(percent_germ ~ std_PC1, ylim=c(0, 1), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Germination fraction", xlab = NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, larodata)
-model<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + (1|Site/Plot), family = binomial, larodata)
+model<-glmer(cbind(total_germ, total_no_germ)~std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, larodata)
 x_to_plot<-seq.func(larodata$std_PC1)
-preddata <- with(model, data.frame(1, x_to_plot))
+preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
@@ -1841,7 +1861,6 @@ mtext(~italic("T. ornata"), adj = -0.15, padj= 65, side = 3, cex = 2, outer = TR
 mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
-
 
 ########### Organising by similarity of responses and key examples PC1 ######
 
@@ -2586,8 +2605,8 @@ mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 20, side = 3, cex = 2, outer
 dev.off()
 
 #### Creating a table of final model output ####
+#Need to run models first, run all of 'modelling vital rates in response to all factors'
 
-#Need to run models first, run all of of 'modelling vital rates in response to all factors'
 ## GERMINATION ##
 ## Extracting values for all in a loop
 germ_model_list <- list(arcagermfinalmod, hyglgermfinalmod, larogermfinalmod, peaigermfinalmod, pldegermfinalmod, polegermfinalmod, trcygermfinalmod, trorgermfinalmod, verogermfinalmod)
@@ -2815,6 +2834,7 @@ lambda_effects_kbl <- lambda_effects_kbl %>% group_by(Species) %>% mutate(row = 
   pivot_wider(names_from = Species, values_from = collated) %>% select(-row)
 
 #Plotting with kableR
+
 lambda_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b>. Population growth rate effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
   add_header_above(c("Lambda" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
@@ -2828,24 +2848,36 @@ lambda_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b
 germtally <- germ_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
                                                                    pos = sum(p_value<0.05 & Estimate>0),
                                                                    neg = sum(p_value<0.05 & Estimate<0))
-#Manually adjusting for quadratic terms. 
+#Manually adjusting for quadratic terms
+#checking significance of linear terms where quadratic terms are ns
+# ggplot(arcadata, aes(y = percent_germ, x = std_PC1))+
+#   geom_jitter(alpha=0.2)+
+#   geom_smooth(formula = y ~ poly(x, 2))+
+#   theme_classic()
+
+#convex - positive quadratic, high left and right, low middle
+#concave - negative
 #PC1: 1 pos_quad (-1 pos peai). PC2: 2 neg_quad (-1 pos plde, -1 pos laro)
 germtally <- within(germtally, pos[Effect == 'std_PC1'] <- '5')
-germtally <- within(germtally, pos[Effect == 'std_PC2'] <- '2')
-germtally$pos_quad <- 0
-germtally <- within(germtally, pos_quad[Effect == 'std_PC1'] <- '1')
-germtally$neg_quad <- 0
-germtally <- within(germtally, pos_quad[Effect == 'std_PC2'] <- '2')
+germtally$convex <- 0
+germtally <- within(germtally, convex[Effect == 'std_PC1'] <- '2')
+germtally$concave <- 0
+germtally <- within(germtally, concave[Effect == 'std_PC2'] <- '2')
+germtally <- within(germtally, ns[Effect == 'std_PC2'] <- '6')
+germtally <- within(germtally, convex[Effect == 'std_PC2'] <- '1')
+germtally <- within(germtally, pos[Effect == 'std_PC2'] <- '0')
 
 germtally <- subset(germtally, Effect == "std_PC1" | Effect == "std_PC2")
 
 germtally$pos <- as.numeric(germtally$pos)
+germtally$convex <- as.numeric(germtally$convex)
+germtally$concave <- as.numeric(germtally$concave)
+germtally$ns <- as.numeric(germtally$ns)
 #Pivotting longer for plotting
 germtally_long <- germtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
 #Reordering response types so that non-significant is at bottom? 
 #NS, pos, neg, pos_quad, neg_quad
-germtally_long$response_type <- factor(germtally_long$response_type, level = c("neg_quad", "pos_quad", "neg", "pos", "ns"))
-# c("ns", "pos", "neg", "pos_quad", "neg_quad")
+germtally_long$response_type <- factor(germtally_long$response_type, level = c("concave", "convex", "neg", "pos", "ns"))
 ## Plotting as proportional bar chart
 a <- ggplot(germtally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
@@ -2853,7 +2885,7 @@ a <- ggplot(germtally_long, aes(x = Effect, y = count))+
   ylab("Count of effect responses")+
   scale_x_discrete(labels = c("PC1", "PC2"))+
   theme_classic()+
-  scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "pos_quad" = "grey20", "neg_quad" = "grey0"))+
+  scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "convex" = "grey20", "concave" = "grey0"))+
   ggtitle("(a)")
 
 ## Survival ##
