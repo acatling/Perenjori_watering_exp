@@ -1387,7 +1387,7 @@ x_to_plot<-seq.func(arcadata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ jitter(std_logp1_totalabund, 1), xlim=c(-1,2.5), ylim=c(1, 150), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedarca)
 model<-glmmTMB(No_viable_seeds_grouped~std_logp1_totalabund + (1|Site/Plot), family = nbinom2, seedarca)
@@ -1395,11 +1395,11 @@ x_to_plot<-seq.func(arcadata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 260,"*", cex = 4, col = "red")
+text(x = 2.4,y = 100,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
 stripchart(log_lambda_p1 ~ neighbours01, lambdaarca, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex = 2, add = TRUE)
-text(x = 1.5, y = 3.3, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.8, "*", cex = 6, col = "red")
 
 #Adding HYGL
 #Survival
@@ -1419,7 +1419,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
 stripchart(log_lambda_p1 ~ neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.95, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.3, "*", cex = 6, col = "red")
 
 #Adding LARO
 #Survival
@@ -1439,7 +1439,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
 stripchart(log_lambda_p1 ~ neighbours01, lambdalaro, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 1.85, "*", cex = 4, col = "red")
+text(x = 1.5, y = 1.7, "*", cex = 6, col = "red")
 
 #Adding PEAI
 #Survival
@@ -1475,11 +1475,11 @@ x_to_plot<-seq.func(pldedata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 85,"*", cex = 4, col = "red")
+text(x = 2.4,y = 70,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
 stripchart(log_lambda_p1 ~ neighbours01, lambdaplde, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.45, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.5, "*", cex = 6, col = "red")
 
 #Adding TRCY
 #Survival - quadratic
@@ -1489,7 +1489,7 @@ x_to_plot<-seq.func(trcydata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ jitter(std_logp1_totalabund, 1), xlim=c(-1,2.5), log = "y", ylim=c(1, 90), pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedtrcy)
 model<-glmmTMB(No_viable_seeds_grouped~std_logp1_totalabund + (1|Site/Plot), family = nbinom2, seedtrcy)
@@ -1500,7 +1500,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
 stripchart(log_lambda_p1 ~ neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.95, "*", cex = 4, col = "red")
+text(x = 1.5, y = 3.2, "*", cex = 6, col = "red")
 
 #Adding TROR
 #Survival
@@ -1520,7 +1520,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
 stripchart(log_lambda_p1 ~ neighbours01, lambdatror, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.5, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.3, "*", cex = 6, col = "red")
 
 #Adding VERO
 #Survival
@@ -1537,11 +1537,11 @@ x_to_plot<-seq.func(verodata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 200,"*", cex = 4, col = "red")
+text(x = 2.4,y = 180,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
 stripchart(log_lambda_p1 ~ neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 4.3, "*", cex = 4, col = "red")
+text(x = 1.5, y = 4.3, "*", cex = 6, col = "red")
 
 ###Overall text
 ##x labels
@@ -1592,7 +1592,7 @@ x_to_plot<-seq.func(arcadata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedarca)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedarca)
@@ -1600,7 +1600,7 @@ x_to_plot<-seq.func(arcadata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 260,"*", cex = 4)
+text(x = 2.4,y = 260,"*", cex = 6)
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdaarca)
@@ -1617,7 +1617,7 @@ x_to_plot<-seq.func(hygldata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, hygldata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, hygldata)
@@ -1625,7 +1625,7 @@ x_to_plot<-seq.func(hygldata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity - this one is better not logged but logging for the sake of consistency!
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), ylim=c(1, 90), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedhygl)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedhygl)
@@ -1649,7 +1649,7 @@ x_to_plot<-seq.func(larodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, larodata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, larodata)
@@ -1664,7 +1664,7 @@ x_to_plot<-seq.func(larodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 57,"*", cex = 4, col = "red")
+text(x = 1.5,y = 57,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdalaro)
@@ -1681,7 +1681,7 @@ x_to_plot<-seq.func(peaidata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, peaidata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, peaidata)
@@ -1696,7 +1696,7 @@ x_to_plot<-seq.func(peaidata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 490,"*", cex = 4, col = "red")
+text(x = 1.5,y = 490,"*", cex = 6, col = "red")
 #Lambda - quadratic
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
 model<-lmer(log_lambda_p1~std_PC1 + I(std_PC1^2) + (1|Site/Plot), lambdapeai)
@@ -1713,7 +1713,7 @@ x_to_plot<-seq.func(pldedata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival - quadratic
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, pldedata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, pldedata)
@@ -1728,7 +1728,7 @@ x_to_plot<-seq.func(pldedata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 85,"*", cex = 4, col = "red")
+text(x = 1.5,y = 85,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdaplde)
@@ -1752,7 +1752,6 @@ x_to_plot<-seq.func(trcydata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4)
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), log = "y", ylim=c(1, 100), pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedtrcy)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedtrcy)
@@ -1760,7 +1759,7 @@ x_to_plot<-seq.func(trcydata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 75,"*", cex = 4, col = "red")
+text(x = 1.5,y = 75,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdatrcy)
@@ -1777,7 +1776,7 @@ x_to_plot<-seq.func(trordata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, trordata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, trordata)
@@ -1792,7 +1791,7 @@ x_to_plot<-seq.func(trordata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 55,"*", cex = 4, col = "red")
+text(x = 1.5,y = 55,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdatror)
@@ -1809,7 +1808,7 @@ x_to_plot<-seq.func(verodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, verodata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, verodata)
@@ -1831,7 +1830,7 @@ x_to_plot<-seq.func(lambdavero$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 4.2,"*", cex = 4, col = "red")
+text(x = 1.5,y = 4.2,"*", cex = 6, col = "red")
 
 ###Overall text
 ##x labels
@@ -1876,7 +1875,7 @@ x_to_plot<-seq.func(larodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, larodata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, larodata)
@@ -1891,7 +1890,7 @@ x_to_plot<-seq.func(larodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 57,"*", cex = 4, col = "red")
+text(x = 1.5,y = 57,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdalaro)
@@ -1908,7 +1907,7 @@ x_to_plot<-seq.func(trordata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, trordata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, trordata)
@@ -1923,7 +1922,7 @@ x_to_plot<-seq.func(trordata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 55,"*", cex = 4, col = "red")
+text(x = 1.5,y = 55,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdatror)
@@ -1940,7 +1939,7 @@ x_to_plot<-seq.func(pldedata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival - quadratic
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, pldedata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, pldedata)
@@ -1955,7 +1954,7 @@ x_to_plot<-seq.func(pldedata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 85,"*", cex = 4, col = "red")
+text(x = 1.5,y = 85,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdaplde)
@@ -1972,7 +1971,7 @@ x_to_plot<-seq.func(peaidata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, peaidata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, peaidata)
@@ -1987,7 +1986,7 @@ x_to_plot<-seq.func(peaidata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 490,"*", cex = 4, col = "red")
+text(x = 1.5,y = 490,"*", cex = 6, col = "red")
 #Lambda - quadratic
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
 model<-lmer(log_lambda_p1~std_PC1 + I(std_PC1^2) + (1|Site/Plot), lambdapeai)
@@ -2011,7 +2010,7 @@ x_to_plot<-seq.func(arcadata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedarca)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedarca)
@@ -2019,7 +2018,7 @@ x_to_plot<-seq.func(arcadata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 260,"*", cex = 4)
+text(x = 2.4,y = 260,"*", cex = 6)
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdaarca)
@@ -2036,7 +2035,7 @@ x_to_plot<-seq.func(hygldata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, hygldata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, hygldata)
@@ -2044,7 +2043,7 @@ x_to_plot<-seq.func(hygldata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity - this one is better not logged but logging for the sake of consistency!
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), ylim=c(1, 90), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedhygl)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedhygl)
@@ -2075,7 +2074,7 @@ x_to_plot<-seq.func(trcydata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4)
+text(x = 2.5,y = 0.9,"*", cex = 6)
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), log = "y", ylim=c(1, 100), pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedtrcy)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedtrcy)
@@ -2083,7 +2082,7 @@ x_to_plot<-seq.func(trcydata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 75,"*", cex = 4, col = "red")
+text(x = 1.5,y = 75,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdatrcy)
@@ -2100,7 +2099,7 @@ x_to_plot<-seq.func(verodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, verodata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, verodata)
@@ -2122,7 +2121,7 @@ x_to_plot<-seq.func(lambdavero$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 4.2,"*", cex = 4, col = "red")
+text(x = 1.5,y = 4.2,"*", cex = 6, col = "red")
 
 ###Overall text
 ##x labels
@@ -2153,7 +2152,7 @@ mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRU
 
 dev.off()
 
-### Pulling out four examples
+### Pulling out four examples ####
 #Arca - neutral
 #Trcy - one positive but neutral lambda
 #Vero - one positive and positive lambda
@@ -2177,7 +2176,7 @@ x_to_plot<-seq.func(arcadata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedarca)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedarca)
@@ -2185,7 +2184,7 @@ x_to_plot<-seq.func(arcadata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 260,"*", cex = 4)
+text(x = 2.4,y = 260,"*", cex = 6)
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdaarca)
@@ -2209,7 +2208,7 @@ x_to_plot<-seq.func(trcydata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4)
+text(x = 2.5,y = 0.9,"*", cex = 6)
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), log = "y", ylim=c(1, 100), pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedtrcy)
 model<-glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedtrcy)
@@ -2217,7 +2216,7 @@ x_to_plot<-seq.func(trcydata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 75,"*", cex = 4, col = "red")
+text(x = 1.5,y = 75,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdatrcy)
@@ -2234,7 +2233,7 @@ x_to_plot<-seq.func(verodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, verodata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, verodata)
@@ -2256,7 +2255,7 @@ x_to_plot<-seq.func(lambdavero$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 4.2,"*", cex = 4, col = "red")
+text(x = 1.5,y = 4.2,"*", cex = 6, col = "red")
 
 #Adding LARO
 #Germination
@@ -2266,7 +2265,7 @@ x_to_plot<-seq.func(larodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #Survival
 plot(surv_to_produce_seeds ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, larodata)
 model<-glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, larodata)
@@ -2281,7 +2280,7 @@ x_to_plot<-seq.func(larodata$std_PC1)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 57,"*", cex = 4, col = "red")
+text(x = 1.5,y = 57,"*", cex = 6, col = "red")
 #Lambda
 plot(log_lambda_p1 ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
 model<-lmer(log_lambda_p1~std_PC1 + (1|Site/Plot), lambdalaro)
@@ -2335,7 +2334,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
 stripchart(log_lambda_p1 ~ neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.95, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 #Adding LARO
 #Survival
@@ -2355,7 +2354,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
 stripchart(log_lambda_p1 ~ neighbours01, lambdalaro, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 1.85, "*", cex = 4, col = "red")
+text(x = 1.5, y = 1.85, "*", cex = 6, col = "red")
 
 #Adding PEAI
 #Survival
@@ -2375,7 +2374,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
 stripchart(log_lambda_p1 ~ neighbours01, lambdapeai, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 4.1, "*", cex = 4, col = "red")
+text(x = 1.5, y = 4.1, "*", cex = 6, col = "red")
 
 #Adding TROR
 #Survival
@@ -2395,7 +2394,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
 stripchart(log_lambda_p1 ~ neighbours01, lambdatror, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.5, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.5, "*", cex = 6, col = "red")
 
 #Adding PLDE
 #Survival
@@ -2412,11 +2411,11 @@ x_to_plot<-seq.func(pldedata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 85,"*", cex = 4, col = "red")
+text(x = 2.4,y = 85,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
 stripchart(log_lambda_p1 ~ neighbours01, lambdaplde, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.45, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.45, "*", cex = 6, col = "red")
 
 
 #Adding VERO
@@ -2434,11 +2433,11 @@ x_to_plot<-seq.func(verodata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 200,"*", cex = 4, col = "red")
+text(x = 2.4,y = 200,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
 stripchart(log_lambda_p1 ~ neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 4.3, "*", cex = 4, col = "red")
+text(x = 1.5, y = 4.3, "*", cex = 6, col = "red")
 
 #ARCA
 #Survival - quadratic
@@ -2448,7 +2447,7 @@ x_to_plot<-seq.func(arcadata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ jitter(std_logp1_totalabund, 1), xlim=c(-1,2.5), ylim=c(1, 150), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedarca)
 model<-glmmTMB(No_viable_seeds_grouped~std_logp1_totalabund + (1|Site/Plot), family = nbinom2, seedarca)
@@ -2456,11 +2455,11 @@ x_to_plot<-seq.func(arcadata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 260,"*", cex = 4, col = "red")
+text(x = 2.4,y = 260,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
 stripchart(log_lambda_p1 ~ neighbours01, lambdaarca, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex = 2, add = TRUE)
-text(x = 1.5, y = 3.3, "*", cex = 4, col = "red")
+text(x = 1.5, y = 3.3, "*", cex = 6, col = "red")
 
 #Adding TRCY
 #Survival - quadratic
@@ -2470,7 +2469,7 @@ x_to_plot<-seq.func(trcydata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ jitter(std_logp1_totalabund, 1), xlim=c(-1,2.5), log = "y", ylim=c(1, 90), pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedtrcy)
 model<-glmmTMB(No_viable_seeds_grouped~std_logp1_totalabund + (1|Site/Plot), family = nbinom2, seedtrcy)
@@ -2481,7 +2480,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
 stripchart(log_lambda_p1 ~ neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.95, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 ###Overall text
 ##x labels
@@ -2533,7 +2532,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
 stripchart(log_lambda_p1 ~ neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.95, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 #Adding VERO
 #Survival
@@ -2550,11 +2549,11 @@ x_to_plot<-seq.func(verodata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.4,y = 200,"*", cex = 4, col = "red")
+text(x = 2.4,y = 200,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names = NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
 stripchart(log_lambda_p1 ~ neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 4.3, "*", cex = 4, col = "red")
+text(x = 1.5, y = 4.3, "*", cex = 6, col = "red")
 
 #Adding TRCY
 #Survival - quadratic
@@ -2564,7 +2563,7 @@ x_to_plot<-seq.func(trcydata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 4, col = "red")
+text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ jitter(std_logp1_totalabund, 1), xlim=c(-1,2.5), log = "y", ylim=c(1, 90), pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedtrcy)
 model<-glmmTMB(No_viable_seeds_grouped~std_logp1_totalabund + (1|Site/Plot), family = nbinom2, seedtrcy)
@@ -2585,7 +2584,7 @@ plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred
 #Lambda
 boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
 stripchart(log_lambda_p1 ~ neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.95, "*", cex = 4, col = "red")
+text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 ###Overall text
 ##x labels
