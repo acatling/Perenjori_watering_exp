@@ -457,6 +457,9 @@ vitaldata <- within(vitaldata, Treatment[Treatment == 'Control'] <- 'Ambient')
 vitaldata$SDI <- as.numeric(vitaldata$SDI)
 vitaldata$shannon <- as.numeric(vitaldata$shannon)
 
+#Adding unique row ID
+vitaldata <- rownames_to_column(vitaldata, var = "rowID") %>% as_tibble()
+
 #Splitting data by species
 arcadata <- vitaldata %>% filter(Species == "ARCA")
 hygldata <- vitaldata %>% filter(Species == "HYGL")
@@ -554,8 +557,8 @@ speciestable <- speciestable %>% select(Species, seed_survival = 'mean.species.f
 Species <- rep(c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO"), each = 3, times = 8)
 Site <- rep(c("1", "2", "3", "4", "5", "6", "7", "8"), each = 9, times = 3)
 Plot <- rep(c("A", "B", "C"), times = 72)
-merge <- cbind(Species, Site, Plot)
-survpopdataframe <- data.frame(merge)
+survpopdataframe <- cbind(Species, Site, Plot)
+survpopdataframe <- data.frame(survpopdataframe)
 survpopdataframe <- survpopdataframe %>% unite("idforjoining", Plot:Site, sep = ":", remove = "false")
 
 #ARCA 
@@ -720,7 +723,9 @@ seedpopdataframemerged <- left_join(seedpopdataframemerged, laroseedpoptomerge, 
 
 #PEAI - won't converge, even with separated site and plot, even with site removed
 #will run with lmer.........
-#peaipopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedpeai)
+peaipopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedpeai)
+#laroseedplot_means<-coef(peaipopseedmodel)$plotid
+### here 03/08/2022*
 # ggplot(seedpeai, aes(x = Neighbours01, y = log(No_viable_seeds_grouped+1)))+
 #   geom_boxplot()+
 #   geom_jitter()+
@@ -879,4 +884,8 @@ species.list.l<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde,
 #Reordering watering treatments to  Dry, Ambient, Wet for plotting
 #popdata$Treatment <- factor(popdata$Treatment, level = c("Dry", "Ambient", "Wet"))
 
+###03/08/2022
+### Individual level random effects can help with overdispersion
+# Try adding row ID for each subplot
+test <- vitaldata %>% rownames_to_column()
 

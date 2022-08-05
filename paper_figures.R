@@ -682,8 +682,14 @@ vitalquadpvalues %>%
 
 #### Modelling vital rates in response to all factors #### 
 ### Germination ###
+
+##### 03/08/2022
+
+### Individual level random effects can help with overdispersion
+# Try adding row ID for each subplot
+
 ## ARCA - has quadratic germ ~ PC2
-arcagermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + I(std_PC2^2) + (1|Site/Plot), 
+arcagermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + I(std_PC2^2) + (1|Site/Plot/rowID), 
                           family = binomial, arcadata)
 arcagermmod1dharma <- simulateResiduals(arcagermfinalmod)
 plot(arcagermmod1dharma)
@@ -698,7 +704,7 @@ testDispersion(arcagermfinalmod)
 #   theme_classic()
 
 ## HYGL- has quadratic germ ~ PC2
-hyglgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + I(std_PC2^2) + (1|Site/Plot), 
+hyglgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + I(std_PC2^2) + (1|Site/Plot/rowID), 
                           family = binomial, hygldata)
 hyglgermmod1dharma <- simulateResiduals(hyglgermfinalmod)
 plot(hyglgermmod1dharma)
