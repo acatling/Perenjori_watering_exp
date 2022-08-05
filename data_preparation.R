@@ -884,8 +884,4 @@ species.list.l<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde,
 #Reordering watering treatments to  Dry, Ambient, Wet for plotting
 #popdata$Treatment <- factor(popdata$Treatment, level = c("Dry", "Ambient", "Wet"))
 
-###03/08/2022
-### Individual level random effects can help with overdispersion
-# Try adding row ID for each subplot
-test <- vitaldata %>% rownames_to_column()
 
