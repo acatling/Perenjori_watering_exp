@@ -1190,8 +1190,12 @@ plot(peailambdamod1dharma)
 vif(peailambdamod1)
 summary(peailambdamod1)
 #Model simplification step - Significant Wet:PC1, removing all other interactions
+# peailambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
+#                              I(std_PC1^2) + Treatment:std_PC1 + (1|Site/Plot), lambdapeai)
+#After running lambdas without Site included as a random effect, Wet:PC1 no longer significant
+#New model simplification - removing all interactions, none significant
 peailambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
-                             I(std_PC1^2) + Treatment:std_PC1 + (1|Site/Plot), lambdapeai)
+                             I(std_PC1^2) + (1|Site/Plot), lambdapeai)
 peailambdafinalmoddharma <- simulateResiduals(peailambdafinalmod)
 plot(peailambdafinalmoddharma)
 #good
@@ -1253,7 +1257,11 @@ plot(trorlambdamod1dharma)
 vif(trorlambdamod1)
 summary(trorlambdamod1)
 #Model simplification step - No significant interactions, removing all interactions
-trorlambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdatror)
+#trorlambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdatror)
+#After running lambdas without Site included as a random effect, PC1:neighbours is now significant
+#New model simplification - significant PC1:Neighbours, removing all other interactions
+trorlambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
+                             std_PC1:neighbours01 + (1|Site/Plot), lambdatror)
 trorlambdafinalmoddharma <- simulateResiduals(trorlambdafinalmod)
 plot(trorlambdafinalmoddharma)
 #good
@@ -1381,7 +1389,7 @@ grid.arrange(arcaplot, hyglplot, laroplot, peaiplot, pldeplot, poleplot, trcyplo
 #neighbour abundance is log plus 1
 
 dev.off()
-pdf("Output/Figures/panel_NA.pdf", width=21, height=21)
+pdf("Output/Figures/panel_NA_050822.pdf", width=21, height=21)
 par(mfrow=c(8,3), oma = c(5, 20, 5, 1), mar =c(3.5,6,1,1))
 #square doesn't work, too small
 #par(pty="s")
@@ -1581,7 +1589,7 @@ dev.off()
 #Lambda no longer boxplot, continuous
 
 dev.off()
-pdf("Output/Figures/panel_PC1.pdf", width=21, height=21)
+pdf("Output/Figures/panel_PC1_05082022.pdf", width=21, height=21)
 par(mfrow=c(8,4), oma = c(5, 20, 5, 1), mar =c(3.5,6,1,1))
 #ARCA
 #Germination
