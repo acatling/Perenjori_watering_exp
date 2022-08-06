@@ -686,10 +686,28 @@ survpopdataframemerged <- left_join(survpopdataframemerged, verosurvpoptomerge, 
 #Adding in germination and fecundity rates per plot
 #Average germination fraction (calculated at subplot level, #seeds germinated/#seeds sown) per plot
 #Average seed production, neighbours or no neighbours
-plotgermfecundity <- vitaldata %>% group_by(Species, Site, Plot) %>% summarise(plot_germ = mean(percent_germ, na.rm = TRUE),
-                                                                           plot_fecundity_no_nbh = exp(mean(log(No_viable_seeds_grouped[Neighbours01 == 0]+1), na.rm=TRUE)),
-                                                                           plot_fecundity_nbh = exp(mean(log(No_viable_seeds_grouped[Neighbours01 == 1]+1), na.rm = TRUE)))
-popgrowthratedata <- full_join(survpopdataframemerged, plotgermfecundity)
+#This is turning true zero values into 1s - a problem! John's proposed solution:
+# ifelse(mean(fecundity)==0, 0, exp(mean(log(fecundity))) ## so just give plots with legit zero seeds a zero and then calculate the mean for the others without adding 1 #this works!
+plotgerm <- vitaldata %>% group_by(Species, Site, Plot) %>% summarise(plot_germ = mean(percent_germ, na.rm = TRUE))
+
+#USE SEED MODEL DATA FOR FEC ESTIMATES
+#NAs are informative because it's where there is no information (e.g. no subplots without neighbours)
+#Calculating total_no_nbh and total_nbh just to check zero values
+plotfecundity <- seedmodeldata %>% select(Species, Site, Plot, Neighbours01, No_viable_seeds_grouped) %>% 
+  group_by(Species, Site, Plot) %>% mutate(log_seeds = ifelse(No_viable_seeds_grouped == 0, 0, log(No_viable_seeds_grouped)),
+                                           total_no_nbh = sum(No_viable_seeds_grouped[Neighbours01 == 0]),
+                                           total_nbh = sum(No_viable_seeds_grouped[Neighbours01 == 1]),
+                                           plot_fecundity_no_nbh = ifelse(mean(log_seeds[Neighbours01==0])==0, 0, exp(mean(log_seeds[Neighbours01 == 0]))),
+                                           mean_plot_fec_no_nbh = mean(No_viable_seeds_grouped[Neighbours01 == 0]),
+                                           plot_fecundity_nbh = ifelse(mean(log_seeds[Neighbours01==1])==0, 0, exp(mean(log_seeds[Neighbours01 == 1]))),
+                                           mean_plot_fec_nbh = mean(No_viable_seeds_grouped[Neighbours01 == 1])) %>%
+  select(Species, Site, Plot, plot_fecundity_no_nbh, plot_fecundity_nbh)
+
+#write.csv(test, "Output/Tables/plotgermfecundity.csv")
+#Check why there is a difference in number of rows for below two dataframes
+# and if it is a problem**
+popgrowthratedata <- left_join(survpopdataframemerged, plotgerm)
+popgrowthratedata <- left_join(popgrowthratedata, plotfecundity)
 
 ### Calculating population growth values as lambda_no_nbh and lambda_nbh
 #Need seed survival to be species-specific, adding in seed survival values
@@ -787,7 +805,3 @@ ggplot(lambdalaro, aes(x = std_PC1, y = log_lambda_p1))+
   theme_classic()
 laromod <- lmer(log_lambda_p1 ~ std_PC1 + (1|Site/Plot), lambdalaro)
 summary(laromod)
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
