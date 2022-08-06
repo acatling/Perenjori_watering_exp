@@ -787,4 +787,7 @@ ggplot(lambdalaro, aes(x = std_PC1, y = log_lambda_p1))+
   theme_classic()
 laromod <- lmer(log_lambda_p1 ~ std_PC1 + (1|Site/Plot), lambdalaro)
 summary(laromod)
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
