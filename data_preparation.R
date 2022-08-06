@@ -548,14 +548,16 @@ speciestable <- speciestable %>% select(Species, seed_survival = 'mean.species.f
 
 # Per capita growth rate of a given population  i = seed survival*(1-germination)+number of viable seeds produced per germinant*germination
 #Calculate this at the plot level
-
-## Survival
-#survival, glmer, binom
-#plogis instead of exp
+# New plan - only calculating at the plot level using model estimates, because it's binary data
+# and calculating germination and fecundity using means
 
 ### CREATED BRANCH 'pop_rm_site_test' to remove Site from these calculations
 # to assist with convergence and use same approach for all species
 # will compare to main branch
+
+## Survival
+#survival, glmer, binom
+#plogis instead of exp
 
 #Create dataframe
 Species <- rep(c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO"), each = 3, times = 8)
@@ -681,174 +683,13 @@ survpopdataframemerged <- left_join(survpopdataframemerged, verosurvpoptomerge, 
          means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
   select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
 
-### Seed production - trcy not converging
-#Create dataframe
-Species <- rep(c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO"), each = 3, times = 8)
-Site <- rep(c("1", "2", "3", "4", "5", "6", "7", "8"), each = 9, times = 3)
-Plot <- rep(c("A", "B", "C"), times = 72)
-merge <- cbind(Species, Site, Plot)
-seedpopdataframe <- data.frame(merge)
-#seedpopdataframe <- seedpopdataframe %>% unite("idforjoining", Plot:Site, sep = ":", remove = "false")
-seedpopdataframe <- seedpopdataframe %>% unite("idforjoining", Site:Plot, sep = "_", remove = "false")
-
-#ARCA
-arcapopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedarca)
-arcaseedplot_means<-coef(arcapopseedmodel)$plotid
-arcaseedpop <- cbind(idforjoining = rownames(arcaseedplot_means), arcaseedplot_means)
-arcaseedpop$means_no_neighbours<-exp(arcaseedpop[,2])
-arcaseedpop$means_neighbours<-exp(arcaseedpop[,2] + arcaseedpop[,3])
-arcaseedpop$Species <- 'ARCA'
-arcaseedpoptomerge <- arcaseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframe, arcaseedpoptomerge)
-
-#HYGL
-hyglpopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedhygl)
-hyglseedplot_means<-coef(hyglpopseedmodel)$plotid
-hyglseedpop <- cbind(idforjoining = rownames(hyglseedplot_means), hyglseedplot_means)
-hyglseedpop$means_no_neighbours<-exp(hyglseedpop[,2])
-hyglseedpop$means_neighbours<-exp(hyglseedpop[,2] + hyglseedpop[,3])
-hyglseedpop$Species <- 'HYGL'
-hyglseedpoptomerge <- hyglseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, hyglseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#LARO - preivously: won't converge, separated Site/Plot -- fine with just plotid
-laropopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedlaro)
-laroseedplot_means<-coef(laropopseedmodel)$plotid
-laroseedpop <- cbind(idforjoining = rownames(laroseedplot_means), laroseedplot_means)
-laroseedpop$means_no_neighbours<-exp(laroseedpop[,2])
-laroseedpop$means_neighbours<-exp(laroseedpop[,2] + laroseedpop[,3])
-laroseedpop$Species <- 'LARO'
-laroseedpoptomerge <- laroseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, laroseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#PEAI - won't converge, even with separated site and plot, even with just plotid
-#will run with lmer......... comparing estimates from glmer.nb and lmer
-# ggplot(seedpeai, aes(x = Neighbours01, y = log(No_viable_seeds_grouped+1)))+
-#   geom_boxplot()+
-#   geom_jitter()+
-#   theme_classic()
-peaipopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedpeai)
-#summary(peaipopseedmodel)
-peaiseedplot_means<-coef(peaipopseedmodel)$plotid
-peaiseedpop <- cbind(idforjoining = rownames(peaiseedplot_means), peaiseedplot_means)
-peaiseedpop$means_no_neighbours<-exp(peaiseedpop[,2])
-peaiseedpop$means_neighbours<-exp(peaiseedpop[,2] + peaiseedpop[,3])
-peaiseedpop$Species <- 'PEAI'
-peaiseedpoptomerge <- peaiseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, peaiseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#Comparing glmer.nb model and lmer model - Need this to be in short form, hm
-colnames(peaiseedpop) <- c('idforjoining', 'Intercept', 'Neighbours011', 'means_no_neighbours_glmer', 'means_neighbours_glmer')
-
-peaipopseedmodel2 <- lmer(log(No_viable_seeds_grouped+1) ~ Neighbours01 + (Neighbours01|plotid), seedpeai)
-peaiseedplot_means2<-coef(peaipopseedmodel2)$plotid
-peaiseedpop2 <- cbind(idforjoining = rownames(peaiseedplot_means2), peaiseedplot_means2)
-peaiseedpop2$means_no_neighbours<-exp(peaiseedpop2[,2])
-peaiseedpop2$means_neighbours<-exp(peaiseedpop2[,2] + peaiseedpop2[,3])
-colnames(peaiseedpop2) <- c('idforjoining', 'Intercept', 'Neighbours011', 'means_no_neighbours_lmer', 'means_neighbours_lmer')
-### Comparing them -
-# peaiseedpop$model <- 'glmer.nb'
-# peaiseedpop2$model <- 'lmer'
-#test <- mergedpeai %>% pivot_wider(names_from = model, values_from = c(means_no_neighbours, means_neighbours))
-## Plotting them
-mergedpeai <- cbind(peaiseedpop, peaiseedpop2)
-test <- mergedpeai %>% select(means_no_neighbours_glmer, means_neighbours_glmer, means_no_neighbours_lmer, means_neighbours_lmer)
-ggplot(test, aes(x = means_no_neighbours_lmer, y = means_no_neighbours_glmer))+
-    geom_point()+
-  geom_smooth()+
-    theme_classic()
-ggplot(test, aes(x = means_neighbours_lmer, y = means_neighbours_glmer))+
-  geom_point()+
-  geom_smooth()+
-  theme_classic()
-
-#PLDE
-pldepopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedplde)
-pldeseedplot_means<-coef(pldepopseedmodel)$plotid
-pldeseedpop <- cbind(idforjoining = rownames(pldeseedplot_means), pldeseedplot_means)
-pldeseedpop$means_no_neighbours<-exp(pldeseedpop[,2])
-pldeseedpop$means_neighbours<-exp(pldeseedpop[,2] + pldeseedpop[,3])
-pldeseedpop$Species <- 'PLDE'
-pldeseedpoptomerge <- pldeseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, pldeseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#POLE
-polepopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedpole)
-poleseedplot_means<-coef(polepopseedmodel)$plotid
-poleseedpop <- cbind(idforjoining = rownames(poleseedplot_means), poleseedplot_means)
-poleseedpop$means_no_neighbours<-exp(poleseedpop[,2])
-poleseedpop$means_neighbours<-exp(poleseedpop[,2] + poleseedpop[,3])
-poleseedpop$Species <- 'POLE'
-poleseedpoptomerge <- poleseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, poleseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#TRCY - won't converge with separated site and plot, will converge if I omit Site
-trcypopseedmodel3 <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedtrcy)
-trcyseedplot_means<-coef(trcypopseedmodel3)$plotid
-#Rename rownames to fit this different model type, problem with this method is I need to check exact names/numbers of plots
-#rownames(trcyseedplot_means) <- c("A:1", "B:1", "C:1", "A:2", "B:2", "C:2", "A:3", "B:3", "C:3", "A:4", "B:4", "C:4", "A:5", "B:5", "C:5", "A:6", "B:6", "C:6", "A:7", "B:7", "C:7", "A:8", "B:8", "C:8")
-trcyseedpop <- cbind(idforjoining = rownames(trcyseedplot_means), trcyseedplot_means)
-trcyseedpop$means_no_neighbours<-exp(trcyseedpop[,2])
-trcyseedpop$means_neighbours<-exp(trcyseedpop[,2] + trcyseedpop[,3])
-trcyseedpop$Species <- 'TRCY'
-trcyseedpoptomerge <- trcyseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, trcyseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#TROR
-trorpopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedtror)
-trorseedplot_means<-coef(trorpopseedmodel)$plotid
-trorseedpop <- cbind(idforjoining = rownames(trorseedplot_means), trorseedplot_means)
-trorseedpop$means_no_neighbours<-exp(trorseedpop[,2])
-trorseedpop$means_neighbours<-exp(trorseedpop[,2] + trorseedpop[,3])
-trorseedpop$Species <- 'TROR'
-trorseedpoptomerge <- trorseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, trorseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#VERO, have to simplify to just Neighbours01|plotid to run
-veropopseedmodel <- glmer.nb(No_viable_seeds_grouped ~ Neighbours01 + (Neighbours01|plotid), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), seedvero)
-veroseedplot_means<-coef(veropopseedmodel)$plotid
-#rownames(veroseedplot_means) <- c("A:1", "B:1", "C:1", "A:2", "B:2", "C:2", "A:3", "B:3", "C:3", "B:4", "C:4", "A:5", "B:5", "A:6", "B:6", "C:6", "A:7", "B:7", "C:7", "A:8", "C:8")
-veroseedpop <- cbind(idforjoining = rownames(veroseedplot_means), veroseedplot_means)
-veroseedpop$means_no_neighbours<-exp(veroseedpop[,2])
-veroseedpop$means_neighbours<-exp(veroseedpop[,2] + veroseedpop[,3])
-veroseedpop$Species <- 'VERO'
-veroseedpoptomerge <- veroseedpop %>% select(Species, idforjoining, means_no_neighbours, means_neighbours)
-seedpopdataframemerged <- left_join(seedpopdataframemerged, veroseedpoptomerge, by= c("Species", "idforjoining")) %>%
-  mutate(means_no_neighbours = coalesce(means_no_neighbours.x, means_no_neighbours.y),
-         means_neighbours = coalesce(means_neighbours.x, means_neighbours.y)) %>%
-  select(Species, idforjoining, Site, Plot, means_no_neighbours, means_neighbours)
-
-#Renaming column headings to differentiate survival and seed production in big dataframe
-seedpop <- seedpopdataframemerged %>% rename(seed_means_no_neighbours = means_no_neighbours,
-                                             seed_means_neighbours = means_neighbours)
-survpop <- survpopdataframemerged %>% rename(surv_means_no_neighbours = means_no_neighbours,
-                                             surv_means_neighbours = means_neighbours)
-popgrowthratedata <- merge(seedpop, survpop)
-#Adding in germination rates per plot
+#Adding in germination and fecundity rates per plot
 #Average germination fraction (calculated at subplot level, #seeds germinated/#seeds sown) per plot
-plotgermrates <- vitaldata %>% group_by(Species, Site, Plot) %>% summarise(plot_germ = mean(percent_germ, na.rm = TRUE))
-popgrowthratedata <- full_join(plotgermrates, popgrowthratedata)
+#Average seed production, neighbours or no neighbours
+plotgermfecundity <- vitaldata %>% group_by(Species, Site, Plot) %>% summarise(plot_germ = mean(percent_germ, na.rm = TRUE),
+                                                                           plot_fecundity_no_nbh = exp(mean(log(No_viable_seeds_grouped[Neighbours01 == 0]+1), na.rm=TRUE)),
+                                                                           plot_fecundity_nbh = exp(mean(log(No_viable_seeds_grouped[Neighbours01 == 1]+1), na.rm = TRUE)))
+popgrowthratedata <- full_join(survpopdataframemerged, plotgermfecundity)
 
 ### Calculating population growth values as lambda_no_nbh and lambda_nbh
 #Need seed survival to be species-specific, adding in seed survival values
@@ -856,20 +697,20 @@ popgrowthratedata <- full_join(plotgermrates, popgrowthratedata)
 popgrowthratedata <- left_join(popgrowthratedata, speciestable)
 
 #Going to split the dataframe and then merge so I can pivot seeds and survival separately with the same names_to column
-survtopivot <- popgrowthratedata %>% select(Species, Site, Plot, plot_germ, seed_survival, surv_means_no_neighbours, surv_means_neighbours)
-seedstopivot <- popgrowthratedata %>% select(Species, Site, Plot, seed_means_no_neighbours, seed_means_neighbours)
+survtopivot <- popgrowthratedata %>% select(Species, Site, Plot, plot_germ, seed_survival, means_no_neighbours, means_neighbours)
+seedstopivot <- popgrowthratedata %>% select(Species, Site, Plot, plot_fecundity_no_nbh, plot_fecundity_nbh)
 
 #pivot_longer survival
-survtopivot <- survtopivot %>% pivot_longer(cols = c(surv_means_no_neighbours, surv_means_neighbours), names_to = "neighbours01", values_to = "plot_survival")
+survtopivot <- survtopivot %>% pivot_longer(cols = c(means_no_neighbours, means_neighbours), names_to = "Neighbours01", values_to = "plot_survival")
 #Renaming neighbours01 values to neighbours0 and neighbours1
-survtopivot <- within(survtopivot, neighbours01[neighbours01 == "surv_means_no_neighbours"] <- "neighbours0")
-survtopivot <- within(survtopivot, neighbours01[neighbours01 == "surv_means_neighbours"] <- "neighbours1")
+survtopivot <- within(survtopivot, Neighbours01[Neighbours01 == "means_no_neighbours"] <- "Neighbours0")
+survtopivot <- within(survtopivot, Neighbours01[Neighbours01 == "means_neighbours"] <- "Neighbours1")
 
 #Pivoting seeds
-seedstopivot <- seedstopivot %>% pivot_longer(cols = c(seed_means_no_neighbours, seed_means_neighbours), names_to = "neighbours01", values_to = "plot_fecundity")
+seedstopivot <- seedstopivot %>% pivot_longer(cols = c(plot_fecundity_no_nbh, plot_fecundity_nbh), names_to = "Neighbours01", values_to = "plot_fecundity")
 #Renaming
-seedstopivot <- within(seedstopivot, neighbours01[neighbours01 == "seed_means_no_neighbours"] <- "neighbours0")
-seedstopivot <- within(seedstopivot, neighbours01[neighbours01 == "seed_means_neighbours"] <- "neighbours1")
+seedstopivot <- within(seedstopivot, Neighbours01[Neighbours01 == "plot_fecundity_no_nbh"] <- "Neighbours0")
+seedstopivot <- within(seedstopivot, Neighbours01[Neighbours01 == "plot_fecundity_nbh"] <- "Neighbours1")
 
 #Merge them back together
 poplongdata <- left_join(survtopivot, seedstopivot)
@@ -878,7 +719,7 @@ poplongdata <- left_join(survtopivot, seedstopivot)
 # Per capita growth rate of a given population  i = seed survival*(1-germination)+number of viable seeds produced per germinant*germination
 # Isaac's (1-germ)*seed survival + rate of germ*prob of survival to reproductive maturity*seed production of survivors
 # prob of germination / germination fraction. # germinated / total germination, currently I have this as percent_germ which is a proportion (not percentage, despite the name)
-poplongdata <- poplongdata %>% group_by(neighbours01) %>% mutate(lambda = seed_survival*(1-plot_germ)+plot_fecundity*plot_survival*plot_germ)
+poplongdata <- poplongdata %>% group_by(Neighbours01) %>% mutate(lambda = seed_survival*(1-plot_germ)+plot_fecundity*plot_survival*plot_germ)
 #Making a column for plotid in same format as other dataframes
 poplongdata <- poplongdata %>% unite("plotid", Site:Plot, remove = "false")
 
@@ -914,23 +755,29 @@ species.list.l<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde,
 #Reordering watering treatments to  Dry, Ambient, Wet for plotting
 #popdata$Treatment <- factor(popdata$Treatment, level = c("Dry", "Ambient", "Wet"))
 
-<<<<<<< Updated upstream
-=======
 ### Want to plot seed production where plot_fecundity is NA, to check that
 # it is not calculating plot_fecundity because of a lack of data
+
+## Do I need to make NaN NAs?
 
 ### Checking which popdata plots are missing and why:
 test <- popdata %>% select(Species, plotid, plot_survival, plot_fecundity) %>% 
   filter(is.na(plot_survival & plot_fecundity)) %>% group_by(Species, plotid) %>%
   filter(row_number() == 1)
 #Want to match seedmodeldata to these plots and then plot them
-test2 <- test %>% select(Species, plotid)
-test3 <- seedmodeldata %>% select(Species, plotid, No_viable_seeds_grouped)
-#test4 <- left_join(test2, test3, by = c("Species", "plotid"))
-#But why number of seeds na...
-out <- merge(test2, test3, all.x=TRUE)
-test10 <- inner_join(test2, test3)
-test10 <- test3 %>% group_by(Species, plotid) %>% filter()
+#no_est_simple <- test %>% select(Species, plotid, neighbours01)
+#seed_simple <- seedmodeldata %>% select(Species, plotid, Neighbours01,No_viable_seeds_grouped)
+### concatenate? and %in%
+#out <- merge(no_est_simple, seed_simple, all.x=TRUE)
+
+seedmodeldata %>% filter(Species =='ARCA', Site == '3', Plot =='C') %>%
+  ggplot(aes(x = Neighbours01, y = log(No_viable_seeds_grouped+1)))+
+           geom_point()+
+           theme_classic()
+         
+test <- seedmodeldata %>% filter(Species =='TROR', Site == '3', Plot =='A')
+         
+
 
 #### TRCY and LARO have significant PC1:neighbours01 interactions, but ns PC1
 #In new plot, Laro lambda ~ PC1 looks significant. Trcy does not. Plotting to check
@@ -940,6 +787,4 @@ ggplot(lambdalaro, aes(x = std_PC1, y = log_lambda_p1))+
   theme_classic()
 laromod <- lmer(log_lambda_p1 ~ std_PC1 + (1|Site/Plot), lambdalaro)
 summary(laromod)
-
->>>>>>> Stashed changes
 
