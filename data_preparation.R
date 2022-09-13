@@ -820,6 +820,58 @@ popgrowthratedata <- merge(seedpop, survpop)
 plotgermrates <- vitaldata %>% group_by(Species, Site, Plot) %>% summarise(plot_germ = mean(percent_germ, na.rm = TRUE))
 popgrowthratedata <- full_join(plotgermrates, popgrowthratedata)
 
+#### Comparing survival probability and proportion ####
+# Calculating survival values as proportion survival at plot level
+# to see if this concurs with calculated probability of survivals
+plotsurvtest <- vitaldata %>% group_by(Species, Site, Plot, Neighbours01, surv_to_produce_seeds) %>% count()
+#Why so many Neighbours01 NAs?
+#These are for the ones that didn't germinate, which is why they are survival NAs too
+
+## Want to create a dataframe from scratch (9 species, 3 plots, 8 sites = 216)
+#9 species, 8 sites, 3 plots, 2 levels neighbours, 2 levels survival = 864
+test1000 <- survpop %>% select(Species, Site, Plot)
+test1000a <- test1000 %>% mutate(Neighbours01=1, surv_to_produce_seeds=1)
+test1000b <- test1000 %>% mutate(Neighbours01=0, surv_to_produce_seeds=0)
+test1000c <-test1000 %>% mutate(Neighbours01=0, surv_to_produce_seeds=1)
+test1000d <-test1000 %>% mutate(Neighbours01=1, surv_to_produce_seeds=0)
+#Also need where Neighbours01=0, surv_to_produce_seeds=1 and
+#where Neighbours01=1, surv_to_produce_seeds=0
+test100 <- rbind(test1000a,test1000b, test1000c, test1000d)
+#Left_join counts
+counts <- plotsurvtest %>% select(Species, Site, Plot, Neighbours01, surv_to_produce_seeds, n)
+#Making Neighbours01 and survival characters
+test100$Neighbours01 <- as.factor(test100$Neighbours01)
+test100$surv_to_produce_seeds <- as.factor(test100$surv_to_produce_seeds)
+counts$Neighbours01 <- as.factor(counts$Neighbours01)
+counts$surv_to_produce_seeds <- as.factor(counts$surv_to_produce_seeds)
+test5 <- left_join(test100, counts)
+#Making NAs 0 (this is necessary to correctly calculate proportions, otherwise returns NAs)
+test5 <- within(test5, n[is.na(n)] <- '0')
+#Calculate proportions
+test5$n <- as.numeric(test5$n)
+test6 <- test5 %>% group_by(Species, Site, Plot, Neighbours01)  %>% 
+  summarise(prop_survival = n[surv_to_produce_seeds==1]/(n[surv_to_produce_seeds==1] + n[surv_to_produce_seeds==0]))
+
+#Create identifier for Site|Plot|Neighbours01
+#plotsurvtest2 <- plotsurvtest2 %>% unite("id", Species:Site:Plot:Neighbours01, remove = "false")
+
+test60 <- test6 %>% group_by(Species, Site, Plot, Neighbours01) %>% 
+  pivot_wider(names_from='Neighbours01', values_from='prop_survival')
+test60 <- test60 %>% select(Species, Site, Plot, surv_prop_no_neighbours='1', surv_prop_neighbours='0')
+
+testing <- left_join(survpop, test60)
+## They are very different - why??
+
+par(mfrow=c(1,2))
+ggplot(testing, aes(x= surv_prop_no_neighbours, y = surv_means_no_neighbours))+
+  geom_point(alpha=0.4)+
+  theme_classic()+
+  facet_wrap(~Species)
+ggplot(testing, aes(x= surv_prop_neighbours, y = surv_means_neighbours))+
+  geom_point(alpha=0.4)+
+  theme_classic()+
+  facet_wrap(~Species)
+
 ### Calculating population growth values as lambda_no_nbh and lambda_nbh
 #Need seed survival to be species-specific, adding in seed survival values
 #speciestable is where seed survival data is

@@ -75,8 +75,6 @@ waterplot2 <- ggplot(datanonly, aes(x = Treatment, y = log(Total_abundance+1)))+
   geom_jitter(alpha = 0.1, width = 0.05, height = 0.05)+
   ylab("")+
   theme_classic()
-
-dev.off()
 pdf("Output/Figures/n_abundance_corr.pdf")
   #grid.arrange(pc1plot1, pc1plot2, pc2plot1, pc2plot2, waterplot1, waterplot2, ncol = 2)
 #hjust adjusts position of label in cowplot
@@ -117,20 +115,9 @@ vif(modelabundpc2c)
 modelabundpc2d <- lm(No_viable_seeds_grouped ~ std_logp1_totalabund + std_PC1 + std_PC2, vitaldata)
 summary(modelabundpc2d)
 vif(modelabundpc2d)
-
-## Is neighbour abundance significantly higher in watered plots?
 modelabundwater <- aov(log(Total_abundance+1) ~ Treatment, datanonly)
 summary(modelabundwater)
 TukeyHSD(modelabundwater)
-#yes, wet higher than ambient and dry
-
-datanonly$Treatment <- factor(datanonly$Treatment, level = c("Ambient", "Dry", "Wet"))
-modelabundwater2 <- lmer(log(Total_abundance+1) ~ Treatment + (1|Site/Plot), datanonly)
-dharmamod <- simulateResiduals(modelabundwater2)
-plot(dharmamod)
-summary(modelabundwater2)
-#no, not when accounting for differences between plots
-#terrible residuals, why?
 
 ### More plots
 ##Plotting PC1 vs abund for watering treatments
@@ -2070,88 +2057,3 @@ ggplot(vitaldata, aes(x = std_PC2, y = surv_to_produce_seeds, colour = Treatment
 
 
 
-#### Strength of intraspecific vs interspecific interactions ####
-#Converge issues with interspecific and intraspecific models
-# Total abundance
-for (i in 1:length(specieslist)){
-  nam <- paste0("totalsurv", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
-                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-}
-# Inter and intra abundance
-for (i in 1:length(specieslist)){
-  nam <- paste0("interintrasurv", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_interabund + std_logp1_intraabund + Dodder01 + (1|Site/Plot), 
-                    family = binomial, data = filter(vitaldata, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
-}
-
-#Total
-for (i in 1:length(specieslist)){
-  nam <- paste0("totalseed", specieslist[i])
-  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
-                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
-}
-#Intra and interspecific
-for (i in 1:length(specieslist)){
-  nam <- paste0("interintraseed", specieslist[i])
-  assign(nam, glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_interabund + std_logp1_intraabund + Dodder01 + (1|Site/Plot), 
-                      family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i])))
-}
-## Survival
-dev.off()
-pdf("Output/Figures/survival_intra_inter.pdf")
-ggplot(vitaldata)+
-  geom_jitter(aes(x = log(Inter_abundance+1), y = surv_to_produce_seeds, colour = "Interspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
-  geom_jitter(aes(x = log(Intra_abundance+1), y = surv_to_produce_seeds, colour = "Intraspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
-  geom_smooth(aes(x = log(Inter_abundance+1), y = surv_to_produce_seeds, colour = "Interspecific"), method = "lm")+
-  geom_smooth(aes(x = log(Intra_abundance+1), y = surv_to_produce_seeds, colour = "Intraspecific"), method = "lm")+
-  ylab("Survival probability")+
-  xlab("log(Neighbour abundance+1)")+
-  ylim(-0.5,1.5)+
-  theme_classic()+
-  scale_colour_manual(values = c("Interspecific"="forestgreen", "Intraspecific"="orchid"), name = NULL)+
-  theme(axis.title.x = element_text(size = 14),
-        axis.title.y = element_text(size = 14),
-        axis.text = element_text(size = 12),
-        strip.text.x = element_text(size = 12, face = "italic"))+
-        # legend.text = element_text(size = 10),
-        # legend.title = element_blank()+
-  facet_wrap(~Species)
-dev.off()
-
-## Fecundity
-dev.off()
-pdf("Output/Figures/seed_intra_inter.pdf")
-ggplot(seedmodeldata)+
-  geom_jitter(aes(x = log(Inter_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Interspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
-  geom_jitter(aes(x = log(Intra_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Intraspecific"), alpha = 0.4, width = 0.05, height = 0.05)+
-  geom_smooth(aes(x = log(Inter_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Interspecific"), method = "lm")+
-  geom_smooth(aes(x = log(Intra_abundance+1), y = log(No_viable_seeds_grouped+1), colour = "Intraspecific"), method = "lm")+
-  ylab("log(Viable seed production+1)")+
-  xlab("log(Neighbour abundance+1)")+
-  theme_classic()+
-  scale_colour_manual(values = c("Interspecific"="forestgreen", "Intraspecific"="orchid"), name = NULL)+
-  theme(axis.title.x = element_text(size = 14),
-        axis.title.y = element_text(size = 14),
-        axis.text = element_text(size = 12),
-        strip.text.x = element_text(size = 12, face = "italic"))+
-  # legend.text = element_text(size = 10),
-  # legend.title = element_blank()+
-  facet_wrap(~Species)
-dev.off()
-
-#### Calculating germination, survival and seed production rate by species ####
-#percent germ calculated at the subplot level, #seeds germinated/#seeds sown
-#this is the average proportion that germinated
-test <- vitaldata %>% group_by(Species) %>% summarise(mean_germ = mean(percent_germ, na.rm = TRUE),
-                                                      sd_germ = sd(percent_germ, na.rm = TRUE))
-test2 <- seedmodeldata %>% group_by(Species) %>% summarise(mean_seed = mean(No_viable_seeds_grouped, na.rm = TRUE),
-                                                      sd_seed = sd(No_viable_seeds_grouped, na.rm = TRUE))
-tst3 <- left_join(test,test2)
-
-ggplot(seedmodeldata, aes(x = Treatment, y = log(No_viable_seeds_grouped+1)))+
-  geom_boxplot()+
-  geom_jitter(alpha = 0.2)+
-  theme_classic()
-mod1 <- lmer(log(No_viable_seeds_grouped+1) ~ Treatment + (1|Site/Plot), seedmodeldata)
-summary(mod1)
