@@ -1137,6 +1137,13 @@ surv_prop <- left_join(surv_prop, surv_counts)
 ## This code works!! If no plants at all (survived or died), give NA. Otherwise treat NAs are 0s for calculations.
 #Can see total n as well. Very small!
 surv_prop <- within(surv_prop, n[is.na(n)] <- 0)
+
+## Calculating just at the plot level as well
+### FIX THIS **** not working
+surv_prop_plot <- surv_prop %>% group_by(Species, Site, Plot)  %>% 
+  summarise(prop_survival = ifelse(n[surv_to_produce_seeds==1]==0 & n[surv_to_produce_seeds==0]==0, NA, n[surv_to_produce_seeds==1]/(n[surv_to_produce_seeds==1] + n[surv_to_produce_seeds==0])),
+            total_n = sum(n))
+
 surv_prop <- surv_prop %>% group_by(Species, Site, Plot, Neighbours01)  %>% 
 summarise(prop_survival = ifelse(n[surv_to_produce_seeds==1]==0 & n[surv_to_produce_seeds==0]==0, NA, n[surv_to_produce_seeds==1]/(n[surv_to_produce_seeds==1] + n[surv_to_produce_seeds==0])),
           total_n = sum(n))
@@ -1176,6 +1183,7 @@ plotfecundity <- seedmodeldata %>% select(Species, Site, Plot, Neighbours01, No_
                                            plot_fecundity_no_nbh = ifelse(mean(log_seeds[Neighbours01==0])==0, 0, exp(mean(log_seeds[Neighbours01 == 0]))),
                                            mean_plot_fec_no_nbh = mean(No_viable_seeds_grouped[Neighbours01 == 0]),
                                            plot_fecundity_nbh = ifelse(mean(log_seeds[Neighbours01==1])==0, 0, exp(mean(log_seeds[Neighbours01 == 1]))),
+                                           plot_fecundity = ifelse(mean(log_seeds==0), 0, exp(mean(log_seeds))),
                                            mean_plot_fec_nbh = mean(No_viable_seeds_grouped[Neighbours01 == 1])) %>%
   select(Species, Site, Plot, plot_fecundity_no_nbh, plot_fecundity_nbh) %>% filter(row_number()==1)
 
@@ -1243,6 +1251,23 @@ lambdatror <- popdata %>% filter(Species == "TROR")
 lambdavero <- popdata %>% filter(Species == "VERO")
 
 species.list.l<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde, lambdapole, lambdatrcy, lambdatror, lambdavero)
+
+
+#popdata is split by neighbours
+#popdata_plot is just one value for the plot
+popdata_plot <- popdata %>% 
+
+lambdaarca_plot <- popdata_plot %>% filter(Species == "ARCA")
+lambdahygl_plot <- popdata_plot %>% filter(Species == "HYGL")
+lambdalaro_plot <- popdata_plot %>% filter(Species == "LARO")
+lambdapeai_plot <- popdata_plot %>% filter(Species == "PEAI")
+lambdaplde_plot <- popdata_plot %>% filter(Species == "PLDE")
+lambdapole_plot <- popdata_plot %>% filter(Species == "POLE")
+lambdatrcy_plot <- popdata_plot %>% filter(Species == "TRCY")
+lambdatror_plot <- popdata_plot %>% filter(Species == "TROR")
+lambdavero_plot <- popdata_plot %>% filter(Species == "VERO")
+
+species.list.l.plot<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde, lambdapole, lambdatrcy, lambdatror, lambdavero)
 
 #Reordering watering treatments to  Dry, Ambient, Wet for plotting
 #popdata$Treatment <- factor(popdata$Treatment, level = c("Dry", "Ambient", "Wet"))

@@ -388,12 +388,12 @@ for(i in 1:length(species.list.l)){
 dev.off()
 
 #This is what peai should look like, significant quadratic term
-# plot(log_lambda_p1 ~ std_PC1, lambdapeai)
-# model <- lmer(log_lambda_p1~std_PC1 + I(std_PC1^2) + (1|Site/Plot), lambdapeai)
-# x_to_plot<-seq.func(lambdapeai$std_PC1) 
-# preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
-# plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
-# plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+plot(log_lambda_p1 ~ std_PC1, lambdapeai)
+model <- lmer(log_lambda_p1~std_PC1 + I(std_PC1^2) + (1|Site/Plot), lambdapeai)
+x_to_plot<-seq.func(lambdapeai$std_PC1)
+preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 
 ## All species - linear PC2 lambda
 for (i in 1:length(specieslist)){
@@ -1136,65 +1136,65 @@ summary(veroseedfinalmod)
 
 ### Lambda ###
 ## ARCA
-arcalambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdaarca)
+arcalambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdaarca)
 arcalambdamod1dharma <- simulateResiduals(arcalambdamod1)
 plot(arcalambdamod1dharma)
 #good
 vif(arcalambdamod1)
 summary(arcalambdamod1)
 #Model simplification step - No significant interactions, removing all interactions
-arcalambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdaarca)
+arcalambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + (1|Site/Plot), lambdaarca)
 arcalambdafinalmoddharma <- simulateResiduals(arcalambdafinalmod)
 plot(arcalambdafinalmoddharma)
 #good
 summary(arcalambdafinalmod)
 
 ## HYGL
-hygllambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdahygl)
+hygllambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdahygl)
 hygllambdamod1dharma <- simulateResiduals(hygllambdamod1)
 plot(hygllambdamod1dharma)
 #okay
 vif(hygllambdamod1)
 summary(hygllambdamod1)
 #Model simplification step - No interactions significant, removing all
-hygllambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdahygl)
+hygllambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + (1|Site/Plot), lambdahygl)
 hygllambdafinalmoddharma <- simulateResiduals(hygllambdafinalmod)
 plot(hygllambdafinalmoddharma)
 #okay
 summary(hygllambdafinalmod)
 
 ##LARO
-larolambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdalaro)
+larolambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdalaro)
 larolambdamod1dharma <- simulateResiduals(larolambdamod1)
 plot(larolambdamod1dharma)
 #okay
 vif(larolambdamod1)
 summary(larolambdamod1)
 #Model simplification step - Significant PC1:neighbours, removing others
-larolambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdalaro)
+larolambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdalaro)
 larolambdafinalmoddharma <- simulateResiduals(larolambdafinalmod)
 plot(larolambdafinalmoddharma)
 #not great
 summary(larolambdafinalmod)
 
 ##PEAI - has quadratic lambda ~ PC1
-peailambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + 
-                         I(std_PC1^2) + Treatment:I(std_PC1^2) + I(std_PC1^2):neighbours01 + (1|Site/Plot), lambdapeai)
+peailambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + 
+                         I(std_PC1^2) + Treatment:I(std_PC1^2) + I(std_PC1^2):Neighbours01 + (1|Site/Plot), lambdapeai)
 peailambdamod1dharma <- simulateResiduals(peailambdamod1)
 plot(peailambdamod1dharma)
 #okay, dispersion test significant
 vif(peailambdamod1)
 summary(peailambdamod1)
 #Model simplification step - Significant Wet:PC1, removing all other interactions
-# peailambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
+# peailambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + 
 #                              I(std_PC1^2) + Treatment:std_PC1 + (1|Site/Plot), lambdapeai)
 #After running lambdas without Site included as a random effect, Wet:PC1 no longer significant
 #New model simplification - removing all interactions, none significant
-peailambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
+peailambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + 
                              I(std_PC1^2) + (1|Site/Plot), lambdapeai)
 peailambdafinalmoddharma <- simulateResiduals(peailambdafinalmod)
 plot(peailambdafinalmoddharma)
@@ -1202,15 +1202,15 @@ plot(peailambdafinalmoddharma)
 summary(peailambdafinalmod)
 
 ##PLDE
-pldelambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdaplde)
+pldelambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdaplde)
 pldelambdamod1dharma <- simulateResiduals(pldelambdamod1)
 plot(pldelambdamod1dharma)
 #very bad residuals
 vif(pldelambdamod1)
 summary(pldelambdamod1)
 #Model simplification step - No significant interactions, removing all interactions
-pldelambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdaplde)
+pldelambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + (1|Site/Plot), lambdaplde)
 pldelambdafinalmoddharma <- simulateResiduals(pldelambdafinalmod)
 plot(pldelambdafinalmoddharma)
 #bad residuals
@@ -1218,80 +1218,80 @@ summary(pldelambdafinalmod)
 #with(lambdaplde, plot(log_lambda_p1 ~ std_PC1))
 
 ##POLE
-polelambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdapole)
+polelambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdapole)
 polelambdamod1dharma <- simulateResiduals(polelambdamod1)
 plot(polelambdamod1dharma)
 #not good
 vif(polelambdamod1)
 summary(polelambdamod1)
 #Model simplification step - No significant interactions, removing all interactions
-polelambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdapole)
+polelambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + (1|Site/Plot), lambdapole)
 polelambdafinalmoddharma <- simulateResiduals(polelambdafinalmod)
 plot(polelambdafinalmoddharma)
 #not good - not enough data? 18 points. Residuals bad
 summary(polelambdafinalmod)
 
 ##TRCY
-trcylambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdatrcy)
+trcylambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdatrcy)
 trcylambdamod1dharma <- simulateResiduals(trcylambdamod1)
 plot(trcylambdamod1dharma)
 #good
 vif(trcylambdamod1)
 summary(trcylambdamod1)
 #Model simplification step - Significant PC1:neighbours, removing all other interactions
-trcylambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
-                             std_PC1:neighbours01 + (1|Site/Plot), lambdatrcy)
+trcylambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + 
+                             std_PC1:Neighbours01 + (1|Site/Plot), lambdatrcy)
 trcylambdafinalmoddharma <- simulateResiduals(trcylambdafinalmod)
 plot(trcylambdafinalmoddharma)
 #not bad
 summary(trcylambdafinalmod)
 
 ##TROR
-trorlambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdatror)
+trorlambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdatror)
 trorlambdamod1dharma <- simulateResiduals(trorlambdamod1)
 plot(trorlambdamod1dharma)
 #good
 vif(trorlambdamod1)
 summary(trorlambdamod1)
 #Model simplification step - No significant interactions, removing all interactions
-#trorlambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + (1|Site/Plot), lambdatror)
+#trorlambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + (1|Site/Plot), lambdatror)
 #After running lambdas without Site included as a random effect, PC1:neighbours is now significant
 #New model simplification - significant PC1:Neighbours, removing all other interactions
-trorlambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
-                             std_PC1:neighbours01 + (1|Site/Plot), lambdatror)
+trorlambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + 
+                             std_PC1:Neighbours01 + (1|Site/Plot), lambdatror)
 trorlambdafinalmoddharma <- simulateResiduals(trorlambdafinalmod)
 plot(trorlambdafinalmoddharma)
 #good
 summary(trorlambdafinalmod)
 
 ##VERO
-verolambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 +
-                         Treatment:std_PC1 + Treatment:neighbours01 + std_PC1:neighbours01 + (1|Site/Plot), lambdavero)
+verolambdamod1 <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+                         Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdavero)
 verolambdamod1dharma <- simulateResiduals(verolambdamod1)
 plot(verolambdamod1dharma)
 #good
 vif(verolambdamod1)
 summary(verolambdamod1)
 #Model simplification step - Significant PC1:neighbours, removing all other interactions
-verolambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + neighbours01 + 
-                             std_PC1:neighbours01 + (1|Site/Plot), lambdavero)
+verolambdafinalmod <- lmer(log_lambda_p1 ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + 
+                             std_PC1:Neighbours01 + (1|Site/Plot), lambdavero)
 verolambdafinalmoddharma <- simulateResiduals(verolambdafinalmod)
 plot(verolambdafinalmoddharma)
 #good
 summary(verolambdafinalmod)
 
 #### Plotting vital rate responses to continuous and categorical neighbours ####
-ggplot(popdata, aes(x = neighbours01, y = log_lambda_p1))+
+ggplot(popdata, aes(x = Neighbours01, y = log_lambda_p1))+
   geom_boxplot()+
   geom_jitter(alpha = 0.2, width = 0.1)+
   theme_classic()+
   my_theme+
   facet_wrap(~Species)
 #Fecundity response to categorical neighbours - PLOT level
-ggplot(popdata, aes(x = neighbours01, y = log(plot_fecundity+1)))+
+ggplot(popdata, aes(x = Neighbours01, y = log(plot_fecundity+1)))+
   geom_boxplot()+
   geom_jitter(alpha = 0.2, width = 0.1)+
   theme_classic()+
@@ -1310,7 +1310,7 @@ ggplot(data = seedmodeldata %>% filter(complete.cases(NeighboursYN)), aes(x = Ne
 #Survival response to categorical neighbours - PLOT level
 # Informed by these models, used for calculating lambda: 
 #e.g. peaipopsurvmodel <- glmer(surv_to_produce_seeds ~ NeighboursYN + (NeighboursYN|Site/Plot),family = binomial, peaidata)
-ggplot(popdata, aes(x = neighbours01, y = plot_survival))+
+ggplot(popdata, aes(x = Neighbours01, y = plot_survival))+
   geom_boxplot()+
   geom_jitter(alpha = 0.2, width = 0.1)+
   theme_classic()+
@@ -1389,7 +1389,7 @@ grid.arrange(arcaplot, hyglplot, laroplot, peaiplot, pldeplot, poleplot, trcyplo
 #neighbour abundance is log plus 1
 
 dev.off()
-pdf("Output/Figures/panel_NA_050822.pdf", width=21, height=21)
+pdf("Output/Figures/panel_NA_150922.pdf", width=21, height=21)
 par(mfrow=c(8,3), oma = c(5, 20, 5, 1), mar =c(3.5,6,1,1))
 #square doesn't work, too small
 #par(pty="s")
@@ -1411,8 +1411,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 100,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
-stripchart(log_lambda_p1 ~ neighbours01, lambdaarca, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex = 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdaarca, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex = 2, add = TRUE)
 text(x = 1.5, y = 2.8, "*", cex = 6, col = "red")
 
 #Adding HYGL
@@ -1431,8 +1431,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
-stripchart(log_lambda_p1 ~ neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.3, "*", cex = 6, col = "red")
 
 #Adding LARO
@@ -1451,8 +1451,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
-stripchart(log_lambda_p1 ~ neighbours01, lambdalaro, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdalaro, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 1.7, "*", cex = 6, col = "red")
 
 #Adding PEAI
@@ -1471,8 +1471,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
-stripchart(log_lambda_p1 ~ neighbours01, lambdapeai, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdapeai, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 
 #Adding PLDE
 #Survival
@@ -1491,8 +1491,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 70,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
-stripchart(log_lambda_p1 ~ neighbours01, lambdaplde, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdaplde, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.5, "*", cex = 6, col = "red")
 
 #Adding TRCY
@@ -1512,8 +1512,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
-stripchart(log_lambda_p1 ~ neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 3.2, "*", cex = 6, col = "red")
 
 #Adding TROR
@@ -1532,8 +1532,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
-stripchart(log_lambda_p1 ~ neighbours01, lambdatror, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdatror, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.3, "*", cex = 6, col = "red")
 
 #Adding VERO
@@ -1553,8 +1553,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 180,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
-stripchart(log_lambda_p1 ~ neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 4.3, "*", cex = 6, col = "red")
 
 ###Overall text
@@ -1589,7 +1589,7 @@ dev.off()
 #Lambda no longer boxplot, continuous
 
 dev.off()
-pdf("Output/Figures/panel_PC1_05082022.pdf", width=21, height=21)
+pdf("Output/Figures/panel_PC1_15092022.pdf", width=21, height=21)
 par(mfrow=c(8,4), oma = c(5, 20, 5, 1), mar =c(3.5,6,1,1))
 #ARCA
 #Germination
@@ -2346,8 +2346,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
-stripchart(log_lambda_p1 ~ neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 #Adding LARO
@@ -2366,8 +2366,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
-stripchart(log_lambda_p1 ~ neighbours01, lambdalaro, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdalaro)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdalaro, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 1.85, "*", cex = 6, col = "red")
 
 #Adding PEAI
@@ -2386,8 +2386,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
-stripchart(log_lambda_p1 ~ neighbours01, lambdapeai, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdapeai)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdapeai, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 4.1, "*", cex = 6, col = "red")
 
 #Adding TROR
@@ -2406,8 +2406,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
-stripchart(log_lambda_p1 ~ neighbours01, lambdatror, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdatror, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.5, "*", cex = 6, col = "red")
 
 #Adding PLDE
@@ -2427,8 +2427,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 85,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
-stripchart(log_lambda_p1 ~ neighbours01, lambdaplde, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdaplde, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.45, "*", cex = 6, col = "red")
 
 
@@ -2449,8 +2449,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 200,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
-stripchart(log_lambda_p1 ~ neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 4.3, "*", cex = 6, col = "red")
 
 #ARCA
@@ -2471,8 +2471,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 260,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
-stripchart(log_lambda_p1 ~ neighbours01, lambdaarca, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex = 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdaarca, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex = 2, add = TRUE)
 text(x = 1.5, y = 3.3, "*", cex = 6, col = "red")
 
 #Adding TRCY
@@ -2492,8 +2492,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
-stripchart(log_lambda_p1 ~ neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 ###Overall text
@@ -2544,8 +2544,8 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
-stripchart(log_lambda_p1 ~ neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdahygl)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdahygl, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 #Adding VERO
@@ -2565,8 +2565,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 200,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names = NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
-stripchart(log_lambda_p1 ~ neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names = NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 4.3, "*", cex = 6, col = "red")
 
 #Adding TRCY
@@ -2596,8 +2596,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 
 #Lambda
-boxplot(log_lambda_p1 ~ neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
-stripchart(log_lambda_p1 ~ neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
+boxplot(log_lambda_p1 ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
+stripchart(log_lambda_p1 ~ Neighbours01, lambdatrcy, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
 text(x = 1.5, y = 2.95, "*", cex = 6, col = "red")
 
 ###Overall text
@@ -2815,11 +2815,11 @@ lambda_effects_table <- cbind(Effect = rownames(lambda_effects_table), lambda_ef
 rownames(lambda_effects_table) <- NULL
 
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, '(Intercept)')] <- 'Intercept'
-lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC1:neighbours01neighbours')] <- 'PC1:Neighbour presence'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC1:Neighbours01neighbours')] <- 'PC1:Neighbour presence'
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentDry:I(std_PC1^2)')] <- 'Dry:PC1^2'
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentWet:I(std_PC1^2)')] <- 'Wet:PC1^2'
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'I(std_PC1^2)')] <- 'PC1^2'
-lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'neighbours01neighbours')] <- 'Neighbour presence'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'Neighbours01neighbours')] <- 'Neighbour presence'
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC1')] <- 'PC1'
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC2')] <- 'PC2'
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentDry')] <- 'Dry'

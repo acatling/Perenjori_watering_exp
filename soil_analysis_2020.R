@@ -184,11 +184,11 @@ ggbiplot(soil_pca2)+
 library(ggfortify)
 dev.off()
 pdf("Output/Figures/pca-abiotic-updatedlitter.pdf")
-autoplot(soil_pca2, label = TRUE, shape = TRUE,
+autoplot(soil_pca, label = TRUE, shape = TRUE,
          loadings = TRUE, loadings.colour = 'slateblue', 
          loadings.label.repel = TRUE, loadings.label.size = 5,
          loadings.label = TRUE, loadings.label.colour = 'slateblue')+
-  xlab("PC1 (54.2%)")+
+  xlab("PC1 (54.1%)")+
   ylab("PC2 (18.5%)")+
   theme_bw()+
   theme(axis.title.x = element_text(size = 16),
@@ -196,5 +196,5 @@ autoplot(soil_pca2, label = TRUE, shape = TRUE,
         axis.text = element_text(size = 16))
 dev.off()
 #Summary and loadings info
-summary(soil_pca2)
-loadings(soil_pca2)
+summary(soil_pca)
+loadings(soil_pca)
