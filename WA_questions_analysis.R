@@ -745,25 +745,6 @@ for(i in 1:length(species.list.s)){
 }
 dev.off()
 
-### Survival, neighbour abundance
-dev.off()
-pdf("Output/Figures/germ_NA_quadratic.pdf", width=21, height=21)
-par(mfrow=c(3,3))
-par(mar=c(4,6,2,1))
-par(pty="s")
-for(i in 1:length(species.list.s)){
-  plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$percent_germ~plotted.data$std_logp1_totalabund, pch=19, col="grey60", ylab="Percentage of seeds that germinated", xlab="Neighbour abundance (log plus 1, standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
-  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
-  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
-  model<-glmer(cbind(total_germ, total_no_germ)~std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = binomial, plotted.data)
-  x_to_plot<-seq.func(plotted.data$std_logp1_totalabund) 
-  preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
-  plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
-  plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-}
-dev.off()
-
 ## Survival ##
 #ARCA
 arcasimplemod <- glmer(surv_to_produce_seeds ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, arcadata)
