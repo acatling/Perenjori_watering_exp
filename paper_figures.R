@@ -15,9 +15,11 @@ source("R_functions/functions.R")
 
 #Packages
 library(ggplot2)
+library(MuMIn)
 library(DHARMa)
 library(glmmTMB)
 library(kableExtra)
+library(grid)
 library(car)
 library(sjPlot)
 library(gridExtra)
@@ -1529,14 +1531,14 @@ text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 #   geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ x)+
 #   theme_classic()
 #This doesn't look significant, not sure how/why - interactions?
-with(hygldata, plot(jitter(surv_to_produce_seeds, amount = 0.05) ~ std_PC1))
-#dry
-x_to_plot<-seq.func(hygldata$std_PC1)
-curve(plogis(cbind(1, 1, 0, x, 0, 0, 0, 1*x, 0*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "red")
-#wet
-curve(plogis(cbind(1, 0, 1, x, 0, 0, 0, 0*x, 1*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "blue")
-#ambient
-curve(plogis(cbind(1, 0, 0, x, 0, 0, 0, 0*x, 0*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "green")
+# with(hygldata, plot(jitter(surv_to_produce_seeds, amount = 0.05) ~ std_PC1))
+# #dry
+# x_to_plot<-seq.func(hygldata$std_PC1)
+# curve(plogis(cbind(1, 1, 0, x, 0, 0, 0, 1*x, 0*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "red")
+# #wet
+# curve(plogis(cbind(1, 0, 1, x, 0, 0, 0, 0*x, 1*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "blue")
+# #ambient
+# curve(plogis(cbind(1, 0, 0, x, 0, 0, 0, 0*x, 0*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "green")
 
 #Fecundity - this one is better not logged but logging for the sake of consistency!
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), ylim=c(1, 90), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedhygl)
@@ -1771,6 +1773,28 @@ mtext(~italic("T. ornata"), adj = -0.15, padj= 65, side = 3, cex = 2, outer = TR
 mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
+
+### PC1 lambda coloured by neighbours or no ####
+#Can't have Site/Plot
+#Lambda - vero example
+plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=ifelse(Neighbours01=='Neighbours1', alpha("forestgreen", 0.3), alpha("purple", 0.3)), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
+model<-lmer(log_lambda~std_PC1 + (1|Site/Plot), lambdavero)
+x_to_plot<-seq.func(lambdavero$std_PC1)
+preddata <- with(model, data.frame(1, x_to_plot))
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#neighbours
+model2<-lmer(log_lambda~std_PC1 + (1|Site), filter(lambdavero, Neighbours01=='Neighbours1'))
+preddata2 <- with(model2, data.frame(1, x_to_plot))
+plotted.pred2 <- glmm.predict(mod = model2, newdat = preddata2, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot2, pred = plotted.pred2$y, upper = plotted.pred2$upper, lower = plotted.pred2$lower, env.colour = "forestgreen", env.trans = 50, line.colour = "forestgreen", line.weight = 2, line.type = 1)
+#no neighbours
+model3<-lmer(log_lambda~std_PC1 + (1|Site), filter(lambdavero, Neighbours01=='Neighbours0'))
+preddata3 <- with(model3, data.frame(1, x_to_plot))
+plotted.pred3 <- glmm.predict(mod = model3, newdat = preddata3, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred3$y, upper = plotted.pred3$upper, lower = plotted.pred3$lower, env.colour = "purple", env.trans = 50, line.colour = "purple", line.weight = 2, line.type = 1)
+text(x = 1.5,y = 4.2,"*", cex = 6, col = "red")
+
 
 ### PC1 one plot lambda ####
 #### Making the panel with lambda calculated once per plot (not separated by presence/absence neighbours)
@@ -3034,16 +3058,16 @@ germtally <- germ_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_va
 #convex - positive quadratic, high left and right, low middle
 #concave - negative
 #PC1: 1 pos_quad (-1 pos peai). PC2: 2 neg_quad (-1 pos plde, -1 pos laro)
-germtally <- within(germtally, pos[Effect == 'std_PC1'] <- '5')
+germtally <- within(germtally, pos[Effect == 'PC1'] <- '5')
 germtally$convex <- 0
-germtally <- within(germtally, convex[Effect == 'std_PC1'] <- '2')
+germtally <- within(germtally, convex[Effect == 'PC1'] <- '2')
 germtally$concave <- 0
-germtally <- within(germtally, concave[Effect == 'std_PC2'] <- '2')
-germtally <- within(germtally, ns[Effect == 'std_PC2'] <- '6')
-germtally <- within(germtally, convex[Effect == 'std_PC2'] <- '1')
-germtally <- within(germtally, pos[Effect == 'std_PC2'] <- '0')
+germtally <- within(germtally, concave[Effect == 'PC2'] <- '2')
+germtally <- within(germtally, ns[Effect == 'PC2'] <- '6')
+germtally <- within(germtally, convex[Effect == 'PC2'] <- '1')
+germtally <- within(germtally, pos[Effect == 'PC2'] <- '0')
 
-germtally <- subset(germtally, Effect == "std_PC1" | Effect == "std_PC2")
+germtally <- subset(germtally, Effect == "PC1" | Effect == "PC2")
 
 germtally$pos <- as.numeric(germtally$pos)
 germtally$convex <- as.numeric(germtally$convex)
@@ -3055,122 +3079,141 @@ germtally_long <- germtally %>% pivot_longer(!Effect, names_to = "response_type"
 #NS, pos, neg, pos_quad, neg_quad
 germtally_long$response_type <- factor(germtally_long$response_type, level = c("concave", "convex", "neg", "pos", "ns"))
 ## Plotting as proportional bar chart
+#lots of spaces in xlab to try and match up sizes of different plots
 a <- ggplot(germtally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
   scale_y_continuous(breaks = seq(0,10, by = 1))+
-  ylab("Count of effect responses")+
-  scale_x_discrete(labels = c("PC1", "PC2"))+
+  ylab("Count of response types")+
+  xlab("")+
+  scale_x_discrete(labels = c("                       PC1", "                     PC2"))+
   theme_classic()+
+  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5))+
+  theme(legend.position="none")+
   scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "convex" = "grey20", "concave" = "grey0"))+
-  ggtitle("(a)")
+  ggtitle("(A)")
 
 ## Survival ##
-# Need to fix my problem where I only included quadratic terms in a couple of interactions
-#Dry:NA and Wet:NA need to be fixed ** do this**
 survtally <- surv_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
                                                                    pos = sum(p_value<0.05 & Estimate>0),
                                                                    neg = sum(p_value<0.05 & Estimate<0))
-#PC1^2 (one plde, but ns and PC1 ns too) and PC2^2 (none) good as is 
-#ARCA has ns quadratic but significant linear response to neighbour abundance
-#NA: 1 pos_quad (-1 neg trcy). 
-
-#plotting to make sure this linear significant relationship is real, yes content that it is
 # ggplot(arcadata, aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
 #   geom_jitter(alpha = 0.4, width = 0.05, height = 0.05)+
 #   geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ x)+
 #   theme_classic()
 # testmod <- glm(surv_to_produce_seeds ~ std_logp1_totalabund, family = "binomial", arcadata)
 # summary(testmod)
+# testmod <- glm(surv_to_produce_seeds ~ Treatment, family = "binomial", trordata)
+# summary(testmod)
 
 survtally <- within(survtally, neg[Effect == 'Neighbour abundance'] <- '1')
-survtally$pos_quad <- 0
-survtally <- within(survtally, pos_quad[Effect == 'Neighbour abundance'] <- '1')
-survtally <- filter(survtally, !Effect == "Neighbour abundance^2", !Effect == "Dry:Neighbour abundance^2", !Effect == "Wet:Neighbour abundance^2", !Effect == "Intercept", !Effect == "PC1^2")
+survtally$convex <- 0
+survtally <- within(survtally, convex[Effect == 'Neighbour abundance'] <- '1')
+survtally <- filter(survtally, !Effect == "Dodder", !Effect == "Neighbour abundance^2", !Effect == "Dry:Neighbour abundance^2", !Effect == "Wet:Neighbour abundance^2", !Effect == "Intercept", !Effect == "PC1^2")
 
 survtally$neg <- as.numeric(survtally$neg)
-survtally$pos_quad <- as.numeric(survtally$pos_quad)
+survtally$convex <- as.numeric(survtally$convex)
 #Pivotting longer for plotting
 survtally_long <- survtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
 #Reordering response types so that non-significant is at bottom
-survtally_long$response_type <- factor(survtally_long$response_type, level = c("neg_quad", "pos_quad", "neg", "pos", "ns"))
+survtally_long$response_type <- factor(survtally_long$response_type, level = c("convex", "neg", "pos", "ns"))
 
-#Reorder the effects?
-#c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", .....)
+#Reorder the effects
+survtally_long$Effect <- factor(survtally_long$Effect, level = c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "PC1:Neighbour abundance", "Dry:PC1", "Wet:PC1"))
 
 ## Plotting as proportional bar chart
 b <- ggplot(survtally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
   scale_y_continuous(breaks = seq(0,10, by = 1))+
-  ylab("Count of effect responses")+
- scale_x_discrete(labels = c("Dodder", "Dry", "Dry:N.A.", "Dry:PC1", "N.A.", "PC1", "PC1:N.A.", "PC2", "Wet", "Wet:N.A.", "Wet:PC1"))+
+  ylab("")+
+  xlab("")+
+  scale_x_discrete(labels = c("PC1", "PC2", "N. abundance", "Dry", "Wet", "PC1:N. abundance", "Dry:PC1", "Wet:PC1"))+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 90))+
-  scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40", "pos_quad" = "grey20"))+
-  ggtitle("(b)")
+  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5))+
+  theme(legend.position="none")+
+  scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40", "convex" = "grey20"))+
+  ggtitle("(B)")
 
 ## Fecundity ##
 seedtally <- seed_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
                                                                    pos = sum(p_value<0.05 & Estimate>0),
                                                                    neg = sum(p_value<0.05 & Estimate<0))
-#PC1: vero and trcy ns PC1 and PC^2
-seedtally <- filter(seedtally, !Effect == "Intercept", !Effect == "PC1^2")
+seedtally <- filter(seedtally, !Effect == "Dry:Neighbour abundance", !Effect == "Wet:Neighbour abundance", !Effect == "Wet:PC1", !Effect == "Intercept", !Effect == "PC1^2")
 #Pivotting longer for plotting
 seedtally_long <- seedtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
 #Reordering response types so that non-significant is at bottom
-seedtally_long$response_type <- factor(seedtally_long$response_type, level = c("neg_quad", "pos_quad", "neg", "pos", "ns"))
-
-#Reorder the effects?
-#c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", .....)
+seedtally_long$response_type <- factor(seedtally_long$response_type, level = c("neg", "pos", "ns"))
+#Reorder the effects
+seedtally_long$Effect <- factor(seedtally_long$Effect, level = c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", "Dry:PC1", "Wet:PC1"))
 
 ## Plotting as proportional bar chart
 c <- ggplot(seedtally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
   scale_y_continuous(breaks = seq(0,10, by = 1))+
-  ylab("Count of effect responses")+
- scale_x_discrete(labels = c("Dodder", "Dry", "Dry:N.A.", "Dry:PC1", "N.A.", "PC1", "PC1:N.A.", "PC2", "Wet", "Wet:N.A.", "Wet:PC1"))+
+  ylab("Count of response types")+
+  scale_x_discrete(labels = c("PC1", "PC2", "N. abundance", "Dry", "Wet", "Dodder", "PC1:N. abundance", "Dry:PC1", "Wet:PC1"))+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 90))+
+  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5))+
+  theme(legend.position="none")+
   scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40"))+
-  ggtitle("(c)")
+  ggtitle("(C)")
 
 ## Lambda ##
-# Need to fix my problem where I only included quadratic terms in a couple of interactions
-#Dry:PC1^2 peai and Dry:PC1^2 ** do this**
-
 lambdatally <- lambda_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
                                                                        pos = sum(p_value<0.05 & Estimate>0),
                                                                        neg = sum(p_value<0.05 & Estimate<0))
-#PEAI has ns PC1^2 but significant linear response to PC1
 #plotting to make sure this linear significant relationship is real, yes content that it is
 # ggplot(lambdapeai, aes(x = std_PC1, y = lambda))+
 #   geom_jitter(alpha = 0.4, width = 0.05, height = 0.05)+
 #   geom_smooth(method = "lm")+
 #   theme_classic()
-# testmod <- lm(lambda ~ std_PC1, lambdapeai)
+# testmod <- lm(lambda ~ Treatment, lambdavero)
 # summary(testmod)
-lambdatally <- filter(lambdatally, !Effect == "Dry:PC1^2", !Effect == "Wet:PC1^2", !Effect == "Intercept", !Effect == "PC1^2")
+lambdatally <- filter(lambdatally, !Effect == "Intercept", !Effect == "PC1^2", !Effect == "Wet:Neighbour presence")
 #Pivotting longer for plotting
 lambdatally_long <- lambdatally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
 #Reordering response types so that non-significant is at bottom
 lambdatally_long$response_type <- factor(lambdatally_long$response_type, level = c("neg", "pos", "ns"))
-
-#Reorder the effects?
-#c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", .....)
+#Reorder the effects
+lambdatally_long$Effect <- factor(lambdatally_long$Effect, level = c("PC1", "PC2", "Neighbour presence", "Dry", "Wet", "PC1:Neighbour presence", "Dry:Neighbour presence", "Dry:PC1", "Wet:PC1"))
 
 ## Plotting as proportional bar chart
+#Create graph
 d <- ggplot(lambdatally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
   scale_y_continuous(breaks = seq(0,10, by = 1))+
-  ylab("Count of effect responses")+
+  ylab("")+
+  scale_x_discrete(labels = c("PC1", "PC2", "N. presence", "Dry", "Wet", "  PC1:N. presence", "  Dry:N. presence", "Dry:PC1", "Wet:PC1"))+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 90))+
-scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40"))+
-  ggtitle("(d)")
+  labs(fill="response type")+
+  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5), legend.position = "top")+
+scale_fill_manual(values = c("ns" = "grey80", "positive" = "grey60", "negative" = "grey40", "convex" = "grey20", "concave" = "grey0"))+
+  ggtitle("(D)")
+#Function needed to extract legend
+#Save legend
+legend <- get_legend(d)
+#Removing legend from plot
+d <- d + theme(legend.position="none")
 
-grid.arrange(a, b, c, d)
+#Heights needs to correspond to number of rows, widths to number of columns
+grid.arrange(legend, a, b, c, d, ncol=2, nrow = 3, 
+             layout_matrix = rbind(c(1,1), c(2,3), c(4,5)),
+             widths = c(2.7, 2.7), heights = c(0.2, 2.5, 2.5))
+
+#Now with universal x and y labels
+a <- a + ylab("")
+d <- d + xlab("")
+c <- c + ylab("") + xlab("")
+
+y_title <- expression(paste(bold("Count of response type")))
+x_title <- expression(paste(bold("Effect")))
+
+grid.arrange(legend, a, b, c, d, ncol=2, nrow = 3, 
+             layout_matrix = rbind(c(1,1), c(2,3), c(4,5)),
+             widths = c(1, 1), heights = c(0.2, 1, 1),
+             left=textGrob(y_title, rot=90, gp=gpar(fontsize=14)),
+             bottom=textGrob(x_title, gp=gpar(fontsize=14)))
 
 ####### Making a map of Perenjori! ####
-library(ggplot2)
 library(dplyr)
 library(sf)
 #Read in the SA2 shapefile downloaded from the ABS
