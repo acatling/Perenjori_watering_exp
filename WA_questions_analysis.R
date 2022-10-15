@@ -235,15 +235,15 @@ vif(arcatest4)
 
 #Create a model per species
 # Survival
-for (i in 1:length(specieslist)){
-  print(specieslist[i])
+#without POLE
+for (i in 1:length(specieslist.nop)){
+  print(specieslist.nop[i])
   survival <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + shannon + (1|Site/Plot),
-                    family = binomial, data = filter(datanonly, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+                    family = binomial, data = filter(datanonly, Species == specieslist.nop[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   print(summary(survival))
 }
-#POLE didn't converge, it doesn't have much data at all with neighbours
-#TRCY significant positive response to SDI, huge estimate
-# TROR significant positive response to SDI too
+
+#TRCY and TROR significant positive response to SDI
 
 ### Quantifying variance in vital rates explained by abiotic only vs biotic only ####
 ## Another way of this answering this question, instead of just looking at # of significant interactions
@@ -942,10 +942,10 @@ plot(polesimplemoddharma2)
 ### Checking model fits and vif ####
 ## Checking for multicollinearity in models using variance inflation factor
 # VIF over 5 is a problem
-for (i in 1:length(specieslist)){
+for (i in 1:length(specieslist.nop)){
   nam <- paste0("SDIsurvivalmod", specieslist[i])
-  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
-                    family = binomial, data = filter(datanonly, Species == specieslist[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
+  assign(nam, glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + shannon + (1|Site/Plot),
+                    family = binomial, data = filter(datanonly, Species == specieslist.nop[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5))))
 }
 
 SDIsurvivalmodARCA <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
@@ -999,42 +999,7 @@ PLDESDIsurvdharma <- simulateResiduals(SDIsurvivalmodPLDE)
 plot(PLDESDIsurvdharma)
 summary(SDIsurvivalmodPLDE)
 vif(SDIsurvivalmodPLDE)
-#I think this is okay - looking at GVIF^(1/2*Df))
-
-#Won't converge, even with optimiser
-#Converges without PC2 (residuals bit unhappy, vif fine), or without Dodder (some issue), or without Treatment (dharma and vif unhappy)
-SDIsurvivalmodPOLE <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
-                            family = binomial, filter(datanonly, Species == 'POLE'), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
-test <- vitaldata %>% filter(Species == 'POLE', surv_to_produce_seeds == 1)
-test2 <- datanonly %>% filter(Species == 'POLE')
-test3 <- vitaldata %>% filter(Species == 'POLE')
-
-#19 subplots that with or without neighbours that survived to produce seeds
-#185 subplots with or without neighbours that germinated
-#23 subplots with neighbours that germinated (survival model)
-
-vitaldata %>% filter(Species == 'POLE') %>%
-  ggplot(aes(x = std_logp1_totalabund, y = surv_to_produce_seeds))+
-  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
-  geom_smooth()+
-  theme_classic()+
-  my_theme
-
-vitaldata %>% filter(Species == 'POLE') %>%
-  ggplot(aes(x = std_logp1_totalabund, y = log(No_viable_seeds_grouped+1)))+
-  geom_jitter(alpha = 0.2, width = 0.05, height = 0.05)+
-  geom_smooth()+
-  theme_classic()+
-  my_theme
-
-#Only 1 with Dodder that survived. 3 without dodder that didn't survive
-#std_PC2 has a huge gap in data
-#None that survived in the dry treatment
-#Few that survived without neighbours
-POLESDIsurvdharma <- simulateResiduals(SDIsurvivalmodPOLE)
-plot(POLESDIsurvdharma)
-summary(SDIsurvivalmodPOLE)
-vif(SDIsurvivalmodPOLE)
+#I think this is okay - looking at GVIF^(1/2*Df)) PC1??
 
 SDIsurvivalmodTRCY <- glmer(surv_to_produce_seeds ~ std_logp1_totalabund + Treatment + std_PC1 + std_PC2 + Dodder01 + SDI + (1|Site/Plot),
                             family = binomial, filter(datanonly, Species == 'TRCY'))
@@ -1065,7 +1030,7 @@ datanonly %>% filter(Species == 'VERO') %>%
 summary(SDIsurvivalmodVERO)
 vif(SDIsurvivalmodVERO)
 
-### Need to update below here*
+### Need to update below here* ####
 
 ### Viable seed production ###
 for (i in 1:length(specieslist)){

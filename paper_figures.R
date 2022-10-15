@@ -15,6 +15,7 @@ source("R_functions/functions.R")
 
 #Packages
 library(ggplot2)
+library(ggrepel)
 library(MuMIn)
 library(DHARMa)
 library(glmmTMB)
@@ -480,7 +481,7 @@ survquadtable[2,1] <- survPC1pvalueHYGL
 survquadtable[3,1] <- survPC1pvalueLARO
 survquadtable[4,1] <- survPC1pvaluePEAI
 survquadtable[5,1] <- survPC1pvaluePLDE
-survquadtable[6,1] <- survPC1pvaluePOLE
+survquadtable[6,1] <- NA
 survquadtable[7,1] <- survPC1pvalueTRCY
 survquadtable[8,1] <- survPC1pvalueTROR
 survquadtable[9,1] <- survPC1pvalueVERO
@@ -497,7 +498,7 @@ survquadtable[2,2] <- survPC2pvalueHYGL
 survquadtable[3,2] <- survPC2pvalueLARO
 survquadtable[4,2] <- survPC2pvaluePEAI
 survquadtable[5,2] <- survPC2pvaluePLDE
-survquadtable[6,2] <- survPC2pvaluePOLE
+survquadtable[6,2] <- NA
 survquadtable[7,2] <- survPC2pvalueTRCY
 survquadtable[8,2] <- survPC2pvalueTROR
 survquadtable[9,2] <- survPC2pvalueVERO
@@ -516,7 +517,7 @@ survquadtable[2,3] <- survNApvalueHYGL
 survquadtable[3,3] <- survNApvalueLARO
 survquadtable[4,3] <- survNApvaluePEAI
 survquadtable[5,3] <- survNApvaluePLDE
-survquadtable[6,3] <- survNApvaluePOLE
+survquadtable[6,3] <- NA
 survquadtable[7,3] <- survNApvalueTRCY
 survquadtable[8,3] <- survNApvalueTROR
 survquadtable[9,3] <- survNApvalueVERO
@@ -543,7 +544,7 @@ fecundityquadtable[2,1] <- seedPC1pvalueHYGL
 fecundityquadtable[3,1] <- seedPC1pvalueLARO
 fecundityquadtable[4,1] <- seedPC1pvaluePEAI
 fecundityquadtable[5,1] <- seedPC1pvaluePLDE
-fecundityquadtable[6,1] <- seedPC1pvaluePOLE
+fecundityquadtable[6,1] <- NA
 fecundityquadtable[7,1] <- seedPC1pvalueTRCY
 fecundityquadtable[8,1] <- seedPC1pvalueTROR
 fecundityquadtable[9,1] <- seedPC1pvalueVERO
@@ -560,7 +561,7 @@ fecundityquadtable[2,2] <- seedPC2pvalueHYGL
 fecundityquadtable[3,2] <- seedPC2pvalueLARO
 fecundityquadtable[4,2] <- seedPC2pvaluePEAI
 fecundityquadtable[5,2] <- seedPC2pvaluePLDE
-fecundityquadtable[6,2] <- seedPC2pvaluePOLE
+fecundityquadtable[6,2] <- NA
 fecundityquadtable[7,2] <- seedPC2pvalueTRCY
 fecundityquadtable[8,2] <- seedPC2pvalueTROR
 fecundityquadtable[9,2] <- seedPC2pvalueVERO
@@ -578,7 +579,7 @@ fecundityquadtable[2,3] <- seedNApvalueHYGL
 fecundityquadtable[3,3] <- seedNApvalueLARO
 fecundityquadtable[4,3] <- seedNApvaluePEAI
 fecundityquadtable[5,3] <- seedNApvaluePLDE
-fecundityquadtable[6,3] <- seedNApvaluePOLE
+fecundityquadtable[6,3] <- NA
 fecundityquadtable[7,3] <- seedNApvalueTRCY
 fecundityquadtable[8,3] <- seedNApvalueTROR
 fecundityquadtable[9,3] <- seedNApvalueVERO
@@ -605,7 +606,7 @@ lambdaquadtable[2,1] <- lambdaPC1pvalueHYGL
 lambdaquadtable[3,1] <- lambdaPC1pvalueLARO
 lambdaquadtable[4,1] <- lambdaPC1pvaluePEAI
 lambdaquadtable[5,1] <- lambdaPC1pvaluePLDE
-lambdaquadtable[6,1] <- lambdaPC1pvaluePOLE
+lambdaquadtable[6,1] <- NA
 lambdaquadtable[7,1] <- lambdaPC1pvalueTRCY
 lambdaquadtable[8,1] <- lambdaPC1pvalueTROR
 lambdaquadtable[9,1] <- lambdaPC1pvalueVERO
@@ -622,7 +623,7 @@ lambdaquadtable[2,2] <- lambdaPC2pvalueHYGL
 lambdaquadtable[3,2] <- lambdaPC2pvalueLARO
 lambdaquadtable[4,2] <- lambdaPC2pvaluePEAI
 lambdaquadtable[5,2] <- lambdaPC2pvaluePLDE
-lambdaquadtable[6,2] <- lambdaPC2pvaluePOLE
+lambdaquadtable[6,2] <- NA
 lambdaquadtable[7,2] <- lambdaPC2pvalueTRCY
 lambdaquadtable[8,2] <- lambdaPC2pvalueTROR
 lambdaquadtable[9,2] <- lambdaPC2pvalueVERO
@@ -640,24 +641,25 @@ vitalquadpvalues <- cbind(germquadtable, survquadtable, fecundityquadtable, lamb
 #test$N.A. <- as.numeric(test$N.A.)
 
 vitalquadpvalues %>% 
-  kbl(caption = "<b>Supplementary 1</b>. Model output <i>p</i>-values for quadratic terms of fixed effects. N.A. denotes neighbour abundance. <b>Bolded</b> values indicate a <i>p</i>-value of <0.05.", digits = c(4, 3, 2, 2, 3, 2, 2, 2, 2, 2)) %>%
+  kbl(caption = "<b>Supplementary Information 3</b>. Model output <i>p</i>-values for quadratic terms of fixed effects. 
+      N.A. denotes neighbour abundance and NA signifies insufficient data to run models. <b>Bolded</b> values indicate a <i>p</i>-value of <0.05.", digits = c(4, 3, 2, 2, 3, 2, 2, 2, 2, 2)) %>%
   kable_classic(full_width = F, html_font = "Times") %>%
   column_spec(1, italic = T) %>%
-  #row_spec(0, bold = T) %>%
-  column_spec(2, bold = ifelse(vitalquadpvalues[[1]] <0.05, TRUE, FALSE)) %>%
-  column_spec(3, bold = ifelse(vitalquadpvalues[[2]] <0.05, TRUE, FALSE)) %>%
-  column_spec(4, bold = ifelse(vitalquadpvalues[[3]] <0.05, TRUE, FALSE)) %>%
-  column_spec(5, bold = ifelse(vitalquadpvalues[[4]] <0.05, TRUE, FALSE)) %>%
-  column_spec(6, bold = ifelse(vitalquadpvalues[[5]] <0.05, TRUE, FALSE)) %>%
-  column_spec(7, bold = ifelse(vitalquadpvalues[[6]] <0.05, TRUE, FALSE)) %>%
-  column_spec(8, bold = ifelse(vitalquadpvalues[[7]] <0.05, TRUE, FALSE)) %>%
-  column_spec(9, bold = ifelse(vitalquadpvalues[[8]] <0.05, TRUE, FALSE)) %>%
-  column_spec(10, bold = ifelse(vitalquadpvalues[[9]] <0.05, TRUE, FALSE)) %>%
-  column_spec(11, bold = ifelse(vitalquadpvalues[[10]] <0.05, TRUE, FALSE)) %>%
+  #row_spec(3, bold = ifelse(vitalquadpvalues[1,] <0.05, TRUE, FALSE)) %>%
+  column_spec(2, bold = ifelse(vitalquadpvalues[[1]] >0.05 | is.na(vitalquadpvalues[[1]]), FALSE, TRUE)) %>%
+  column_spec(3, bold = ifelse(vitalquadpvalues[[2]] >0.05 | is.na(vitalquadpvalues[[2]]), FALSE, TRUE)) %>%
+  column_spec(4, bold = ifelse(vitalquadpvalues[[3]] >0.05 | is.na(vitalquadpvalues[[3]]), FALSE, TRUE)) %>%
+  column_spec(5, bold = ifelse(vitalquadpvalues[[4]] >0.05 | is.na(vitalquadpvalues[[4]]), FALSE, TRUE)) %>%
+  column_spec(6, bold = ifelse(vitalquadpvalues[[5]] >0.05 | is.na(vitalquadpvalues[[5]]), FALSE, TRUE)) %>%
+  column_spec(7, bold = ifelse(vitalquadpvalues[[6]] >0.05 | is.na(vitalquadpvalues[[6]]), FALSE, TRUE)) %>%
+  column_spec(8, bold = ifelse(vitalquadpvalues[[7]] >0.05 | is.na(vitalquadpvalues[[7]]), FALSE, TRUE)) %>%
+  column_spec(9, bold = ifelse(vitalquadpvalues[[8]] >0.05 | is.na(vitalquadpvalues[[8]]), FALSE, TRUE)) %>%
+  column_spec(10, bold = ifelse(vitalquadpvalues[[9]] >0.05 | is.na(vitalquadpvalues[[9]]), FALSE, TRUE)) %>%
   add_header_above(c("", "Germination" = 2, "Survival" = 3, "Fecundity" = 3, "Lambda" = 2))
   #add_header_above(c("", "p value quadratic term" = 8))
 #Struggling to save this using save_kable and as_image() atm.
 #Can copy it from the Viewer using copy to clipboard, maintain aspect ratio, first value 500
+
 
 #### Modelling vital rates in response to all factors #### 
 #### Germination ####
@@ -743,9 +745,10 @@ verogermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 +
                           family = binomial, verodata)
 verogermmod1dharma <- simulateResiduals(verogermfinalmod)
 plot(verogermmod1dharma)
-#Not great residuals, KS and dispersion tests significant
+#Not great residuals, KS test significant
 vif(verogermfinalmod)
 summary(verogermfinalmod)
+testDispersion(verogermfinalmod)
 
 #### Survival ####
 ## ARCA
@@ -2873,9 +2876,9 @@ germ_effects_kbl <- germ_effects_kbl %>% group_by(Species, Effect) %>%
   pivot_wider(names_from = Species, values_from = collated)
 
 #Plotting with kableR
-germ_effects_kbl %>% kbl(align = 'lccccccccc', caption = "<b>Supplementary X</b>. Germination effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+germ_effects_kbl %>% kbl(align = 'lccccccccc') %>%
     kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-    add_header_above(c("Germination" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+    add_header_above(c("Germination" = 1, "n=190"=1, "n=189"=1, "n=192"=1, "n=192"=1, "n=92"=1, "n=185"=1, "n=192"=1, "n=191"=1, "n=191"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
     row_spec(0, italic = T) %>%
     column_spec(1, italic = F) %>%
   column_spec(1:10, width = 4)
@@ -2930,9 +2933,9 @@ surv_effects_kbl <- surv_effects_kbl %>% group_by(Species, Effect) %>%
   pivot_wider(names_from = Species, values_from = collated)
 
 #Plotting with kableR
-surv_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b>. Survival effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+surv_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Survival" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Survival" = 1, "n=163"=1, "n=104"=1, "n=163"=1, "n=162"=1, "n=76"=1, "n=159"=1, "n=160"=1, "n=143"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
   column_spec(1:9, width = 4)
@@ -2987,9 +2990,9 @@ seed_effects_kbl <- seed_effects_kbl %>% group_by(Species, Effect) %>%
   pivot_wider(names_from = Species, values_from = collated)
 
 #Plotting with kableR
-seed_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b>. Fecundity effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+seed_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Fecundity" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Fecundity" = 1, "n=55"=1, "n=41"=1, "n=84"=1, "n=79"=1, "n=38"=1, "n=115"=1, "n=82"=1, "n=96"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
   column_spec(1:9, width = 4)
@@ -3035,9 +3038,9 @@ lambda_effects_kbl <- lambda_effects_table %>% select(Species, Effect, collated)
 lambda_effects_kbl <- lambda_effects_kbl %>% group_by(Species, Effect) %>%
   pivot_wider(names_from = Species, values_from = collated)
 #Plotting with kableR
-lambda_effects_kbl %>% kbl(align = 'lcccccccc', caption = "<b>Supplementary X</b>. Population growth rate (lambda) effects table with Estimate ± SE. Asterisks denote significance: * p<0.05, ** p<0.01, *** p<0.001") %>%
+lambda_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Lambda" = 1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1, "n = "=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Lambda" = 1, "n=48"=1, "n=48"=1, "n=48"=1, "n=48"=1, "n=24"=1, "n=48"=1, "n=48"=1, "n=48"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
   column_spec(1:9, width = 4)
@@ -3263,9 +3266,15 @@ wa_cities <- tribble(
   "Perth",-31.953512, 115.857048,
   "Perenjori", -29.443172, 116.288301)
 
+wa_cities2 <- tribble(
+  ~city, ~lat, ~long, 
+  "Perenjori", -29.443172, 116.288301)
 
 #convert those two columns to geometry column with the st_as_sf() function. Google Maps uses the coordinate reference system 4326 (the GPS system).
 wa_cities_geometry <- wa_cities %>% 
+  st_as_sf(coords = c("long", "lat"), crs = 4326)
+
+wa_cities_geometry2 <- wa_cities2 %>% 
   st_as_sf(coords = c("long", "lat"), crs = 4326)
 
 ggplot() +
@@ -3278,7 +3287,6 @@ ggplot() +
   theme_bw()
 
 #Using ggrepel package to try and offset city labels and give them points
-library(ggrepel)
 dev.off()
 pdf("Output/Figures/Perenjori_map.pdf")
 ggplot() + geom_sf(data = aus_state_data, fill = "white") + 
@@ -3316,15 +3324,42 @@ ggplot() + geom_sf(data = aus_state_data, fill = "white") +
 #making dataframe for my 4 open and 4 shaded blocks (colour coded)
 
 block_coords <- tribble(
-  ~block, ~lat, ~long, 
-  "Open 1", -29.4791851, 116.1986948,
-  "Open 2", -29.4794714,	116.1987961,
-  "Open 3", -29.4791268,	116.1982687,
-  "Open 4", -29.479611,	116.197514,
-  "Shade 1", -29.4792905,	116.1984353,
-  "Shade 2", -29.4790544,	116.1982767,
-  "Shade 3", -29.4795126,	116.19695,
-  "Shade 4", -29.4798626,	116.1968421)
+  ~block, ~lat, ~long, ~openvshade,
+  "Open 1", -29.4791851, 116.1986948, "open",
+  "Open 2", -29.4794714,	116.1987961,"open",
+  "Open 3", -29.4791268,	116.1982687,"open",
+  "Open 4", -29.479611,	116.197514,"open",
+  "Shade 1", -29.4792905,	116.1984353, "shaded",
+  "Shade 2", -29.4790544,	116.1982767,"shaded",
+  "Shade 3", -29.4795126,	116.19695,"shaded",
+  "Shade 4", -29.4798626,	116.1968421, "shaded")
 
+## Cutting this to just WA and Perenjori label
+ggplot() + geom_sf(data = aus_state_data, fill = "white") + 
+  geom_text_repel(data= wa_cities2,aes(x=long, y=lat, label=city)) +
+  geom_point(data = wa_cities2, aes(x = long, y = lat), size = 4) +  
+  xlim(110,130)+
+  ylim(-36,-14)+
+  xlab("Longitude") +
+  ylab("Latitude") + 
+  theme_bw()+
+  theme(axis.title.x = element_text(size = 14),
+axis.title.y = element_text(size = 14),
+axis.text = element_text(size = 10))
 
+##Plotting blocks
+ggplot(block_coords, aes(group = openvshade))+
+geom_point(aes(x = long, y = lat, shape=openvshade), size = 5, stroke = 1.5) +
+  scale_shape_manual(values=c(1, 16))+
+  xlim(116.1965,116.199)+
+  ylim(-29.479,-29.480)+
+  xlab("Longitude") +
+  ylab("Latitude") + 
+  theme_classic()+
+  theme(axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        axis.text = element_text(size = 10),
+        legend.text = element_text(size = 14),
+        legend.title = element_blank(),
+        legend.position="top")
 

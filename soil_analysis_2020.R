@@ -165,14 +165,16 @@ abioticpcatrim <- abioticpcadata %>% select(-c(Site, Plot))
 rownames(abioticpcatrim) <- abioticpcatrim$plotid
 #This drops the first column (old rownames/plotid)
 abioticpcatrim <- as.data.frame(abioticpcatrim[,-1])
-
+### Renaming columns for nicer plot
+colnames(abioticpcatrim) <- c("pH", "NH4N", "NO3N", "P", "K", "canopy closure", "litter cover")
 soil_pca <- princomp(abioticpcatrim, cor = TRUE)
+
 #Plots it
 biplot(soil_pca, xlabs = "PC1 (53.6%)")
 
 ### Renaming columns for nicer plot
 abioticpcaedit <- abioticpcatrim
-colnames(abioticpcaedit) <- c("pH", "NH4N", "NO3N", "P", "K", "canopy cover", "litter cover")
+colnames(abioticpcaedit) <- c("pH", "NH4N", "NO3N", "P", "K", "canopy closure", "litter cover")
 soil_pca2 <- princomp(abioticpcaedit, cor = TRUE)
 ## Trying to make a nicer plot
 library(ggbiplot)
@@ -183,7 +185,8 @@ ggbiplot(soil_pca2)+
 
 library(ggfortify)
 dev.off()
-pdf("Output/Figures/pca-abiotic-updatedlitter.pdf")
+pdf("Output/Figures/pca-abiotic.pdf")
+par(pty="s")
 autoplot(soil_pca, label = TRUE, shape = TRUE,
          loadings = TRUE, loadings.colour = 'slateblue', 
          loadings.label.repel = TRUE, loadings.label.size = 5,
