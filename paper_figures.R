@@ -1777,28 +1777,6 @@ mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRU
 
 dev.off()
 
-### PC1 lambda coloured by neighbours or no ####
-#Can't have Site/Plot
-#Lambda - vero example
-plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=ifelse(Neighbours01=='Neighbours1', alpha("forestgreen", 0.3), alpha("purple", 0.3)), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
-model<-lmer(log_lambda~std_PC1 + (1|Site/Plot), lambdavero)
-x_to_plot<-seq.func(lambdavero$std_PC1)
-preddata <- with(model, data.frame(1, x_to_plot))
-plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
-plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-#neighbours
-model2<-lmer(log_lambda~std_PC1 + (1|Site), filter(lambdavero, Neighbours01=='Neighbours1'))
-preddata2 <- with(model2, data.frame(1, x_to_plot))
-plotted.pred2 <- glmm.predict(mod = model2, newdat = preddata2, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
-plot.CI.func(x.for.plot = x_to_plot2, pred = plotted.pred2$y, upper = plotted.pred2$upper, lower = plotted.pred2$lower, env.colour = "forestgreen", env.trans = 50, line.colour = "forestgreen", line.weight = 2, line.type = 1)
-#no neighbours
-model3<-lmer(log_lambda~std_PC1 + (1|Site), filter(lambdavero, Neighbours01=='Neighbours0'))
-preddata3 <- with(model3, data.frame(1, x_to_plot))
-plotted.pred3 <- glmm.predict(mod = model3, newdat = preddata3, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
-plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred3$y, upper = plotted.pred3$upper, lower = plotted.pred3$lower, env.colour = "purple", env.trans = 50, line.colour = "purple", line.weight = 2, line.type = 1)
-text(x = 1.5,y = 4.2,"*", cex = 6, col = "red")
-
-
 ### PC1 one plot lambda ####
 #### Making the panel with lambda calculated once per plot (not separated by presence/absence neighbours)
 ### Not updated with significance***
