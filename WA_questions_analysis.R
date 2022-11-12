@@ -660,10 +660,10 @@ rownames(surv_AIC) <- c('Biotic', 'Abiotic', 'Both', 'Interaction')
 surv_AIC <- surv_AIC %>% rownames_to_column("Model")
 #Plotting with kableR
 surv_AIC %>%
-  kbl(align = 'lccccccccc', caption = "<b>Test</b>. Testing", digits = 1) %>%
+  kbl(align = 'lccccccccc', digits = 1) %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Survival" = 10), align = "l", italic = T, background = "lightgrey")
-  #column_spec(3, bold = ifelse(min(surv_AIC[3]), TRUE, FALSE))
+  add_header_above(c("Survival" = 10), align = "l", background = "lightgrey") %>%
+  row_spec(0, italic = T)
   #column_spec(4, bold = min(surv_AIC[4]))
   #cell_spec(surv_AIC[1,5], bold = T)
 #Can't figure out conditional bolding
@@ -677,7 +677,8 @@ seed_AIC <- seed_AIC %>% rownames_to_column("Model")
 seed_AIC %>%
   kbl(align = 'lccccccccc', digits = 1) %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Fecundity" = 10), align = "l", italic = T, background = "lightgrey")
+  add_header_above(c("Seed production" = 10), align = "l", background = "lightgrey")%>%
+  row_spec(0, italic = T)
 
 ### Lambda
 lambda_AIC <- cbind(alambda, blambda[,2], clambda[,2], dlambda[,2], elambda[,2], flambda[,2], glambda[,2], hlambda[,2])
@@ -687,7 +688,8 @@ lambda_AIC <- lambda_AIC %>% rownames_to_column("Model")
 lambda_AIC %>%
   kbl(align = 'lccccccccc', digits = 1) %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Lambda" = 10), align = "l", italic = T, background = "lightgrey")
+  add_header_above(c("Population growth" = 10), align = "l", background = "lightgrey")%>%
+  row_spec(0, italic = T)
 #resize 600
 
 ### Looking at distribution of data - linear or quadratic? ####

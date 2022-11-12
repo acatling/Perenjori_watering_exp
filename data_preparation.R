@@ -7,7 +7,7 @@
 library(tidyverse)
 library(lmerTest)
 library(glmmTMB)
-source("R_functions/functions.R")
+source("functions.R")
 
 ### Importing a list of each of these to be filtered out
 to_remove_start <- read_csv("Data/subplots_to_remove_start.csv")
@@ -498,13 +498,13 @@ datanonly$shannon <- as.numeric(datanonly$shannon)
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
 species.list.s<-list(arcadata, hygldata, larodata, peaidata, pldedata, poledata, trcydata, trordata, verodata)
 species.list.f<-list(seedarca, seedhygl, seedlaro, seedpeai, seedplde, seedpole, seedtrcy, seedtror, seedvero)
-species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+species.name.list<-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Goodenia rosea")
 
 ### Dropping POLE
 specieslist.nop <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "TRCY", "TROR", "VERO")
 species.list.s.nop <-list(arcadata, hygldata, larodata, peaidata, pldedata, trcydata, trordata, verodata)
 species.list.f.nop <-list(seedarca, seedhygl, seedlaro, seedpeai, seedplde, seedtrcy, seedtror, seedvero)
-species.name.list.nop <-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+species.name.list.nop <-c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Trachymene cyanopetala","Trachymene ornata","Goodenia rosea")
 
 #### Calculating population growth rate (lambda) ####
 #popdata is the dataframe to use in models
@@ -525,9 +525,11 @@ species_level_seed_fill<-seed_fill%>%
   summarise(median.species.fill=median(percentage_filled),l95.species.fill=quantile(percentage_filled, 0.05),h95median.species.fill=quantile(percentage_filled, 0.95),
             mean.species.fill = mean((percentage_filled))) %>%
   mutate_if(is.numeric, round, digits =2)
+#Renaming Isaac's Velleia rosea to Goodenia rosea to merge with mine
+species_level_seed_fill <- within(species_level_seed_fill, Species[Species == "Velleia rosea"] <- 'Goodenia rosea')
 #Selecting my species only and calculating an average from those values (for remaining 2 species, PEAI and POLE)
 #Creating a table with species names
-speciestable <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides", "Plantago debilis","Podolepis lessonii", "Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+speciestable <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides", "Plantago debilis","Podolepis lessonii", "Trachymene cyanopetala","Trachymene ornata","Goodenia rosea")
 speciestable <- data.frame(speciestable)
 speciestable <- speciestable %>% select(Species = 'speciestable')
 #Merging in seed fill data
@@ -546,7 +548,7 @@ speciestable <- within(speciestable, Species[Species == "Plantago debilis"] <- '
 speciestable <- within(speciestable, Species[Species == "Podolepis lessonii"] <- 'POLE')
 speciestable <- within(speciestable, Species[Species == "Trachymene cyanopetala"] <- 'TRCY')
 speciestable <- within(speciestable, Species[Species == "Trachymene ornata"] <- 'TROR')
-speciestable <- within(speciestable, Species[Species == "Velleia rosea"] <- 'VERO')
+speciestable <- within(speciestable, Species[Species == "Goodenia rosea"] <- 'VERO')
 speciestable <- speciestable %>% select(Species, seed_survival = 'mean.species.fill')
 
 #### Calculating survival values as proportion survival at plot level ####
@@ -687,8 +689,8 @@ popdata <- left_join(poplongdata, pcaplot, by = "plotid")
 
 #What is the distribution of lambda data?
 #left-skewed, log it, still left skewed
-hist(popdata$lambda)
-hist(log(popdata$lambda))
+#hist(popdata$lambda)
+#hist(log(popdata$lambda))
 #Create column for log(lambda)
 popdata <- popdata %>% mutate(log_lambda = log(lambda))
 
@@ -707,3 +709,4 @@ lambdatror <- popdata %>% filter(Species == "TROR")
 lambdavero <- popdata %>% filter(Species == "VERO")
 
 species.list.l<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde, lambdapole, lambdatrcy, lambdatror, lambdavero)
+

@@ -11,7 +11,7 @@ source("data_preparation.R")
 # one row per subplot with seeds sown - NAs are very important since, e.g. survival info is only on germinated subplots
 
 #Functions file
-source("R_functions/functions.R")
+source("functions.R")
 
 #Packages
 library(ggplot2)
@@ -24,14 +24,6 @@ library(grid)
 library(car)
 library(sjPlot)
 library(gridExtra)
-
-#ggplot theme for ease of plotting. Use theme_classic()+ my_theme
-my_theme <- theme(axis.title.x = element_text(size = 14, face = 'bold'),
-                  axis.title.y = element_text(size = 14, face = 'bold'),
-                  axis.text = element_text(size = 14),
-                  strip.text.x = element_text(size = 14),
-                  legend.text = element_text(size = 14),
-                  legend.title = element_blank())
 
 #### Determining whether each species needs quadratic term ####
 ### Continuous variables PC1, PC2, neighbour abundance
@@ -96,9 +88,9 @@ par(mar=c(4,6,2,1))
 par(pty="s")
 for(i in 1:length(species.list.s)){
   plotted.data<-as.data.frame(species.list.s[i])
-  plot(plotted.data$percent_germ~plotted.data$std_PC2, pch=19, col="grey60", ylab="Probability of germination", xlab="PC2 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
-  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
-  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  plot(plotted.data$percent_germ~plotted.data$std_PC2, pch=19, col="grey60", ylab="Probability of germination", xlab="PC2 (standardised)", cex.lab=2, .axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13)
+  title(main=bquote(italic(.(species.name.list[i]))), .main=2.5)
   x_to_plot<-seq.func(plotted.data$std_PC2) 
   model<-glmer(cbind(total_germ, total_no_germ)~std_PC2 + I(std_PC2^2) + (1|Site/Plot), family = binomial, plotted.data)
   model2<-glmer(cbind(total_germ, total_no_germ)~std_PC2 + (1|Site/Plot), family = binomial, plotted.data)
@@ -418,7 +410,7 @@ dev.off()
 germquadtable <- matrix(ncol=2, nrow = 9)
 #define column names and row names of matrix
 colnames(germquadtable) <- c('PC1', 'PC2')
-rownames(germquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+rownames(germquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Goodenia rosea")
 #convert matrix to table 
 germquadtable <- as.data.frame(germquadtable)
 
@@ -463,8 +455,8 @@ germquadtable[9,2] <- germPC2pvalueVERO
 #Create table to put these values in
 survquadtable <- matrix(ncol=3, nrow = 9)
 #define column names and row names of matrix
-colnames(survquadtable) <- c('PC1', 'PC2', 'N.A.')
-rownames(survquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+colnames(survquadtable) <- c('PC1', 'PC2', 'N. Ab.')
+rownames(survquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Goodenia rosea")
 #convert matrix to table 
 survquadtable <- as.data.frame(survquadtable)
 
@@ -526,8 +518,8 @@ survquadtable[9,3] <- survNApvalueVERO
 #Create table to put these values in
 fecundityquadtable <- matrix(ncol=3, nrow = 9)
 #define column names and row names of matrix
-colnames(fecundityquadtable) <- c('PC1', 'PC2', 'N.A.')
-rownames(fecundityquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+colnames(fecundityquadtable) <- c('PC1', 'PC2', 'N. Ab.')
+rownames(fecundityquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Goodenia rosea")
 #convert matrix to table 
 fecundityquadtable <- as.data.frame(fecundityquadtable)
 
@@ -589,7 +581,7 @@ fecundityquadtable[9,3] <- seedNApvalueVERO
 lambdaquadtable <- matrix(ncol=2, nrow = 9)
 #define column names and row names of matrix
 colnames(lambdaquadtable) <- c('PC1', 'PC2')
-rownames(lambdaquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
+rownames(lambdaquadtable) <- c("Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Podolepis lessonii","Trachymene cyanopetala","Trachymene ornata","Goodenia rosea")
 #convert matrix to table 
 lambdaquadtable <- as.data.frame(lambdaquadtable)
 
@@ -642,7 +634,7 @@ vitalquadpvalues <- cbind(germquadtable, survquadtable, fecundityquadtable, lamb
 
 vitalquadpvalues %>% 
   kbl(caption = "<b>Supplementary Information 3</b>. Model output <i>p</i>-values for quadratic terms of fixed effects. 
-      N.A. denotes neighbour abundance and NA signifies insufficient data to run models. <b>Bolded</b> values indicate a <i>p</i>-value of <0.05.", digits = c(4, 3, 2, 2, 3, 2, 2, 2, 2, 2)) %>%
+      N. Ab. denotes neighbour abundance and NA signifies insufficient data to run models. <b>Bolded</b> values indicate a <i>p</i>-value of <0.05.", digits = c(4, 3, 2, 2, 3, 2, 2, 2, 2, 2)) %>%
   kable_classic(full_width = F, html_font = "Times") %>%
   column_spec(1, italic = T) %>%
   #row_spec(3, bold = ifelse(vitalquadpvalues[1,] <0.05, TRUE, FALSE)) %>%
@@ -655,11 +647,10 @@ vitalquadpvalues %>%
   column_spec(8, bold = ifelse(vitalquadpvalues[[7]] >0.05 | is.na(vitalquadpvalues[[7]]), FALSE, TRUE)) %>%
   column_spec(9, bold = ifelse(vitalquadpvalues[[8]] >0.05 | is.na(vitalquadpvalues[[8]]), FALSE, TRUE)) %>%
   column_spec(10, bold = ifelse(vitalquadpvalues[[9]] >0.05 | is.na(vitalquadpvalues[[9]]), FALSE, TRUE)) %>%
-  add_header_above(c("", "Germination" = 2, "Survival" = 3, "Fecundity" = 3, "Lambda" = 2))
+  add_header_above(c("", "Emergence" = 2, "Survival" = 3, "Fecundity" = 3, "Population growth" = 2))
   #add_header_above(c("", "p value quadratic term" = 8))
 #Struggling to save this using save_kable and as_image() atm.
 #Can copy it from the Viewer using copy to clipboard, maintain aspect ratio, first value 500
-
 
 #### Modelling vital rates in response to all factors #### 
 #### Germination ####
@@ -1469,7 +1460,7 @@ mtext(~italic("P. airoides"), adj = -0.15, padj= 35, side = 3, cex = 2, outer = 
 mtext(~italic("P. debilis"), adj = -0.15, padj= 45, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 44, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. ornata"), adj = -0.15, padj= 65, side = 3, cex = 2, outer = TRUE)
-mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
+mtext(~italic("G. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
 
@@ -1479,7 +1470,7 @@ dev.off()
 
 dev.off()
 pdf("Output/Figures/panel_PC1.pdf", width=21, height=21)
-par(mfrow=c(8,4), oma = c(5, 20, 5, 1), mar =c(3.5,6,1,1))
+par(mfrow=c(8,4), oma = c(10, 20, 5, 1), mar =c(3.5,10,1,1))
 #ARCA
 #Germination
 plot(percent_germ ~ std_PC1, ylim=c(0, 1), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Germination fraction", xlab = NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, arcadata)
@@ -1528,12 +1519,12 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 
-# summary(model)
-# ggplot(arcadata, aes(x = std_PC1, y = surv_to_produce_seeds, colour = Treatment))+
+# # summary(model)
+# ggplot(hygldata, aes(x = std_PC1, y = surv_to_produce_seeds, colour = Treatment))+
 #   geom_jitter(alpha = 0.8, width = 0.05, height = 0.05)+
 #   geom_smooth(method = "glm", method.args=list(family="binomial"), formula = y ~ x)+
 #   theme_classic()
-#This doesn't look significant, not sure how/why - interactions?
+# #This doesn't look significant, not sure how/why - interactions?
 # with(hygldata, plot(jitter(surv_to_produce_seeds, amount = 0.05) ~ std_PC1))
 # #dry
 # x_to_plot<-seq.func(hygldata$std_PC1)
@@ -1542,6 +1533,11 @@ text(x = 1.5,y = 0.9,"*", cex = 6, col = "red")
 # curve(plogis(cbind(1, 0, 1, x, 0, 0, 0, 0*x, 1*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "blue")
 # #ambient
 # curve(plogis(cbind(1, 0, 0, x, 0, 0, 0, 0*x, 0*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "green")
+# 
+# #Is hygl significant ~ PC1?
+# testhyglmod <- glmer(surv_to_produce_seeds~std_PC1 + (1|Site/Plot), family = binomial, hygldata)
+# summary(testhyglmod)
+# #I think not, just signif int with watering
 
 #Fecundity - this one is better not logged but logging for the sake of consistency!
 plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.5), ylim=c(1, 90), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedhygl)
@@ -1708,6 +1704,21 @@ preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 1.5,y = 55,"*", cex = 6, col = "red")
+
+## Is this signif? Int with Treatment
+with(seedtror, plot(jitter(surv_to_produce_seeds, amount = 0.05) ~ std_PC1))
+#dry
+x_to_plot<-seq.func(seedtror$std_PC1)
+curve(plogis(cbind(1, 1, 0, x, 0, 0, 0, 1*x, 0*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "red")
+#wet
+curve(plogis(cbind(1, 0, 1, x, 0, 0, 0, 0*x, 1*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "blue")
+#ambient
+curve(plogis(cbind(1, 0, 0, x, 0, 0, 0, 0*x, 0*x)%*%fixef(hyglsurvfinalmod)), add = TRUE, col = "green")
+
+#Is hygl significant ~ PC1?
+testtrormod <- glmmTMB(No_viable_seeds_grouped~std_PC1 + (1|Site/Plot), family = nbinom2, seedtror)
+summary(testtrormod)
+
 #Lambda
 plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatror)
 model<-lmer(log_lambda~std_PC1 + (1|Site/Plot), lambdatror)
@@ -1773,9 +1784,54 @@ mtext(~italic("P. airoides"), adj = -0.15, padj= 35, side = 3, cex = 2, outer = 
 mtext(~italic("P. debilis"), adj = -0.15, padj= 45, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 44, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. ornata"), adj = -0.15, padj= 65, side = 3, cex = 2, outer = TRUE)
-mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
+mtext(~italic("G. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
+
+#### Testing lambda plot more model terms #####
+#This works
+plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
+model<-lmer(log_lambda~std_PC1 + Neighbours01 + (1|Site/Plot), lambdatrcy)
+x_to_plot<-seq.func(lambdatrcy$std_PC1)
+preddata <- with(model, data.frame(1, x_to_plot, 0))
+#no neighbours
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "red", env.trans = 50, line.colour = "red", line.weight = 2, line.type = 1)
+#yes neighbours
+preddata <- with(model, data.frame(1, x_to_plot, 1))
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "green", env.trans = 50, line.colour = "green", line.weight = 2, line.type = 1)
+
+### Interactions PC1 and neighbours?
+plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
+model<-lmer(log_lambda~std_PC1 + Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdatrcy)
+x_to_plot<-seq.func(lambdatrcy$std_PC1)
+#interaction and with neighbours
+preddata <- with(model, data.frame(1, x_to_plot, 1, x_to_plot*1))
+#working
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+# interaction and without neighbours
+preddata <- with(model, data.frame(1, x_to_plot, 0, x_to_plot*0))
+#working
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+### All terms of full model
+# trcylambdafinalmod <- lmer(log_lambda ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + 
+#                              Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdatrcy)
+plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab="Population growth rate", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdatrcy)
+model<-lmer(log_lambda ~ Treatment + std_PC1 + std_PC2 + Neighbours01 + 
+              Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdatrcy)
+x_to_plot<-seq.func(lambdatrcy$std_PC1)
+#ambient watering, mean PC2, no nbhs
+preddata <- with(model, data.frame(1, 0, 0, x_to_plot, 0, 0, 0*0, 0*0, x_to_plot*0))
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "red", env.trans = 50, line.colour = "red", line.weight = 2, line.type = 1)
+#ambient watering, with nbhs
+preddata <- with(model, data.frame(1, 0, 0, x_to_plot, 0, 1, 0*1, 0*1, x_to_plot*1))
+plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "green", env.trans = 50, line.colour = "green", line.weight = 2, line.type = 1)
+
 
 ### PC1 one plot lambda ####
 #### Making the panel with lambda calculated once per plot (not separated by presence/absence neighbours)
@@ -2061,7 +2117,7 @@ mtext(~italic("P. airoides"), adj = -0.15, padj= 35, side = 3, cex = 2, outer = 
 mtext(~italic("P. debilis"), adj = -0.15, padj= 45, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 44, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. ornata"), adj = -0.15, padj= 65, side = 3, cex = 2, outer = TRUE)
-mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
+mtext(~italic("G. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
 
@@ -2352,7 +2408,7 @@ mtext(~italic("P. airoides"), adj = -0.15, padj= 35, side = 3, cex = 2, outer = 
 mtext(~italic("A. calendula"), adj = -0.15, padj= 45, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("H. glutinosum"), adj = -0.15, padj= 44, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 51, side = 3, cex = 2, outer = TRUE)
-mtext(~italic("V. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
+mtext(~italic("G. rosea"), adj = -0.15, padj= 76, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
 
@@ -2508,7 +2564,7 @@ mtext("Lambda", outer=TRUE, adj=0.93, side = 3, cex = 3)
 mtext("Species", outer = TRUE, adj = -0.13, side = 3, cex = 3)
 mtext(~italic("A. calendula"), adj = -0.15, padj= 5, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 13, side = 3, cex = 2, outer = TRUE)
-mtext(~italic("V. rosea"), adj = -0.15, padj= 25, side = 3, cex = 2, outer = TRUE)
+mtext(~italic("G. rosea"), adj = -0.15, padj= 25, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("L. rosea"), adj = -0.15, padj= 35, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
@@ -2702,7 +2758,7 @@ mtext(~italic("L. rosea"), adj = -0.15, padj= 14, side = 3, cex = 2, outer = TRU
 mtext(~italic("P. airoides"), adj = -0.15, padj= 25, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. ornata"), adj = -0.15, padj= 35, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("P. debilis"), adj = -0.15, padj= 45, side = 3, cex = 2, outer = TRUE)
-mtext(~italic("V. rosea"), adj = -0.15, padj= 55, side = 3, cex = 2, outer = TRUE)
+mtext(~italic("G. rosea"), adj = -0.15, padj= 55, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("A. calendula"), adj = -0.15, padj= 65, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 60, side = 3, cex = 2, outer = TRUE)
 
@@ -2802,7 +2858,7 @@ mtext("Lambda", outer=TRUE, adj=0.90, side = 3, cex = 3)
 mtext("Species", adj = -0.13, padj = 0.1, side = 3, cex = 3, outer = TRUE)
 #Use mxtext for species names
 mtext(~italic("H. glutinosum"), adj = -0.15, padj= 4, side = 3, cex = 2, outer = TRUE)
-mtext(~italic("V. rosea"), adj = -0.15, padj= 15, side = 3, cex = 2, outer = TRUE)
+mtext(~italic("G. rosea"), adj = -0.15, padj= 15, side = 3, cex = 2, outer = TRUE)
 mtext(~italic("T. cyanopetala"), adj = -0.15, padj= 20, side = 3, cex = 2, outer = TRUE)
 
 dev.off()
@@ -2836,7 +2892,7 @@ germ_effects_table <- within(germ_effects_table, Species[Species == '5'] <- 'Pla
 germ_effects_table <- within(germ_effects_table, Species[Species == '6'] <- 'Podolepis lessonii')
 germ_effects_table <- within(germ_effects_table, Species[Species == '7'] <- 'Trachymene cyanopetala')
 germ_effects_table <- within(germ_effects_table, Species[Species == '8'] <- 'Trachymene ornata')
-germ_effects_table <- within(germ_effects_table, Species[Species == '9'] <- 'Velleia rosea')
+germ_effects_table <- within(germ_effects_table, Species[Species == '9'] <- 'Goodenia rosea')
 
 #Renaming columns
 germ_effects_table <- germ_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
@@ -2856,7 +2912,7 @@ germ_effects_kbl <- germ_effects_kbl %>% group_by(Species, Effect) %>%
 #Plotting with kableR
 germ_effects_kbl %>% kbl(align = 'lccccccccc') %>%
     kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-    add_header_above(c("Germination" = 1, "n=190"=1, "n=189"=1, "n=192"=1, "n=192"=1, "n=92"=1, "n=185"=1, "n=192"=1, "n=191"=1, "n=191"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+    add_header_above(c("Emergence" = 1, "n=190"=1, "n=189"=1, "n=192"=1, "n=192"=1, "n=92"=1, "n=185"=1, "n=192"=1, "n=191"=1, "n=191"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
     row_spec(0, italic = T) %>%
     column_spec(1, italic = F) %>%
   column_spec(1:10, width = 4)
@@ -2895,7 +2951,7 @@ surv_effects_table <- within(surv_effects_table, Species[Species == '4'] <- 'Pen
 surv_effects_table <- within(surv_effects_table, Species[Species == '5'] <- 'Plantago debilis')
 surv_effects_table <- within(surv_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
 surv_effects_table <- within(surv_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
-surv_effects_table <- within(surv_effects_table, Species[Species == '8'] <- 'Velleia rosea')
+surv_effects_table <- within(surv_effects_table, Species[Species == '8'] <- 'Goodenia rosea')
 
 surv_effects_table <- surv_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
 surv_effects_table <- surv_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
@@ -2953,7 +3009,7 @@ seed_effects_table <- within(seed_effects_table, Species[Species == '4'] <- 'Pen
 seed_effects_table <- within(seed_effects_table, Species[Species == '5'] <- 'Plantago debilis')
 seed_effects_table <- within(seed_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
 seed_effects_table <- within(seed_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
-seed_effects_table <- within(seed_effects_table, Species[Species == '8'] <- 'Velleia rosea')
+seed_effects_table <- within(seed_effects_table, Species[Species == '8'] <- 'Goodenia rosea')
 
 seed_effects_table <- seed_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
 seed_effects_table <- seed_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
@@ -2970,7 +3026,7 @@ seed_effects_kbl <- seed_effects_kbl %>% group_by(Species, Effect) %>%
 #Plotting with kableR
 seed_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Fecundity" = 1, "n=55"=1, "n=41"=1, "n=84"=1, "n=79"=1, "n=38"=1, "n=115"=1, "n=82"=1, "n=96"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Seed production" = 1, "n=55"=1, "n=41"=1, "n=84"=1, "n=79"=1, "n=38"=1, "n=115"=1, "n=82"=1, "n=96"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
   column_spec(1:9, width = 4)
@@ -2991,7 +3047,7 @@ lambda_effects_table <- within(lambda_effects_table, Species[Species == '4'] <- 
 lambda_effects_table <- within(lambda_effects_table, Species[Species == '5'] <- 'Plantago debilis')
 lambda_effects_table <- within(lambda_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
 lambda_effects_table <- within(lambda_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
-lambda_effects_table <- within(lambda_effects_table, Species[Species == '8'] <- 'Velleia rosea')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '8'] <- 'Goodenia rosea')
 
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, '(Intercept)')] <- 'Intercept'
 lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_PC1:Neighbours01Neighbours1')] <- 'PC1:Neighbour presence'
@@ -3018,7 +3074,7 @@ lambda_effects_kbl <- lambda_effects_kbl %>% group_by(Species, Effect) %>%
 #Plotting with kableR
 lambda_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-  add_header_above(c("Lambda" = 1, "n=48"=1, "n=48"=1, "n=48"=1, "n=48"=1, "n=24"=1, "n=48"=1, "n=48"=1, "n=48"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Population growth" = 1, "n=48"=1, "n=48"=1, "n=48"=1, "n=48"=1, "n=24"=1, "n=48"=1, "n=48"=1, "n=48"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
   column_spec(1:9, width = 4)
@@ -3056,22 +3112,22 @@ germtally$concave <- as.numeric(germtally$concave)
 germtally$ns <- as.numeric(germtally$ns)
 #Pivotting longer for plotting
 germtally_long <- germtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
-#Reordering response types so that non-significant is at bottom? 
+#Reordering response types so that non-significant is at the top 
 #NS, pos, neg, pos_quad, neg_quad
-germtally_long$response_type <- factor(germtally_long$response_type, level = c("concave", "convex", "neg", "pos", "ns"))
+germtally_long$response_type <- factor(germtally_long$response_type, level = c("ns", "concave", "convex", "pos", "neg"))
 ## Plotting as proportional bar chart
 #lots of spaces in xlab to try and match up sizes of different plots
 a <- ggplot(germtally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
-  scale_y_continuous(breaks = seq(0,10, by = 1))+
-  ylab("Count of response types")+
+  scale_y_continuous(breaks = seq(0,10, by = 2))+
+  ylab("Count of response type")+
   xlab("")+
   scale_x_discrete(labels = c("                       PC1", "                     PC2"))+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5))+
+  theme(axis.text.x = element_text(size=12, angle = 90, hjust=0.95, vjust=0.5), axis.text.y=element_text(size=12), axis.title=element_text(size=12, face = "bold"))+
   theme(legend.position="none")+
   scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "convex" = "grey20", "concave" = "grey0"))+
-  ggtitle("(A)")
+  ggtitle("A) Emergence")
 
 ## Survival ##
 survtally <- surv_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
@@ -3096,7 +3152,7 @@ survtally$convex <- as.numeric(survtally$convex)
 #Pivotting longer for plotting
 survtally_long <- survtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
 #Reordering response types so that non-significant is at bottom
-survtally_long$response_type <- factor(survtally_long$response_type, level = c("convex", "neg", "pos", "ns"))
+survtally_long$response_type <- factor(survtally_long$response_type, level = c("ns", "convex", "pos", "neg"))
 
 #Reorder the effects
 survtally_long$Effect <- factor(survtally_long$Effect, level = c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "PC1:Neighbour abundance", "Dry:PC1", "Wet:PC1"))
@@ -3104,15 +3160,15 @@ survtally_long$Effect <- factor(survtally_long$Effect, level = c("PC1", "PC2", "
 ## Plotting as proportional bar chart
 b <- ggplot(survtally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
-  scale_y_continuous(breaks = seq(0,10, by = 1))+
+  scale_y_continuous(breaks = seq(0,10, by = 2))+
   ylab("")+
   xlab("")+
   scale_x_discrete(labels = c("PC1", "PC2", "N. abundance", "Dry", "Wet", "PC1:N. abundance", "Dry:PC1", "Wet:PC1"))+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5))+
+  theme(axis.text.x = element_text(size=12, angle = 90, hjust=0.95, vjust=0.5), axis.text.y=element_text(size=12))+
   theme(legend.position="none")+
   scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40", "convex" = "grey20"))+
-  ggtitle("(B)")
+  ggtitle("B) Survival")
 
 ## Fecundity ##
 seedtally <- seed_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
@@ -3122,21 +3178,22 @@ seedtally <- filter(seedtally, !Effect == "Dry:Neighbour abundance", !Effect == 
 #Pivotting longer for plotting
 seedtally_long <- seedtally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
 #Reordering response types so that non-significant is at bottom
-seedtally_long$response_type <- factor(seedtally_long$response_type, level = c("neg", "pos", "ns"))
+seedtally_long$response_type <- factor(seedtally_long$response_type, level = c("ns", "pos", "neg"))
 #Reorder the effects
 seedtally_long$Effect <- factor(seedtally_long$Effect, level = c("PC1", "PC2", "Neighbour abundance", "Dry", "Wet", "Dodder", "PC1:Neighbour abundance", "Dry:PC1", "Wet:PC1"))
 
 ## Plotting as proportional bar chart
 c <- ggplot(seedtally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
-  scale_y_continuous(breaks = seq(0,10, by = 1))+
-  ylab("Count of response types")+
-  scale_x_discrete(labels = c("PC1", "PC2", "N. abundance", "Dry", "Wet", "Dodder", "PC1:N. abundance", "Dry:PC1", "Wet:PC1"))+
+  scale_y_continuous(breaks = seq(0,10, by = 2))+
+  ylab("Count of response type")+
+  xlab("Effect")+
+  scale_x_discrete(labels = c("PC1", "PC2", "N. abundance", "Dry", "Wet", "Dodder", " PC1:N. abundance", "Dry:PC1", "Wet:PC1"))+
   theme_classic()+
-  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5))+
+  theme(axis.text.x = element_text(size=12, angle = 90, hjust=0.95, vjust=0.5), axis.text.y=element_text(size=12), axis.title=element_text(size=12, face = "bold"))+
   theme(legend.position="none")+
   scale_fill_manual(values = c("ns" = "grey80", "pos" = "grey60", "neg" = "grey40"))+
-  ggtitle("(C)")
+  ggtitle("C) Seed production")
 
 ## Lambda ##
 lambdatally <- lambda_effects_table %>% group_by(Effect) %>% summarise(ns = sum(p_value>0.05),
@@ -3153,7 +3210,7 @@ lambdatally <- filter(lambdatally, !Effect == "Intercept", !Effect == "PC1^2", !
 #Pivotting longer for plotting
 lambdatally_long <- lambdatally %>% pivot_longer(!Effect, names_to = "response_type", values_to = "count")
 #Reordering response types so that non-significant is at bottom
-lambdatally_long$response_type <- factor(lambdatally_long$response_type, level = c("neg", "pos", "ns"))
+lambdatally_long$response_type <- factor(lambdatally_long$response_type, level = c("ns", "pos", "neg"))
 #Reorder the effects
 lambdatally_long$Effect <- factor(lambdatally_long$Effect, level = c("PC1", "PC2", "Neighbour presence", "Dry", "Wet", "PC1:Neighbour presence", "Dry:Neighbour presence", "Dry:PC1", "Wet:PC1"))
 
@@ -3161,14 +3218,16 @@ lambdatally_long$Effect <- factor(lambdatally_long$Effect, level = c("PC1", "PC2
 #Create graph
 d <- ggplot(lambdatally_long, aes(x = Effect, y = count))+
   geom_bar(aes(fill = response_type), position = "stack", stat = "identity")+
-  scale_y_continuous(breaks = seq(0,10, by = 1))+
+  scale_y_continuous(breaks = seq(0,10, by = 2))+
   ylab("")+
-  scale_x_discrete(labels = c("PC1", "PC2", "N. presence", "Dry", "Wet", "  PC1:N. presence", "  Dry:N. presence", "Dry:PC1", "Wet:PC1"))+
+  xlab("Effect")+
+  scale_x_discrete(labels = c("PC1", "PC2", "N. presence", "Dry", "Wet", "PC1:N. presence", "Dry:N. presence", "Dry:PC1", "Wet:PC1"))+
   theme_classic()+
   labs(fill="response type")+
-  theme(axis.text.x = element_text(angle = 90, hjust=0.95, vjust=0.5), legend.position = "top")+
+  theme(axis.text.x = element_text(size=14, angle = 90, hjust=0.95, vjust=0.5), 
+        legend.position = "top", axis.text.y=element_text(size=12), legend.text = element_text(size=12), legend.title = element_text(size=12), axis.title=element_text(size=12, face = "bold"))+
 scale_fill_manual(values = c("ns" = "grey80", "positive" = "grey60", "negative" = "grey40", "convex" = "grey20", "concave" = "grey0"))+
-  ggtitle("(D)")
+  ggtitle("D) Population growth")
 #Function needed to extract legend
 #Save legend
 legend <- get_legend(d)
@@ -3176,24 +3235,23 @@ legend <- get_legend(d)
 d <- d + theme(legend.position="none")
 
 #Heights needs to correspond to number of rows, widths to number of columns
-grid.arrange(legend, a, b, c, d, ncol=2, nrow = 3, 
-             layout_matrix = rbind(c(1,1), c(2,3), c(4,5)),
-             widths = c(2.7, 2.7), heights = c(0.2, 2.5, 2.5))
+# grid.arrange(legend, a, b, c, d, ncol=2, nrow = 3, 
+#              layout_matrix = rbind(c(1,1), c(2,3), c(4,5)),
+#              widths = c(2.7, 2.7), heights = c(0.2, 2.5, 2.5))
 
 #Now with universal x and y labels
-a <- a + ylab("")
-d <- d + xlab("")
-c <- c + ylab("") + xlab("")
+#a <- a + ylab("")
+#d <- d + xlab("")
+#c <- c + ylab("") + xlab("")
 
-y_title <- expression(paste(bold("Count of response type")))
-x_title <- expression(paste(bold("Effect")))
+#y_title <- expression(paste(bold("Count of response type               Count of response type")))
+#x_title <- expression(paste(bold("Effect                                                    Effect")))
 
 grid.arrange(legend, a, b, c, d, ncol=2, nrow = 3, 
              layout_matrix = rbind(c(1,1), c(2,3), c(4,5)),
-             widths = c(1, 1), heights = c(0.2, 1, 1),
-             left=textGrob(y_title, rot=90, gp=gpar(fontsize=14)),
-             bottom=textGrob(x_title, gp=gpar(fontsize=14)))
-
+             widths = c(1, 1), heights = c(0.15, 1, 1))
+             #left=textGrob(y_title, rot=90, gp=gpar(fontsize=14)),
+            # bottom=textGrob(x_title, gp=gpar(fontsize=14)))
 ####### Making a map of Perenjori! ####
 library(dplyr)
 library(sf)
@@ -3233,7 +3291,7 @@ ggplot()+
 aus_state_data <- read_sf("Data_and_code_from_others/STE_2016_AUST.shp")
 
 ggplot()+
-  geom_sf(data = aus_state_data)+
+  geom_sf(data = aus_state_data, fill = "white")+
   theme_classic()
 
 #make a new dataset of cities in Australia (google the locations)
@@ -3291,8 +3349,8 @@ state_labels_geometry <- state_labels %>%
 
 #with state labels
 ggplot() + geom_sf(data = aus_state_data, fill = "white") + 
-  geom_text_repel(data= wa_cities,aes(x=long, y=lat, label=city), fontface = "bold",nudge_x = c(-3,3), nudge_y = c(-3,3)) +
-  geom_point(data = wa_cities, aes(x = long, y = lat), size = 3)+
+  #geom_text_repel(data= wa_cities,aes(x=long, y=lat, label=city), fontface = "bold",nudge_x = c(-3,3), nudge_y = c(-3,3)) +
+  #geom_point(data = wa_cities, aes(x = long, y = lat), size = 3)+
   geom_sf_label(data = state_labels_geometry, aes(label = state), size = 2)+
   xlim(110,155)+
   xlab("Longitude") +
@@ -3315,9 +3373,9 @@ block_coords <- tribble(
 ## Cutting this to just WA and Perenjori label
 ggplot() + geom_sf(data = aus_state_data, fill = "white") + 
   geom_text_repel(data= wa_cities2,aes(x=long, y=lat, label=city)) +
-  geom_point(data = wa_cities2, aes(x = long, y = lat), size = 4) +  
+  geom_point(data = wa_cities2, aes(x = long, y = lat), size = 3) +  
   xlim(110,130)+
-  ylim(-36,-14)+
+  ylim(-36,-27)+
   xlab("Longitude") +
   ylab("Latitude") + 
   theme_bw()+
