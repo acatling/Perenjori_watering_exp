@@ -486,7 +486,8 @@ seedvero <- seedmodeldata %>% filter(Species == "VERO")
 
 ### Creating dataset with neighbours only
 #Check why some plots weren't surveyed - I thought I surveyed everything that germinated
-#test <- anti_join(mortalitydatatrim, surveytrim) #107 rows
+##mortalitydatatrim$Neighbours <- as.factor(mortalitydatatrim$Neighbours)
+#test2 <- anti_join(mortalitydatatrim, surveytrim, by = c("Site", "Plot", "Species", "C_E_or_T", "Rep")) #107 rows
 datanonly <- vitaldata %>% filter(Total_abundance > 0)
 #Reordering watering treatments to  Dry, Ambient, Wet for plotting
 datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
@@ -709,4 +710,3 @@ lambdatror <- popdata %>% filter(Species == "TROR")
 lambdavero <- popdata %>% filter(Species == "VERO")
 
 species.list.l<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde, lambdapole, lambdatrcy, lambdatror, lambdavero)
-

@@ -1256,7 +1256,7 @@ ggplot(popdata, aes(x = Neighbours01, y = plot_survival))+
   my_theme+
   facet_wrap(~Species)
 
-### Making panels of each species' responses to neighbours and PC1 ####
+### Making panels of each species' responses to neighbours and PC1 NOT FROM MODELS ####
 #### Neighbours ####
 #8x3, 8 species, survival, fecundity, lambda (categorical) responses
 #frame = FALSE is a nice way to remove box around plot
@@ -1266,17 +1266,16 @@ ggplot(popdata, aes(x = Neighbours01, y = plot_survival))+
 #neighbour abundance is log plus 1
 
 dev.off()
-pdf("Output/Figures/panel_NA.pdf", width=21, height=21)
+pdf("Output/Figures/panel_NA_old.pdf", width=21, height=21)
 par(mfrow=c(8,3), oma = c(5, 20, 5, 1), mar =c(3.5,6,1,1))
 #ARCA
 #Survival - linear model won't converge with Site included, using plotid instead
-plot(surv_to_produce_seeds ~ jitter(std_logp1_totalabund, 15), xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab = NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, arcadata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab = NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, arcadata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|plotid), family = binomial, arcadata)
 x_to_plot<-seq.func(arcadata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
 plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
-text(x = 2.5,y = 0.9,"*", cex = 6, col = "red")
 #Fecundity
 plot(No_viable_seeds_grouped+1 ~ jitter(std_logp1_totalabund, 1), xlim=c(-1,2.5), ylim=c(1, 150), log = "y", pch=19, col=alpha("grey60", 0.3), ylab="Number of seeds produced", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, seedarca)
 model<-glmmTMB(No_viable_seeds_grouped~std_logp1_totalabund + (1|Site/Plot), family = nbinom2, seedarca)
@@ -1288,11 +1287,11 @@ text(x = 2.4,y = 100,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda ~ Neighbours01, pch=19, ylab="Population growth rate (log)", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaarca)
 stripchart(log_lambda ~ Neighbours01, lambdaarca, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex = 2, add = TRUE)
-text(x = 1.5, y = 2.65, "*", cex = 6, col = "red")
+text(x = 1.5, y = 2.6, "*", cex = 10, col = "red")
 
 #Adding HYGL
 #Survival
-plot(surv_to_produce_seeds ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, hygldata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, hygldata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|Site/Plot), family = binomial, hygldata)
 x_to_plot<-seq.func(hygldata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
@@ -1311,7 +1310,7 @@ stripchart(log_lambda ~ Neighbours01, lambdahygl, pch = 19, method = "jitter", c
 
 #Adding LARO
 #Survival
-plot(surv_to_produce_seeds ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, larodata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, larodata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|Site/Plot), family = binomial, larodata)
 x_to_plot<-seq.func(larodata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
@@ -1334,7 +1333,7 @@ stripchart(log_lambda ~ Neighbours01, lambdalaro, pch = 19, method = "jitter", c
 
 #Adding PEAI
 #Survival
-plot(surv_to_produce_seeds ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, peaidata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, peaidata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|Site/Plot), family = binomial, peaidata)
 x_to_plot<-seq.func(peaidata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
@@ -1353,7 +1352,7 @@ stripchart(log_lambda ~ Neighbours01, lambdapeai, pch = 19, method = "jitter", c
 
 #Adding PLDE
 #Survival
-plot(surv_to_produce_seeds ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, pldedata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, pldedata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|Site/Plot), family = binomial, pldedata)
 x_to_plot<-seq.func(pldedata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
@@ -1370,11 +1369,11 @@ text(x = 2.4,y = 70,"*", cex = 6, col = "red")
 #Lambda
 boxplot(log_lambda ~ Neighbours01, pch=19, ylab="Population growth rate", xlab=NA, names= NA, col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdaplde)
 stripchart(log_lambda ~ Neighbours01, lambdaplde, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 2.3, "*", cex = 6, col = "red")
+text(x = 1.5, y = 2.1, "*", cex = 10, col = "red")
 
 #Adding TRCY
 #Survival - quadratic
-plot(surv_to_produce_seeds ~ jitter(std_logp1_totalabund, 15), xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, trcydata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, trcydata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + I(std_logp1_totalabund^2) + (1|Site/Plot), family = binomial, trcydata)
 x_to_plot<-seq.func(trcydata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
@@ -1398,7 +1397,7 @@ stripchart(log_lambda ~ Neighbours01, lambdatrcy, pch = 19, method = "jitter", c
 
 #Adding TROR
 #Survival
-plot(surv_to_produce_seeds ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, trordata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, trordata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|Site/Plot), family = binomial, trordata)
 x_to_plot<-seq.func(trordata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
@@ -1418,7 +1417,7 @@ text(x = 1.5, y = 2.3, "*", cex = 6, col = "red")
 
 #Adding VERO
 #Survival
-plot(surv_to_produce_seeds ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, verodata)
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_logp1_totalabund, xlim=c(-1,2.5), pch=19, col=alpha("grey60", 0.3), ylab="Probability of survival", xlab=NA, tck=-0.01, cex= 2, cex.lab = 1.5, cex.axis = 1.5, verodata)
 model<-glmer(surv_to_produce_seeds~std_logp1_totalabund + (1|Site/Plot), family = binomial, verodata)
 x_to_plot<-seq.func(verodata$std_logp1_totalabund)
 preddata <- with(model, data.frame(1, x_to_plot))
@@ -1433,9 +1432,8 @@ plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, log
 plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
 text(x = 2.4,y = 175,"*", cex = 6, col = "red")
 #Lambda
-boxplot(log_lambda ~ Neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("No neighbours", "Neighbours"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
+boxplot(log_lambda ~ Neighbours01, pch=19, ylab="Population growth rate", xlab="", names = c("Absent", "Present"), col = "white", cex= 2, cex.lab = 1.5, cex.axis = 1.5, lambdavero)
 stripchart(log_lambda ~ Neighbours01, lambdavero, pch = 19, method = "jitter", col=alpha("grey60", 0.6), vertical = TRUE, cex= 2, add = TRUE)
-text(x = 1.5, y = 3.5, "*", cex = 6, col = "red")
 
 ###Overall text
 ##x labels
@@ -3398,4 +3396,487 @@ geom_point(aes(x = long, y = lat, shape=openvshade), size = 5, stroke = 1.5) +
         legend.text = element_text(size = 14),
         legend.title = element_blank(),
         legend.position="top")
+
+
+#### Making predictive plot of effect of watering treatment ####
+### Survival 
+#mean number of neighbours (min value for std_totalabund is -0.79)
+#no dodder
+#mean PC1 and PC2
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                            Treatment:std_PC1 + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), arcadata)
+## predicts for dry, ambient and wet 
+arca_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0, c(1, 0, 0)*0, c(0, 0, 1)*0, 0*0), 
+                           se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+## add the category
+arca_water_pred$treatment<-c("dry", "ambient", "wet")
+#add species name
+arca_water_pred$Species <- 'arca'
+#assign x values
+arca_water_pred$x <- c(0.5, 1, 1.5)
+
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, arca_water_pred)
+arrows(x0=arca_water_pred$x, y0=arca_water_pred$lower, x1=arca_water_pred$x, y1=arca_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+
+
+#How much data do we have
+#arca_no_nbh <- arcadata %>% filter(Neighbours01 == 0)
+# ggplot(arcadata, aes(x = Treatment, y= surv_to_produce_seeds))+
+#   geom_boxplot()+
+#   geom_jitter(alpha=0.4)+
+#   theme_classic()
+
+#hygl
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                 Treatment:std_PC1 + (1|Site/Plot), 
+               family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), hygldata)
+hygl_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0, c(1, 0, 0)*0, c(0, 0, 1)*0), 
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+hygl_water_pred$treatment<-c("dry", "ambient", "wet")
+hygl_water_pred$Species <- 'hygl'
+hygl_water_pred$x <- c(0.5, 1, 1.5)
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, hygl_water_pred)
+arrows(x0=hygl_water_pred$x, y0=hygl_water_pred$lower, x1=hygl_water_pred$x, y1=hygl_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+#laro
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+               family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), larodata)
+laro_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0), 
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+laro_water_pred$treatment<-c("dry", "ambient", "wet")
+laro_water_pred$Species <- 'laro'
+laro_water_pred$x <- c(0.5, 1, 1.5)
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, laro_water_pred)
+arrows(x0=laro_water_pred$x, y0=laro_water_pred$lower, x1=laro_water_pred$x, y1=laro_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+#peai
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                 std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+               family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), peaidata)
+peai_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0, 0*0), 
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+peai_water_pred$treatment<-c("dry", "ambient", "wet")
+peai_water_pred$Species <- 'peai'
+peai_water_pred$x <- c(0.5, 1, 1.5)
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, peai_water_pred)
+arrows(x0=peai_water_pred$x, y0=peai_water_pred$lower, x1=peai_water_pred$x, y1=peai_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+#plde
+pldesurvfinalmod
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                 I(std_PC1^2) + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+               family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), pldedata)
+plde_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0, 0^2, 0*0), 
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plde_water_pred$treatment<-c("dry", "ambient", "wet")
+plde_water_pred$Species <- 'plde'
+plde_water_pred$x <- c(0.5, 1, 1.5)
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, plde_water_pred)
+arrows(x0=plde_water_pred$x, y0=plde_water_pred$lower, x1=plde_water_pred$x, y1=plde_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+#trcy
+trcysurvfinalmod
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                 I(std_logp1_totalabund^2) + Treatment:std_PC1 + Treatment:I(std_logp1_totalabund^2) + (1|Site/Plot), 
+               family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), trcydata)
+trcy_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0, 0^2, c(1, 0, 0)*0, c(0, 0, 1)*0, c(1, 0, 0)*0^2, c(0, 0, 1)*0^2), 
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+trcy_water_pred$treatment<-c("dry", "ambient", "wet")
+trcy_water_pred$Species <- 'trcy'
+trcy_water_pred$x <- c(0.5, 1, 1.5)
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, trcy_water_pred)
+arrows(x0=trcy_water_pred$x, y0=trcy_water_pred$lower, x1=trcy_water_pred$x, y1=trcy_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+#tror
+trorsurvfinalmod
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                 Treatment:std_PC1 + (1|Site/Plot), 
+               family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), trordata)
+tror_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0, c(1, 0, 0)*0, c(0, 0, 1)*0), 
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+tror_water_pred$treatment<-c("dry", "ambient", "wet")
+tror_water_pred$Species <- 'tror'
+tror_water_pred$x <- c(0.5, 1, 1.5)
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, tror_water_pred)
+arrows(x0=tror_water_pred$x, y0=tror_water_pred$lower, x1=tror_water_pred$x, y1=tror_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+#vero
+verosurvfinalmod
+model <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                 Treatment:std_PC1 + (1|Site/Plot), 
+               family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), verodata)
+vero_water_pred<-glmm.predict(mod=model, newdat=data.frame(1, c(1, 0, 0), c(0, 0, 1), 0, 0, 0, 0, c(1, 0, 0)*0, c(0, 0, 1)*0), 
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+vero_water_pred$treatment<-c("dry", "ambient", "wet")
+vero_water_pred$Species <- 'vero'
+vero_water_pred$x <- c(0.5, 1, 1.5)
+plot(y ~ x, ylab="", xlab="", ylim=c(0, 1), tck=-0.01, vero_water_pred)
+arrows(x0=vero_water_pred$x, y0=vero_water_pred$lower, x1=vero_water_pred$x, y1=vero_water_pred$upper, code=3, angle=90, length=0.1, lwd=2)
+
+##Combine them
+pred_water_all <- rbind(arca_water_pred, hygl_water_pred, laro_water_pred, peai_water_pred,
+                     plde_water_pred, trcy_water_pred, tror_water_pred, vero_water_pred)
+#Reorder to dry, ambient, wet
+pred_water_all$treatment <- factor(pred_water_all$treatment, level = c("dry", "ambient", "wet"))
+
+ggplot(pred_water_all, aes(x = Species, y = y, colour=treatment))+
+  geom_point(position = position_dodge(0.8), cex=2.5)+
+  geom_errorbar(aes(ymin = lower, ymax = upper, width = 0.3), position = position_dodge(0.8), cex=1)+
+  ylab("Probability of survival")+
+  xlab("Species")+
+  theme_classic()+
+  my_theme+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_text(face = "italic"))
+
+### Plotting interaction between watering and PC1 for survival ####
+#Just for species that have PC1:Treatment term
+
+dev.off()
+pdf("Output/Figures/PC1_treatment_int.pdf", width=20, height=7)
+par(mfrow=c(1,5), oma = c(12, 6, 4, 1), mar =c(2,2,1,1))
+
+#arca
+x_to_plot_dry <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, arcadata)
+model <- arcasurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb, x_to_plot_amb*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet, x_to_plot_wet*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry, x_to_plot_dry*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 6, col = "red")
+#hygl
+x_to_plot_dry <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, hygldata)
+model <- hyglsurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.4,y = 0.95,"*", cex = 6, col = "red")
+text(x = 1,y = 0.95,"*", cex = 6, col = "blue")
+#trcy
+x_to_plot_dry <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, trcydata)
+model <- trcysurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0^2, 0*x_to_plot_amb, 0*x_to_plot_amb, 0*0^2, 0*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0^2, 0*x_to_plot_wet, 1*x_to_plot_wet, 0*0^2, 1*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 0^2, 1*x_to_plot_dry, 0*x_to_plot_dry, 1*0^2, 0*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 6, col = "blue")
+#tror
+x_to_plot_dry <- seq.func(trordata$std_PC1[trordata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(trordata$std_PC1[trordata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(trordata$std_PC1[trordata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, trordata)
+model <- trorsurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 6, col = "blue")
+#vero
+x_to_plot_dry <- seq.func(verodata$std_PC1[verodata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(verodata$std_PC1[verodata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(verodata$std_PC1[verodata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, verodata)
+model <- verosurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+#labels
+mtext("PC1 (std)", adj = 0.07, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("PC1 (std)", adj = 0.29, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("PC1 (std)", adj = 0.51, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("PC1 (std)", adj = 0.72, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("PC1 (std)", adj = 0.95, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("Probability of survival", side = 2, cex = 3, outer=TRUE, line = 2)
+mtext(~italic("A. calendula"), adj = 0.04, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("H. glutinosum"), adj = 0.27, padj=0.2, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("T. cyanopetala"), adj = 0.5, padj=0.2, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("T. ornata"), adj = 0.71, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("G. rosea"), adj = 0.95, side = 3, cex = 2.5, outer = TRUE)
+reset()
+legend("bottom", title=NULL, horiz=T, legend=c("Dry", "Ambient", "Wet"),
+       col=c("#CC79A7", "black", "#0072B2"), pch=19, cex=3, bty="n")
+dev.off()
+
+####### Same as above but no G. rosea
+dev.off()
+pdf("Output/Figures/PC1_treatment_int_3.pdf", width=20, height=7)
+par(mfrow=c(1,5), oma = c(12, 6, 4, 1), mar =c(2,2,1,1))
+
+#arca
+x_to_plot_dry <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, arcadata)
+model <- arcasurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb, x_to_plot_amb*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet, x_to_plot_wet*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry, x_to_plot_dry*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 6, col = "red")
+#hygl
+x_to_plot_dry <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, hygldata)
+model <- hyglsurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.4,y = 0.95,"*", cex = 6, col = "red")
+text(x = 1,y = 0.95,"*", cex = 6, col = "blue")
+#trcy
+x_to_plot_dry <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, trcydata)
+model <- trcysurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0^2, 0*x_to_plot_amb, 0*x_to_plot_amb, 0*0^2, 0*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0^2, 0*x_to_plot_wet, 1*x_to_plot_wet, 0*0^2, 1*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 0^2, 1*x_to_plot_dry, 0*x_to_plot_dry, 1*0^2, 0*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 6, col = "blue")
+#tror
+x_to_plot_dry <- seq.func(trordata$std_PC1[trordata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(trordata$std_PC1[trordata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(trordata$std_PC1[trordata$Treatment=='Wet'])
+plot(surv_to_produce_seeds ~ jitter(std_PC1, 15), xlim=c(-1.8,1.5), pch=19, col=alpha("grey60", 0.3), ylab=NA, xlab = NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, trordata)
+model <- trorsurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 6, col = "blue")
+#labels
+mtext("PC1 (std)", adj = 0.07, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("PC1 (std)", adj = 0.29, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("PC1 (std)", adj = 0.51, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("PC1 (std)", adj = 0.72, side = 1, line = 3, cex = 2.5,outer = TRUE)
+mtext("Probability of survival", side = 2, cex = 3, outer=TRUE, line = 2)
+mtext(~italic("A. calendula"), adj = 0.04, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("H. glutinosum"), adj = 0.27, padj=0.2, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("T. cyanopetala"), adj = 0.5, padj=0.2, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("T. ornata"), adj = 0.71, side = 3, cex = 2.5, outer = TRUE)
+reset()
+legend("right", title="Watering treatment", horiz=F, legend=c("Dry", "Ambient", "Wet"),
+       col=c("#CC79A7", "black", "#0072B2"), pch=19, cex=2.5, bty="n")
+dev.off()
+
+## How does trcy dry:neighbour presence interaction look?
+ggplot(lambdatrcy, aes(x = Neighbours01, y=lambda, colour = Treatment))+
+  geom_boxplot()+
+  geom_point(position=position_jitterdodge())+
+  theme_classic()
+
+### Interaction survival, seed production and pop growth ~ PC1 and watering #####
+
+##Data frame for wet and dry colours
+colours <- data.frame(Treatment=c("Dry","Ambient","Wet"),
+                         colour = c("#CC79A7","grey60","#0072B2"))
+dev.off()
+pdf("Output/Figures/supp_PC1_watering.pdf", width=20, height=18)
+par(mfrow=c(3,4), oma = c(2, 6, 2, 1), mgp=c(5.5,1.5,0), mar =c(8,3,4,2))
+##survival ##
+#arca
+#Merge colours with our data
+arcadata <- left_join(arcadata, colours)
+x_to_plot_dry <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(arcadata$std_PC1[arcadata$Treatment=='Wet'])
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha(as.vector(arcadata$colour), 0.3), ylab=NA, xlab = "PC1 (std)", tck=-0.01, cex= 3, cex.axis= 3.5, cex.lab = 4, arcadata)
+model <- arcasurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb, x_to_plot_amb*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet, x_to_plot_wet*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry, x_to_plot_dry*0), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 10, col = "red")
+#hygl
+hygldata <- left_join(hygldata, colours)
+x_to_plot_dry <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(hygldata$std_PC1[hygldata$Treatment=='Wet'])
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha(as.vector(hygldata$colour), 0.3), ylab=NA, xlab = "PC1 (std)", cex.lab=4, tck=-0.01, cex= 3, cex.axis= 3.5, hygldata)
+model <- hyglsurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 10, col = "red")
+text(x = 0.8,y = 0.95,"*", cex = 10, col = "blue")
+#trcy
+trcydata <- left_join(trcydata, colours)
+x_to_plot_dry <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(trcydata$std_PC1[trcydata$Treatment=='Wet'])
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha(as.vector(trcydata$colour), 0.3), ylab=NA, xlab = "PC1 (std)", cex.lab=4, tck=-0.01, cex= 3, cex.axis= 3.5, trcydata)
+model <- trcysurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0^2, 0*x_to_plot_amb, 0*x_to_plot_amb, 0*0^2, 0*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0^2, 0*x_to_plot_wet, 1*x_to_plot_wet, 0*0^2, 1*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 0^2, 1*x_to_plot_dry, 0*x_to_plot_dry, 1*0^2, 0*0^2), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 10, col = "blue")
+#tror
+trordata <- left_join(trordata, colours)
+x_to_plot_dry <- seq.func(trordata$std_PC1[trordata$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(trordata$std_PC1[trordata$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(trordata$std_PC1[trordata$Treatment=='Wet'])
+plot(jitter(surv_to_produce_seeds, 0.2) ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha(as.vector(trordata$colour), 0.3), ylab=NA, xlab = "PC1 (std)", cex.lab=4, tck=-0.01, cex= 3, cex.axis= 3.5, trordata)
+model <- trorsurvfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 0.95,"*", cex = 10, col = "blue")
+#labels
+mtext("Probability of survival", side = 2, cex = 2.5, outer=TRUE, line = 2, adj=0.95)
+mtext(~italic("A. calendula"), adj = 0.08, side = 3, padj=0.85, cex = 2.5, outer = TRUE)
+mtext(~italic("H. glutinosum"), adj = 0.36, padj=0.95, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("T. cyanopetala"), adj = 0.64, padj=0.95, side = 3, cex = 2.5, outer = TRUE)
+mtext(~italic("T. ornata"), adj = 0.91, side = 3, padj=0.85, cex = 2.5, outer = TRUE)
+##seed production ##
+#Placing plot centre left
+par(mfg=c(2,1))
+#tror
+seedtror <- left_join(seedtror, colours)
+x_to_plot_dry <- seq.func(seedtror$std_PC1[seedtror$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(seedtror$std_PC1[seedtror$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(seedtror$std_PC1[seedtror$Treatment=='Wet'])
+plot(No_viable_seeds_grouped+1 ~ std_PC1, xlim=c(-1.8,1.6), ylim=c(1,100), log = "y", pch=19, col=alpha(as.vector(seedtror$colour), 0.3), ylab=NA, xlab="PC1 (std)", tck=-0.01, cex= 3, cex.lab = 4, cex.axis = 3.5, seedtror)
+model <- trorseedfinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb), se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet), se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry), se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.5,y = 70,"*", cex = 10, col = "red")
+#labels
+mtext("Number of viable seeds (log+1)", side = 2, cex = 2.5, outer=TRUE, line = 2)
+mtext(~italic("T. ornata"), adj = 0.08, side = 3, cex = 2.5, outer = TRUE, padj=20.5)
+## population growth rate ##
+# peai
+lambdapeai <- left_join(lambdapeai, colours)
+#Lambda 
+par(mfg=c(3,1))
+x_to_plot_dry <- seq.func(lambdapeai$std_PC1[lambdapeai$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(lambdapeai$std_PC1[lambdapeai$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(lambdapeai$std_PC1[lambdapeai$Treatment=='Wet'])
+plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha(as.vector(lambdapeai$colour), 0.3), ylab=NA, xlab="PC1 (std)", tck=-0.01, cex= 3, cex.lab = 4, cex.axis = 3.5, lambdapeai)
+model <- peailambdafinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, x_to_plot_amb^2, 0*x_to_plot_amb, 0*x_to_plot_amb, x_to_plot_amb*0), se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, x_to_plot_amb^2, 0*x_to_plot_wet, 1*x_to_plot_wet, x_to_plot_wet*0), se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, x_to_plot_amb^2, 1*x_to_plot_dry, 0*x_to_plot_dry, x_to_plot_wet*0), se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 4,"*", cex = 10, col = "red")
+#vero
+lambdavero <- left_join(lambdavero, colours)
+par(mfg=c(3,2))
+x_to_plot_dry <- seq.func(lambdavero$std_PC1[lambdavero$Treatment=='Dry'])
+x_to_plot_amb <- seq.func(lambdavero$std_PC1[lambdavero$Treatment=='Ambient'])
+x_to_plot_wet <- seq.func(lambdavero$std_PC1[lambdavero$Treatment=='Wet'])
+plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha(as.vector(lambdavero$colour), 0.3), ylab=NA, xlab="PC1 (std)", tck=-0.01, cex= 3, cex.lab = 4, cex.axis = 3.5, lambdavero)
+model <- verolambdafinalmod
+#ambient - black
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot_amb, 0, 0, 0*x_to_plot_amb, 0*x_to_plot_amb, x_to_plot_amb*0), se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_amb, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey60", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+#wet - blue
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 0, 1, x_to_plot_wet, 0, 0, 0*x_to_plot_wet, 1*x_to_plot_wet, x_to_plot_wet*0), se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_wet, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
+#dry - red
+plotted.pred <- glmm.predict(mod = model, newdat = data.frame(1, 1, 0, x_to_plot_dry, 0, 0, 1*x_to_plot_dry, 0*x_to_plot_dry, x_to_plot_wet*0), se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+plot.CI.func(x.for.plot = x_to_plot_dry, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
+text(x = 1.3,y = 3.4,"*", cex = 10, col = "blue")
+#labels
+mtext("Population growth rate (log)", side = 2, cex = 2.5, outer=TRUE, line = 2, adj=0.03)
+mtext(~italic("P. airoides"), adj = 0.08, side = 3, cex = 2.5, outer = TRUE, padj = 39.5)
+mtext(~italic("G. rosea"), adj = 0.37, side = 3, cex = 2.5, outer = TRUE, padj=38.5)
+reset()
+legend(x = 0.65, y = 0.25, title="Watering treatment", horiz=F, legend=c("Dry", "Ambient", "Wet"),
+       col=c("#CC79A7", "black", "#0072B2"), pch=19, cex=3.5, bty="n")
+dev.off()
+
+### Summarising how many plants of which species germinated early in Feb #####
+febdata <- vitaldata %>% select(rowID, Site, Plot, Species, C_E_or_T, Rep, February_germination) %>%
+  filter(February_germination > 0)
+febdata %>% group_by(Species) %>% summarise(number_plots = n(),
+                                            number_plants = sum(February_germination))
 

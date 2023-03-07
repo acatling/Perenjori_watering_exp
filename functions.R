@@ -2,6 +2,12 @@
 # Alexandra Catling
 # 2021
 
+### Need this reset function before legend:
+reset <- function() {
+  par(mfrow=c(1, 1), oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
+  plot(0:1, 0:1, type="n", xlab="", ylab="", axes=FALSE)
+}
+
 ####Histogram function for using with and pairs functions
 panel.hist <- function(x, ...)
 {
@@ -132,3 +138,6 @@ get_legend<-function(myggplot){
   legend <- tmp$grobs[[leg]]
   return(legend)
 }
+
+#Making a function for plot_CI (just to tidy up code)
+plot_CI <- function(){plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)}

@@ -653,21 +653,35 @@ glambda <- AIC(bioticmodlambdaTROR, abioticmodlambdaTROR, bothmodlambdaTROR, int
 hlambda <- AIC(bioticmodlambdaVERO, abioticmodlambdaVERO, bothmodlambdaVERO, intmodlambdaVERO)
 
 ## Presenting them in tables
+
+#df[1,5] <- paste0("\\underline{", df[1,5], "}")
+#equivalent to (except the below doesn't work!):
+#surv_AIC[1, 5] <- cell_spec(surv_AIC[1, 5], "html", bold = T)
+#surv_AIC[1, 5] <- expression(paste(bold(surv_AIC[1, 5])))
+#surv_AIC[1,5] <- paste0("\\bold{", surv_AIC[1,5], "}")
+#surv_AIC[1,5] = cell_spec(surv_AIC[1,5], color = "red")
+
 ### Survival
 surv_AIC <- cbind(a, b[,2], c[,2], d[,2], e[,2], f[,2], g[,2], h[,2])
 colnames(surv_AIC) <- c('df', "Arctotheca calendula","Hyalosperma glutinosum","Lawrencella rosea","Pentameris airoides","Plantago debilis","Trachymene cyanopetala","Trachymene ornata","Velleia rosea")
 rownames(surv_AIC) <- c('Biotic', 'Abiotic', 'Both', 'Interaction')
 surv_AIC <- surv_AIC %>% rownames_to_column("Model")
+
 #Plotting with kableR
 surv_AIC %>%
   kbl(align = 'lccccccccc', digits = 1) %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
   add_header_above(c("Survival" = 10), align = "l", background = "lightgrey") %>%
-  row_spec(0, italic = T)
-  #column_spec(4, bold = min(surv_AIC[4]))
-  #cell_spec(surv_AIC[1,5], bold = T)
-#Can't figure out conditional bolding
-#mutate(`Arctotheca calendula` = cell_spec(`Arcotheca calendula`, bold = ifelse(min(surv_AIC$`Arctotheca calendula`), TRUE, FALSE)))
+  row_spec(0, italic = T)%>%
+  column_spec(3, bold = ifelse(surv_AIC[,3]<192, TRUE, FALSE))%>%
+  column_spec(4, bold = ifelse(surv_AIC[,4]<141, TRUE, FALSE))%>%
+  column_spec(5, bold = ifelse(surv_AIC[,5]<230, TRUE, FALSE))%>%
+  column_spec(6, bold = ifelse(surv_AIC[,6]<226, TRUE, FALSE))%>%
+  column_spec(7, bold = ifelse(surv_AIC[,7]<110, TRUE, FALSE))%>%
+  column_spec(8, bold = ifelse(surv_AIC[,8]<194, TRUE, FALSE))%>%
+  column_spec(9, bold = ifelse(surv_AIC[,9]<211, TRUE, FALSE))%>%
+  column_spec(10, bold = ifelse(surv_AIC[,10]<170, TRUE, FALSE))
+  
 
 ### Fecundity
 seed_AIC <- cbind(aseed, bseed[,2], cseed[,2], dseed[,2], eseed[,2], fseed[,2], gseed[,2], hseed[,2])
@@ -678,7 +692,15 @@ seed_AIC %>%
   kbl(align = 'lccccccccc', digits = 1) %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
   add_header_above(c("Seed production" = 10), align = "l", background = "lightgrey")%>%
-  row_spec(0, italic = T)
+  row_spec(0, italic = T)%>%
+  column_spec(3, bold = ifelse(seed_AIC[,3]<389, TRUE, FALSE))%>%
+  column_spec(4, bold = ifelse(seed_AIC[,4]<323, TRUE, FALSE))%>%
+  column_spec(5, bold = ifelse(seed_AIC[,5]<470, TRUE, FALSE))%>%
+  column_spec(6, bold = ifelse(seed_AIC[,6]<822.5, TRUE, FALSE))%>%
+  column_spec(7, bold = ifelse(seed_AIC[,7]<286, TRUE, FALSE))%>%
+  column_spec(8, bold = ifelse(seed_AIC[,8]<797, TRUE, FALSE))%>%
+  column_spec(9, bold = ifelse(seed_AIC[,9]<512, TRUE, FALSE))%>%
+  column_spec(10, bold = ifelse(seed_AIC[,10]<775, TRUE, FALSE))
 
 ### Lambda
 lambda_AIC <- cbind(alambda, blambda[,2], clambda[,2], dlambda[,2], elambda[,2], flambda[,2], glambda[,2], hlambda[,2])
@@ -689,7 +711,15 @@ lambda_AIC %>%
   kbl(align = 'lccccccccc', digits = 1) %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
   add_header_above(c("Population growth" = 10), align = "l", background = "lightgrey")%>%
-  row_spec(0, italic = T)
+  row_spec(0, italic = T)%>%
+  column_spec(3, bold = ifelse(lambda_AIC[,3]<124, TRUE, FALSE))%>%
+  column_spec(4, bold = ifelse(lambda_AIC[,4]<82, TRUE, FALSE))%>%
+  column_spec(5, bold = ifelse(lambda_AIC[,5]<94, TRUE, FALSE))%>%
+  column_spec(6, bold = ifelse(lambda_AIC[,6]<172 & lambda_AIC[,6]>171.5, TRUE, FALSE))%>%
+  column_spec(7, bold = ifelse(lambda_AIC[,7]<58, TRUE, FALSE))%>%
+  column_spec(8, bold = ifelse(lambda_AIC[,8]<117, TRUE, FALSE))%>%
+  column_spec(9, bold = ifelse(lambda_AIC[,9]<98, TRUE, FALSE))%>%
+  column_spec(10, bold = ifelse(lambda_AIC[,10]<140, TRUE, FALSE))
 #resize 600
 
 ### Looking at distribution of data - linear or quadratic? ####
