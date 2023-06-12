@@ -9,33 +9,15 @@ output: html_document
 Repository for WA Perenjori Watering Experiment
 PhD Research
 Experiment conducted in 2020
+Paper 'variation in demographic responses to competition and abiotic conditions in an annual plant community' preprint 2023
 
-data_preparation sheet contains all dataframes needed to run plots and models in other sheets
-WA_questions_analysis is the most up to date analysis of the paper's questions
-dataall is the dataframe containing most of the information: row per individual with Species, Site, Plot, neighbour abundance, survival, abiotic environment info, trait data.
+NOTE: I will create a new repository containing only necessary data, script and outputs needed to reproduce data in the paper. For now, the relevant scripts are only:
+data_preparation.R
+data_preparation sheet contains all script needed to clean data and generate dataframes for analysis
+demography_paper_figs_tables.R
+demography_paper_figs_tables contains script needed to generate results, figures and tables
+functions.R 
+functions sheet contains functions needed to run code in other sheets
 
-
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+vitaldata and popdata are the dataframes containing cleaned vital rates and population growth rates respectively with:
+a row per individual with Species, Site, Plot, neighbour abundance, survival, abiotic environment info, trait data
