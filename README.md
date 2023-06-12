@@ -9,7 +9,7 @@ PhD Research\
 Experiment conducted in 2020\
 Paper 'variation in demographic responses to competition and abiotic conditions in an annual plant community' preprint 2023
 
-##NOTE: I will create a new repository containing only necessary data, script and outputs needed to reproduce data in the paper.
+## NOTE I will create a new repository containing only necessary data, script and outputs needed to reproduce results in the paper
 For now, the relevant scripts are only:\
 data_preparation.R\
 data_preparation sheet contains all script needed to clean data and generate dataframes for analysis\
