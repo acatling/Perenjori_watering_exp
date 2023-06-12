@@ -16,7 +16,7 @@ library(car)
 library(kableExtra)
 
 #Functions file
-source("R_functions/functions.R")
+source("functions.R")
 #ggplot here for ease of plotting. Use theme_classic()+ my_theme
 my_theme <- theme(axis.title.x = element_text(size = 14, face = 'bold'),
                   axis.title.y = element_text(size = 14, face = 'bold'),
@@ -558,7 +558,7 @@ rsquaredtablemerged %>% kbl(caption = "<b>Supplementary X</b>. R squared values 
 #Struggling to save this using save_kable and as_image() atm.
 #Can copy it from the Viewer using copy to clipboard, maintain aspect ratio, first value 500
 
-#### AIC Model Selection Abiotic vs Biotic ####
+#### Relative importance -- AIC Model Selection Abiotic vs Biotic ####
 ## Rerunning the models
 #removing SDI/shannon
 for (i in 1:length(specieslist.nop)){
@@ -1128,6 +1128,76 @@ for (i in 1:length(specieslist.nop)){
                         family = binomial, data = filter(data_no_nbh_vital, Species == specieslist.nop[i]), control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
   print(summary(no_nbh_mod))
 }
+
+
+#### Relative importance of abiotic and biotic factors with Akaike weights ####
+library(MuMIn)
+
+data(Cement) ## a dataset in MuMIn
+
+## fit some model (I added an interaction for fun)
+## you have to include “na.action = na.fail” for dredge to work
+fm1 <- lm(y ~ X1+X2+X3+X4 + X1:X2, data = Cement, na.action = na.fail)
+
+## run the dredge and ask it to output standardised coefs (beta = “sd” does this)
+ms1 <- dredge(fm1, extra = "R^2", rank = "AICc", beta = "sd")
+#beta = partial.sd
+#try
+
+## look at a model averaged by AICc weights
+mod.avg <- model.avg(ms1)
+
+## The absolute size of coefficients indicates their relative importance
+mod.avg$coefficients
+
+### With my data
+## full model but without interaction terms
+## you have to include “na.action = na.fail” for dredge to work
+fm1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+               Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+             family = binomial, arcadata, na.action = na.fail, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+
+#Will work if I remove the incomplete cases
+#https://stackoverflow.com/questions/35694732/cannot-run-glmer-models-with-na-action-na-fail-necessary-for-mumin-dredge-funct
+arcadata_completesurv <- arcadata %>% filter(!(is.na(surv_to_produce_seeds)))
+fm1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+               Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+             family = binomial, arcadata_completesurv, na.action = na.fail, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+
+#Won't converge without the optimiser and won't run next line with it, unless I remove extra = "R^2"
+#https://stackoverflow.com/questions/53856379/dredge-doesnt-work-when-specifying-glmer-optimizer
+## run the dredge and ask it to output standardised coefs (beta = “sd” does this)
+ms1 <- dredge(fm1, rank = "AICc", beta = "sd")
+#one model didn't converge...
+
+## look at a model averaged by AICc weights
+mod.avg <- model.avg(ms1)
+
+## The absolute size of coefficients indicates their relative importance
+mod.avg$coefficients
+
+###
+sw(ms1)
+
+### Comparison, 
+
+### Seed production ###
+seedarca_completesurv <- seedarca %>% filter(!(is.na(No_viable_seeds_grouped)))
+
+fm2 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                 Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot), 
+               family = nbinom2, seedarca_completesurv, na.action = na.fail)
+ms2 <- dredge(fm2, rank = "AICc", beta = "sd")
+sw(ms2)
+
+# Can't use R^2 function:
+# Error in null.fit(global.model, evaluate = TRUE, envir = gmFormulaEnv) : 
+#   do not know (yet) how to construct a null model for class ‘glmmTMB’
+#https://github.com/glmmTMB/glmmTMB/issues/235
+mod.avg2 <- model.avg(ms2)
+mod.avg2$coefficients
+mod.avg2$cond
+
 
 
 ### Need to update below here* ####

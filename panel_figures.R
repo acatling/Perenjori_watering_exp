@@ -2,8 +2,9 @@
 ### Alexandra Catling ##
 ### Remaking large panel figures for paper with interactions
 
-#No neighbours standardised is -0.7948
+#The mean of totalabund standardised where there are no neighbours is -0.7948
 #With neighbours - one standard deviation above average (average really brought down by zeros), so 1
+#neighbours only dataset mean is 0.96, close to 1
 
 ###PC1 without interactions or significance asterisks ####
 dev.off()
@@ -243,7 +244,7 @@ x_to_plot_nbh <- seq.func(arcadata$std_PC1[arcadata$Neighbours01=='1'])
 plotted.pred.no.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, -0.79, 0, 0*x_to_plot, 0*x_to_plot, x_to_plot*-0.79), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot_no_nbh, pred = plotted.pred.no.nbh$y, upper = plotted.pred.no.nbh$upper, lower = plotted.pred.no.nbh$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
 #With nbhs - red
-plotted.pred.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, 0, 0, 1*x_to_plot, 0*x_to_plot, x_to_plot*1), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plotted.pred.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, 0, 0, 0.97*x_to_plot, 0*x_to_plot, x_to_plot*0.97), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot_nbh, pred = plotted.pred.nbh$y, upper = plotted.pred.nbh$upper, lower = plotted.pred.nbh$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
 #Seed production
 x_to_plot<-seq.func(seedarca$std_PC1)
@@ -307,7 +308,7 @@ x_to_plot_nbh <- seq.func(seedlaro$std_PC1[seedlaro$Neighbours01=='1'])
 plotted.pred.no.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, -0.79, 0, x_to_plot*-0.79), se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot_no_nbh, pred = plotted.pred.no.nbh$y, upper = plotted.pred.no.nbh$upper, lower = plotted.pred.no.nbh$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
 #With nbhs - red
-plotted.pred.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, 1, 0, x_to_plot*1), se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+plotted.pred.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, 0.97, 0, x_to_plot*0.97), se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
 plot.CI.func(x.for.plot = x_to_plot_nbh, pred = plotted.pred.nbh$y, upper = plotted.pred.nbh$upper, lower = plotted.pred.nbh$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
 #Population growth - signif. int.
 plot(log_lambda ~ std_PC1, xlim=c(-1.8,1.5), pch=19, col=alpha(ifelse(Neighbours01=='Neighbours1', "#CC79A7", "#0072B2"), 0.3), ylab=NA, xlab=NA, tck=-0.01, cex= 2.5, cex.axis= 2.5, lambdalaro)
@@ -336,7 +337,7 @@ x_to_plot_nbh <- seq.func(peaidata$std_PC1[peaidata$Neighbours01=='1'])
 plotted.pred.no.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, -0.79, 0, x_to_plot*-0.79), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot_no_nbh, pred = plotted.pred.no.nbh$y, upper = plotted.pred.no.nbh$upper, lower = plotted.pred.no.nbh$lower, env.colour = "#0072B2", env.trans = 50, line.colour = "#0072B2", line.weight = 2, line.type = 1)
 #With nbhs - red
-plotted.pred.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, 1, 0, x_to_plot*1), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+plotted.pred.nbh <- glmm.predict(mod = model, newdat = data.frame(1, 0, 0, x_to_plot, 0, 0.97, 0, x_to_plot*0.97), se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
 plot.CI.func(x.for.plot = x_to_plot_nbh, pred = plotted.pred.nbh$y, upper = plotted.pred.nbh$upper, lower = plotted.pred.nbh$lower, env.colour = "#CC79A7", env.trans = 50, line.colour = "#CC79A7", line.weight = 2, line.type = 1)
 #Seed production
 x_to_plot<-seq.func(seedpeai$std_PC1)
@@ -474,7 +475,7 @@ mtext("PC1", adj = 0.93, side = 1, line = 3, cex = 3, outer = TRUE)
 ##y labels
 mtext("Probability of emergence", side = 2, cex = 3, outer=TRUE, line=-5)
 mtext("Probability of survival", side = 2, cex = 3, outer=TRUE, line=-40)
-mtext("Number of viable seeds produced (log + 1)", side = 2, cex = 3, outer=TRUE, line=-74)
+mtext("Number of viable seeds produced (+1)", side = 2, cex = 3, outer=TRUE, line=-74)
 mtext("Population growth rate (log)", side = 2, cex = 3, outer=TRUE, line=-108)
 ##main labels
 mtext("Emergence", outer=TRUE, adj=0.1,side = 3, cex = 3)

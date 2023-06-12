@@ -7,7 +7,7 @@
 #Data imported from data preparation sheet
 source("data_preparation.R")
 #vitaldata has all datasets combined 
-# germination, survival, seed production, neighbour info, traits, quad factors
+# germination, survival, seed production, neighbour info, quad factors
 # one row per subplot with seeds sown - NAs are very important since, e.g. survival info is only on germinated subplots
 
 #Functions file
@@ -2863,6 +2863,25 @@ dev.off()
 
 #### Creating a table of final model outputs ####
 #Need to run models first, run all of 'modelling vital rates in response to all factors'
+#### Extracting marginal and conditional r squared values for table ####
+#Extracting values for theoretical marginal R squared
+germ_model_list <- list(arcagermfinalmod, hyglgermfinalmod, larogermfinalmod, peaigermfinalmod, pldegermfinalmod, polegermfinalmod, trcygermfinalmod, trorgermfinalmod, verogermfinalmod)
+rsquared = lapply(1:length(germ_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(germ_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+germ_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '6'] <- 'Podolepis lessonii')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '7'] <- 'Trachymene cyanopetala')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '8'] <- 'Trachymene ornata')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '9'] <- 'Goodenia rosea')
+
+
 ## GERMINATION ####
 ## Extracting values for all in a loop
 germ_model_list <- list(arcagermfinalmod, hyglgermfinalmod, larogermfinalmod, peaigermfinalmod, pldegermfinalmod, polegermfinalmod, trcygermfinalmod, trorgermfinalmod, verogermfinalmod)
@@ -2870,10 +2889,20 @@ effects = lapply(1:length(germ_model_list), function(x) {
   as.data.frame(coef(summary(germ_model_list[[x]]))) %>% mutate(Species=paste0(x))})
 germ_effects_table <- do.call("rbind", effects)
 
-#Make rownames a column 
+#make rownames a column
 germ_effects_table <- cbind(Effect = rownames(germ_effects_table), germ_effects_table)
-#Remove rownames
 rownames(germ_effects_table) <- NULL
+
+#Rename species
+germ_effects_table <- within(germ_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+germ_effects_table <- within(germ_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+germ_effects_table <- within(germ_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+germ_effects_table <- within(germ_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+germ_effects_table <- within(germ_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+germ_effects_table <- within(germ_effects_table, Species[Species == '6'] <- 'Podolepis lessonii')
+germ_effects_table <- within(germ_effects_table, Species[Species == '7'] <- 'Trachymene cyanopetala')
+germ_effects_table <- within(germ_effects_table, Species[Species == '8'] <- 'Trachymene ornata')
+germ_effects_table <- within(germ_effects_table, Species[Species == '9'] <- 'Goodenia rosea')
 
 #Renaming effects since loop adding values to ends
 germ_effects_table$Effect[startsWith(germ_effects_table$Effect, '(Intercept)')] <- 'Intercept'
@@ -2903,6 +2932,9 @@ germ_effects_table <- germ_effects_table %>% mutate(p_asterisks = case_when(p_va
                                                               p_value <0.05~"*"))
 germ_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", germ_effects_table$Estimate, germ_effects_table$SE, germ_effects_table$p_asterisks)
 
+#Join with r squared values
+#germ_effects_table <- left_join(germ_effects_table, germ_rsquared_table)
+
 germ_effects_kbl <- germ_effects_table %>% select(Species, Effect, collated)
 germ_effects_kbl <- germ_effects_kbl %>% group_by(Species, Effect) %>%
   pivot_wider(names_from = Species, values_from = collated)
@@ -2910,12 +2942,30 @@ germ_effects_kbl <- germ_effects_kbl %>% group_by(Species, Effect) %>%
 #Plotting with kableR
 germ_effects_kbl %>% kbl(align = 'lccccccccc') %>%
     kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
-    add_header_above(c("Emergence" = 1, "n=190"=1, "n=189"=1, "n=192"=1, "n=192"=1, "n=92"=1, "n=185"=1, "n=192"=1, "n=191"=1, "n=191"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
-    row_spec(0, italic = T) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.16/0.82"=1, "0.34/0.92"=1, "0.29/0.84"=1, "0.29/0.89"=1, "0.25/0.91"=1, "0.21/0.96"=1, "0.09/0.92"=1, "0.30/0.90"=1, "0.51/0.85"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Emergence" = 1, "n=190"=1, "n=189"=1, "n=192"=1, "n=192"=1, "n=92"=1, "n=185"=1, "n=192"=1, "n=191"=1, "n=191"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
     column_spec(1, italic = F) %>%
   column_spec(1:10, width = 4)
 
 ## SURVIVAL #### 
+### r squared values
+surv_model_list <- list(arcasurvfinalmod, hyglsurvfinalmod, larosurvfinalmod, peaisurvfinalmod, pldesurvfinalmod, trcysurvfinalmod, trorsurvfinalmod, verosurvfinalmod)
+rsquared = lapply(1:length(surv_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(surv_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+surv_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '7'] <- 'Trachymene ornata')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+
 surv_model_list <- list(arcasurvfinalmod, hyglsurvfinalmod, larosurvfinalmod, peaisurvfinalmod, pldesurvfinalmod, trcysurvfinalmod, trorsurvfinalmod, verosurvfinalmod)
 effects = lapply(1:length(surv_model_list), function(x) {
   as.data.frame(coef(summary(surv_model_list[[x]]))) %>% mutate(Species=paste0(x))})
@@ -2967,12 +3017,29 @@ surv_effects_kbl <- surv_effects_kbl %>% group_by(Species, Effect) %>%
 #Plotting with kableR
 surv_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.43/0.51"=1, "0.72/0.76"=1, "0.05/0.06"=1, "0.10/0.27"=1, "0.26/0.26"=1, "0.30/0.31"=1, "0.11/0.31"=1, "0.17/0.36"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   add_header_above(c("Survival" = 1, "n=163"=1, "n=104"=1, "n=163"=1, "n=162"=1, "n=76"=1, "n=159"=1, "n=160"=1, "n=143"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
   column_spec(1:9, width = 4)
 
 ## FECUNDITY #### 
+seed_model_list <- list(arcaseedfinalmod, hyglseedfinalmod, laroseedfinalmod, peaiseedfinalmod, pldeseedfinalmod, trcyseedfinalmod, trorseedfinalmod, veroseedfinalmod)
+rsquared = lapply(1:length(seed_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(seed_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+seed_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '7'] <- 'Trachymene ornata')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+
 seed_model_list <- list(arcaseedfinalmod, hyglseedfinalmod, laroseedfinalmod, peaiseedfinalmod, pldeseedfinalmod, trcyseedfinalmod, trorseedfinalmod, veroseedfinalmod)
 #glmmTMB model coefs need to be extracted slightly differently
 effects = lapply(1:length(seed_model_list), function(x) {
@@ -3024,12 +3091,28 @@ seed_effects_kbl <- seed_effects_kbl %>% group_by(Species, Effect) %>%
 #Plotting with kableR
 seed_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.26/0.69"=1, "0.24/0.24"=1, "0.25/0.39"=1, "0.43/0.43"=1, "0.38/0.48"=1, "0.18/0.19"=1, "0.26/0.26"=1, "0.23/0.47"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   add_header_above(c("Seed production" = 1, "n=55"=1, "n=41"=1, "n=84"=1, "n=79"=1, "n=38"=1, "n=115"=1, "n=82"=1, "n=96"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
   column_spec(1:9, width = 4)
 
 ## LAMBDA ####  
+lambda_model_list <- list(arcalambdafinalmod, hygllambdafinalmod, larolambdafinalmod, peailambdafinalmod, pldelambdafinalmod, trcylambdafinalmod, trorlambdafinalmod, verolambdafinalmod)
+rsquared = lapply(1:length(lambda_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(lambda_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+lambda_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '7'] <- 'Trachymene ornata')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '8'] <- 'Goodenia rosea')
+
 lambda_model_list <- list(arcalambdafinalmod, hygllambdafinalmod, larolambdafinalmod, peailambdafinalmod, pldelambdafinalmod, trcylambdafinalmod, trorlambdafinalmod, verolambdafinalmod)
 effects = lapply(1:length(lambda_model_list), function(x) {
   as.data.frame(coef(summary(lambda_model_list[[x]]))) %>% mutate(Species=paste0(x))})
@@ -3072,6 +3155,7 @@ lambda_effects_kbl <- lambda_effects_kbl %>% group_by(Species, Effect) %>%
 #Plotting with kableR
 lambda_effects_kbl %>% kbl(align = 'lcccccccc') %>%
   kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.18/0.23"=1, "0.25/0.50"=1, "0.21/0.61"=1, "0.37/0.66"=1, "0.17/0.80"=1, "0.21/0.64"=1, "0.09/0.36"=1, "0.25/0.54"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   add_header_above(c("Population growth" = 1, "n=48"=1, "n=48"=1, "n=48"=1, "n=48"=1, "n=24"=1, "n=48"=1, "n=48"=1, "n=48"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
   row_spec(0, italic = T) %>%
   column_spec(1, italic = F) %>%
