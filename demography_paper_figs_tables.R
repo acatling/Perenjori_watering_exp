@@ -31,6 +31,24 @@ library(ggfortify)
 library(exactLTRE)
 library(popbio)
 
+#### Estimating seed dormancy from prior data ####
+dormancy_data <- read_csv("Data/wa_seed_dormancy_previous_data.csv")
+john_data <- dormancy_data %>% filter(researcher == 'John_Dwyer_and Todd_Erickson')
+maia_data <- dormancy_data %>% filter(researcher == 'Maia_Raymundo')
+str(maia_data)
+maia_data$field_seeds_scaled_viability <- as.numeric(maia_data$field_seeds_scaled_viability)
+maia_data$field_number_germinants <- as.numeric(maia_data$field_number_germinants)
+
+#assuming the seeds that didn't germinate are dormant, since already scaled for viability
+maia_data <- maia_data %>% select(genus, species, field_number_seeds, field_seeds_scaled_viability, field_number_germinants) %>%
+  mutate(number_seeds_dormant = field_seeds_scaled_viability-field_number_germinants)
+#setting negative values to zero - this is where more seeds germinated than were estimated to be viable
+maia_data$seeds_dormant_no_negs <- ifelse(maia_data$number_seeds_dormant<0, 0, maia_data$number_seeds_dormant)
+maia_data <- maia_data %>% mutate(dormancy_rate = seeds_dormant_no_negs/field_seeds_scaled_viability)
+#make a column for united genus and species
+maia_data <- maia_data %>% unite("species_id", genus:species, remove = "false")
+maia_sp_dorm <- maia_data %>% group_by(species_id) %>% summarise(sp_dorm_rate = mean(dormancy_rate, na.rm=T))
+
 #### Running below models needed for figures and tables ####
 ## Germination ####
 ## ARCA - has quadratic germ ~ PC2
