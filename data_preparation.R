@@ -193,9 +193,9 @@ surveytrimn <- surveytrim %>% filter(Neighbours == "Yes")
 ################# Soil/abiotic data #####
 soildata <- read_csv("Data/soil_analysis_2020.csv")
 soildata$Site <- as.factor(soildata$Site)
-soildata <- soildata %>% mutate(log_NH4N = log(`NH4-N`), log_NO3N = log(`NO3-N`), log_Al = log(Al), log_Ca = log(Ca), log_Cu = log(Cu),
+soildata <- soildata %>% mutate(log_totalN = log(`NH4-N`)+log(`NO3-N`), log_NH4N = log(`NH4-N`), log_NO3N = log(`NO3-N`), log_Al = log(Al), log_Ca = log(Ca), log_Cu = log(Cu),
                                 log_Fe = log(Fe), log_K = log(K), log_Mn = log(Mn), log_Na = log(Na), log_P = log(P), N = `NH4-N` + `NO3-N`, log_N = log(N))
-soilpcadata <- soildata %>% select(Site, Plot, pH, log_NH4N, log_NO3N, log_P, log_K)
+soilpcadata <- soildata %>% select(Site, Plot, pH, log_totalN, log_NH4N, log_NO3N, log_P, log_K)
 abioticpcadata <- merge(soilpcadata, canopydatatrim)
 abioticpcadata <- abioticpcadata %>% unite("plotid", Site:Plot, remove = "false")
 abioticpcatrim <- abioticpcadata %>% select(-c(Site, Plot))
@@ -295,6 +295,8 @@ vitaldata$std_cc <- scale(vitaldata$cc_percentage, center = TRUE, scale = TRUE)[
 vitaldata$std_PC1 <- scale(vitaldata$PC1, center = TRUE, scale = TRUE)[,1]
 vitaldata$std_PC2 <- scale(vitaldata$PC2, center = TRUE, scale = TRUE)[,1]
 vitaldata$std_PC3 <- scale(vitaldata$PC3, center = TRUE, scale = TRUE)[,1]
+vitaldata$std_pH <- scale(vitaldata$pH, center = TRUE, scale = TRUE)[,1]
+vitaldata$std_N <- scale(vitaldata$log_totalN, center = TRUE, scale = TRUE)[,1]
 
 #Standardising continuous explanatory variables to a mean of 0 and SD of 1
 vitaldata$std_logp1_totalabund <- scale(vitaldata$logp1_totalabund, center = TRUE, scale = TRUE)[,1]
@@ -309,6 +311,11 @@ vitaldata <- within(vitaldata, Treatment[Treatment == 'Control'] <- 'Ambient')
 
 #Adding unique row ID
 vitaldata <- rownames_to_column(vitaldata, var = "rowID") %>% as_tibble()
+
+# want ambient to be the reference for modelling
+vitaldata$Treatment <- factor(vitaldata$Treatment, level = c("Ambient", "Dry", "Wet"))
+#also want open to be the reference
+vitaldata$Cover <- factor(vitaldata$Cover, level = c("Sun", "Shade"))
 
 #Splitting data by species
 arcadata <- vitaldata %>% filter(Species == "ARCA")
@@ -338,8 +345,8 @@ seedvero <- seedmodeldata %>% filter(Species == "VERO")
 datanonly <- vitaldata %>% filter(Total_abundance > 0)
 
 #Reordering watering treatments to  Dry, Ambient, Wet for plotting
-datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
-vitaldata$Treatment <- factor(vitaldata$Treatment, level = c("Dry", "Ambient", "Wet"))
+#datanonly$Treatment <- factor(datanonly$Treatment, level = c("Dry", "Ambient", "Wet"))
+#vitaldata$Treatment <- factor(vitaldata$Treatment, level = c("Dry", "Ambient", "Wet"))
 
 #Creating species lists for loops
 specieslist <- c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO")
@@ -413,7 +420,6 @@ Species <- rep(c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR",
 Site <- rep(c("1", "2", "3", "4", "5", "6", "7", "8"), each = 9, times = 3)
 Plot <- rep(c("A", "B", "C"), times = 72)
 surv_prop <- cbind(Species, Site, Plot)
-#one_surv_prop is for later (plot-level calculation)
 surv_prop <- data.frame(surv_prop)
 #When dropping Site, instead of A:1, A:2, etc. I need 1_A, 1_B, etc.
 surv_prop <- surv_prop %>% unite("idforjoining", Plot:Site, sep = ":", remove = "false")
@@ -516,8 +522,9 @@ poplongdata <- poplongdata %>% unite("plotid", Site:Plot, remove = "false")
 
 #To analyse this, need to bring in other plot-level data - PC1, PC2 values.
 #Creating dataframe with PCA values and Treatment info to merge
-pcaplot <- vitaldata %>% select(Site, Plot, plotid, PC1, PC2, std_PC1, std_PC2, Treatment) %>% 
-  group_by(plotid) %>% filter(row_number() == 1) %>% select(plotid, PC1, PC2, std_PC1, std_PC2, Treatment)
+### Update following JoE review - adding std_N, std_pH
+pcaplot <- vitaldata %>% select(Site, Plot, plotid, PC1, PC2, std_PC1, std_PC2, Cover, Treatment, std_N, std_pH) %>% 
+  group_by(plotid) %>% filter(row_number() == 1) %>% select(plotid, PC1, PC2, std_PC1, std_PC2, Cover, Treatment, std_N, std_pH)
 popdata <- left_join(poplongdata, pcaplot, by = "plotid")
 
 #What is the distribution of lambda data?
@@ -528,6 +535,9 @@ popdata <- popdata %>% mutate(log_lambda = log(lambda))
 
 # For modelling, want Ambient to the be reference - coming across from vitaldata with dry first
 popdata$Treatment <- factor(popdata$Treatment, level = c("Ambient", "Dry", "Wet"))
+#also want open to be the reference
+popdata$Cover <- factor(popdata$Cover, level = c("Sun", "Shade"))
+#and neighbours absent to be the reference (already is, 0)
 
 #Make a dataframe per species
 lambdaarca <- popdata %>% filter(Species == "ARCA")
@@ -541,3 +551,4 @@ lambdatror <- popdata %>% filter(Species == "TROR")
 lambdavero <- popdata %>% filter(Species == "VERO")
 
 species.list.l<-list(lambdaarca, lambdahygl, lambdalaro, lambdapeai, lambdaplde, lambdapole, lambdatrcy, lambdatror, lambdavero)
+

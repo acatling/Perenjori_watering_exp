@@ -24,6 +24,7 @@ library(grid)
 library(car)
 library(sjPlot)
 library(gridExtra)
+library(corrplot)
 
 #### Determining whether each species needs quadratic term ####
 ### Continuous variables PC1, PC2, neighbour abundance
@@ -2881,7 +2882,6 @@ germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '7'] <- 'T
 germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '8'] <- 'Trachymene ornata')
 germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '9'] <- 'Goodenia rosea')
 
-
 ## GERMINATION ####
 ## Extracting values for all in a loop
 germ_model_list <- list(arcagermfinalmod, hyglgermfinalmod, larogermfinalmod, peaigermfinalmod, pldegermfinalmod, polegermfinalmod, trcygermfinalmod, trorgermfinalmod, verogermfinalmod)
@@ -3963,4 +3963,1709 @@ febdata <- vitaldata %>% select(rowID, Site, Plot, Species, C_E_or_T, Rep, Febru
   filter(February_germination > 0)
 febdata %>% group_by(Species) %>% summarise(number_plots = n(),
                                             number_plants = sum(February_germination))
+
+
+#### After JoE review - exploring single abiotic factors####
+# Instead of responses ~ PC1:
+#responses ~ canopy cover, soil nutrients (phosphorous, ammonium, nitrate, and potassium content), litter cover
+# Total N instead? And P?
+# losing soil pH
+
+#watering treatment
+#N
+#P
+#canopy cover
+
+#litter cover: 0, 12.5, 25, 50
+test <- vitaldata %>% group_by(Site, Plot) %>% filter(row_number()==1)
+ggplot(test, aes(x=Litter_cover_percent, y=cc_percentage))+
+         geom_jitter(alpha=0.3, width=0.5, height=0)+
+  geom_smooth()+
+  theme_classic()
+
+lm<- lm(cc_percentage ~ Litter_cover_percent, test)
+summary(lm)
+r.squaredGLMM(lm)
+#They are correlated. No canopy, no litter!
+
+#Sum, total N
+soildata <- soildata %>% mutate(total_n = `NH4-N`+`NO3-N`)
+hist(test$log_totalN)
+totalndata <- soildata %>% select(Site, Plot, total_n)
+#There is one plot that is a massive outlier - but I think this 
+# is the plot with orchids growing in it! Was closer to a euc
+vitaldata <- left_join(vitaldata, totalndata, join_by(Site,Plot))
+
+test <- vitaldata %>% group_by(Site, Plot) %>% filter(row_number()==1)
+ggplot(test, aes(x=log(total_n.x), y=Litter_cover_percent))+
+  geom_jitter(alpha=0.3, width=0.5, height=0)+
+ # geom_smooth()+
+  theme_classic()
+
+#hm, total N and canopy cover are correlated too
+lm<- lm(cc_percentage ~ total_n.x, test)
+summary(lm)
+r.squaredGLMM(lm)
+
+ggplot(test, aes(y=cc_percentage, x=Cover))+
+  geom_boxplot()+
+  geom_jitter(alpha=0.3, width=0.05)+
+  theme_classic()
+
+#Sun (0-12%) and shad (58-100%) cover, ranges per plot
+#site 6B: log(0.2)+log(2.1)=-0.87
+#When would you log values before versus after adding them??
+#negative value, so adding +1 before analysis
+hist(test$log_totalN+1)
+
+ggplot(test, aes(y=log_totalN+1, x=Cover))+
+  geom_boxplot()+
+  geom_jitter(alpha=0.3, width=0.05)+
+  theme_classic()
+
+lm<- lm(log_totalN+1 ~ Cover, test)
+summary(lm)
+r.squaredGLMM(lm)
+
+#soil P
+hist(test$log_P)
+ggplot(test, aes(y=log_P, x=Cover))+
+  geom_boxplot()+
+  geom_jitter(alpha=0.3, width=0.05)+
+  theme_classic()
+
+lm<- lm(log_P ~ Cover, test)
+summary(lm)
+r.squaredGLMM(lm)
+
+#Phosphorous is highly correlated to shade. High P in the shade
+
+#pH?
+hist(test$pH)
+ggplot(test, aes(y=pH, x=Cover))+
+  geom_boxplot()+
+  geom_jitter(alpha=0.3, width=0.05)+
+  theme_classic()
+
+lm<- lm(pH ~ Cover, test)
+summary(lm)
+r.squaredGLMM(lm)
+
+
+#Should neighbour abund be continuous?
+#I think not - too many zeroes, not normally distributed
+#Already did this decision-making for previous version though, chose to keep it continuous
+hist(seedmodeldata$std_logp1_totalabund)
+hist(seedmodeldata$Total_abundance)
+ggplot(test2, aes(x=Total_abundance, y=log(No_viable_seeds_grouped+1)))+
+  geom_jitter(alpha=0.3, height=0.05, width=0.05)+
+  theme_classic()
+
+test2 <- vitaldata %>% filter(Total_abundance>0)
+test3 <- vitaldata %>% filter(Total_abundance==0)
+#534 focals with at least 1 neighbour
+#650 focals with no neighbours
+hist(test2$Total_abundance)
+
+hist(vitaldata$std_N)
+
+# ggplot(vitaldata, aes(x=Site, y= std_N))+
+#   geom_jitter()+
+#   theme_classic()
+ggplot(seedmodeldata, aes(x=Site, y= Total_abundance))+
+  geom_jitter()+
+  theme_classic()
+
+test <- vitaldata %>% filter(Total_abundance>0)
+hist(log(seedmodeldata$Total_abundance+1))
+hist(test$Total_abundance)
+
+
+#### Exploring quadratic terms - N, pH, neighbour abund ####
+
+# Could do it by species, but would rather use loops:
+# #ARCA - linear PC1 survival
+# arcasurvquad1 <- glmer(surv_to_produce_seeds ~ std_PC1 + I(std_PC1^2) + (1|Site/Plot), family = binomial, arcadata)
+# summary(arcasurvquad1)
+
+### Germination ###
+## PEAI - quad N germ
+## All other species - linear PC1 germination
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  germquadPC1 <- glmer(cbind(total_germ, total_no_germ) ~ std_N + I(std_N^2) + (1|Site/Plot), 
+                       family = binomial, data = filter(vitaldata, Species == specieslist[i]))
+  print(summary(germquadPC1))
+}
+#Plotting if quadratic to double check
+#This produces a plot that plots quadratic responses if the quadratic term is < 0.05, otherwise linear plot
+dev.off()
+pdf("Output/Figures/germ_N_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$percent_germ~plotted.data$std_N, pch=19, col="grey60", ylab="Probability of germination", xlab="Total N (logged, standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_N) 
+  model<-glmer(cbind(total_germ, total_no_germ)~std_N + I(std_N^2) + (1|Site/Plot), family = binomial, plotted.data)
+  model2<-glmer(cbind(total_germ, total_no_germ)~std_N + (1|Site/Plot), family = binomial, plotted.data)
+  if(summary(model)$coefficients[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+
+## All species - linear pH germination (almost signif hygl, laro, plde)
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  germquadPC2 <- glmer(cbind(total_germ, total_no_germ) ~ std_pH + I(std_pH^2) + (1|Site/Plot), 
+                       family = binomial, data = filter(vitaldata, Species == specieslist[i]))
+  print(summary(germquadPC2))
+}
+#Plotting if quadratic to double check
+dev.off()
+pdf("Output/Figures/germ_pH_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$percent_germ~plotted.data$std_pH, pch=19, col="grey60", ylab="Probability of germination", xlab="PC2 (standardised)", cex.lab=2, .axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13)
+  title(main=bquote(italic(.(species.name.list[i]))), .main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_pH) 
+  model<-glmer(cbind(total_germ, total_no_germ)~std_pH + I(std_pH^2) + (1|Site/Plot), family = binomial, plotted.data)
+  model2<-glmer(cbind(total_germ, total_no_germ)~std_pH + (1|Site/Plot), family = binomial, plotted.data)
+  if(summary(model)$coefficients[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+### Survival ###
+## All species - linear N survival
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survquadPC1 <- glmer(surv_to_produce_seeds ~ std_N + I(std_N^2) + (1|Site/Plot), 
+                       family = binomial, data = filter(vitaldata, Species == specieslist[i]))
+  print(summary(survquadPC1))
+}
+#Plotting if quadratic to double check
+dev.off()
+pdf("Output/Figures/surv_N_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_N, pch=19, col="grey60", ylab="Probability of survival", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_N) 
+  model<-glmer(surv_to_produce_seeds~std_N + I(std_N^2) + (1|Site/Plot), family = binomial, plotted.data)
+  model2<-glmer(surv_to_produce_seeds~std_N + (1|Site/Plot), family = binomial, plotted.data)
+  if(summary(model)$coefficients[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+##ARCA - quadratic pH survival 
+##All other species - linear pH survival
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  survquadPC2 <- glmer(surv_to_produce_seeds ~ std_pH + I(std_pH^2) + (1|Site/Plot), 
+                       family = binomial, data = filter(vitaldata, Species == specieslist[i]))
+  print(summary(survquadPC2))
+}
+#Plotting if quadratic to double check
+#TRCY linear model not converging
+dev.off()
+pdf("Output/Figures/surv_pH_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.s)){
+  plotted.data<-as.data.frame(species.list.s[i])
+  plot(plotted.data$surv_to_produce_seeds~plotted.data$std_pH, pch=19, col="grey60", ylab="Probability of survival", xlab="PC2 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_pH) 
+  model<-glmer(surv_to_produce_seeds~std_pH + I(std_pH^2) + (1|Site/Plot), family = binomial, plotted.data)
+  model2<-glmer(surv_to_produce_seeds~std_pH + (1|Site/Plot), family = binomial, plotted.data)
+  if(summary(model)$coefficients[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+### Fecundity ###
+#Note that I have to use different datasets - seedmodeldata/seedarca/species.list.f
+
+## POLE - quadratic N fecundity (but don't analyse pole seed production data, unreliable and small sample size)
+## All other species - linear N fecundity
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  seedquadPC1 <- glmmTMB(No_viable_seeds_grouped ~ std_N + I(std_N^2) + (1|Site/Plot), 
+                         family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(seedquadPC1))
+}
+#Plotting if quadratic to double check
+dev.off()
+pdf("Output/Figures/SP_N_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.f)){
+  plotted.data<-as.data.frame(species.list.f[i])
+  plot(plotted.data$No_viable_seeds_grouped~plotted.data$std_N, pch=19, col="grey60", ylab="Number of seeds produced", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_N) 
+  model<-glmmTMB(No_viable_seeds_grouped~std_N + I(std_N^2) + (1|Site/Plot), family = nbinom2, plotted.data)
+  model2<-glmmTMB(No_viable_seeds_grouped~std_N + (1|Site/Plot), family = nbinom2, plotted.data)
+  if(coef(summary(model))$cond[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+## All species - linear pH fecundity
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  seedquadPC2 <- glmmTMB(No_viable_seeds_grouped ~ std_pH + I(std_pH^2) + (1|Site/Plot), 
+                         family = nbinom2, data = filter(seedmodeldata, Species == specieslist[i]))
+  print(summary(seedquadPC2))
+}
+#Plotting if quadratic to double check
+dev.off()
+pdf("Output/Figures/SP_pH_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.f)){
+  plotted.data<-as.data.frame(species.list.f[i])
+  plot(plotted.data$No_viable_seeds_grouped~plotted.data$std_pH, pch=19, col="grey60", ylab="Number of seeds produced", xlab="PC2 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_pH) 
+  model<-glmmTMB(No_viable_seeds_grouped~std_pH + I(std_pH^2) + (1|Site/Plot), family = nbinom2, plotted.data)
+  model2<-glmmTMB(No_viable_seeds_grouped~std_pH + (1|Site/Plot), family = nbinom2, plotted.data)
+  if(coef(summary(model))$cond[3,4]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=TRUE, glmmTMB=TRUE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+
+### Population growth rate, lambda ###
+
+## All  species - linear N lambda
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  lambdaquadPC1 <- lmer(log_lambda ~ std_N + I(std_N^2) + (1|Site/Plot), 
+                        data = filter(popdata, Species == specieslist[i]))
+  print(summary(lambdaquadPC1))
+}
+#Plotting if quadratic to double check
+#This produces a plot that plots quadratic responses if the quadratic term is < 0.05, otherwise linear plot
+#summary(mod1)$coefficients[3,5] - these are the coefficient coordinates we want
+
+dev.off()
+pdf("Output/Figures/lambda_N_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.l)){
+  plotted.data<-as.data.frame(species.list.l[i])
+  plot(plotted.data$log_lambda~plotted.data$std_N, pch=19, col="grey60", ylab="Population growth rate (logged plus 1)", xlab="PC1 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_N) 
+  model<-lmer(log_lambda~std_N + I(std_N^2) + (1|Site/Plot), plotted.data)
+  model2<-lmer(log_lambda~std_N + (1|Site/Plot), plotted.data)
+  if(summary(model)$coefficients[3,5]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+## All species - linear pH lambda
+for (i in 1:length(specieslist)){
+  print(specieslist[i])
+  lambdaquadPC2 <- lmer(log_lambda ~ std_pH + I(std_pH^2) + (1|Site/Plot), 
+                        data = filter(popdata, Species == specieslist[i]))
+  print(summary(lambdaquadPC2))
+}
+#Plotting if quadratic to double check
+
+dev.off()
+pdf("Output/Figures/lambda_pH_if_quad.pdf", width=21, height=21)
+par(mfrow=c(3,3))
+par(mar=c(4,6,2,1))
+par(pty="s")
+for(i in 1:length(species.list.l)){
+  plotted.data<-as.data.frame(species.list.l[i])
+  plot(plotted.data$log_lambda~plotted.data$std_pH, pch=19, col="grey60", ylab="Population growth rate (logged plus 1)", xlab="PC2 (standardised)", cex.lab=2, cex.axis=2.00,tck=-0.01)
+  mtext(paste(letters[i], ")", sep=""), side=2,line=1,adj=1.5,las=1, padj=-13, cex=1.5)
+  title(main=bquote(italic(.(species.name.list[i]))), cex.main=2.5)
+  x_to_plot<-seq.func(plotted.data$std_pH) 
+  model<-lmer(log_lambda~std_pH + I(std_pH^2) + (1|Site/Plot), plotted.data)
+  model2<-lmer(log_lambda~std_pH + (1|Site/Plot), plotted.data)
+  if(summary(model)$coefficients[3,5]<0.05){
+    preddata <- with(model, data.frame(1, x_to_plot, x_to_plot^2))
+    plotted.pred <- glmm.predict(mod = model, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }else{
+    preddata <- with(model2, data.frame(1, x_to_plot))
+    plotted.pred <- glmm.predict(mod = model2, newdat = preddata, se.mult = 1.96, logit_link=FALSE, log_link=FALSE, glmmTMB=FALSE)
+    plot.CI.func(x.for.plot = x_to_plot, pred = plotted.pred$y, upper = plotted.pred$upper, lower = plotted.pred$lower, env.colour = "grey1", env.trans = 50, line.colour = "black", line.weight = 2, line.type = 1)
+  }
+}
+dev.off()
+
+#### After JoE review - single abiotic factors analysis ####
+#Cover (open/shaded) and total soil N and pH
+#Cover instead of PC1
+#pH instead of PC2
+#soil N as covariate (with pH)
+
+#### New germination models ####
+#Same overall pattern as PC1 with cover
+
+## original models
+## ARCA - has quadratic germ ~ PC2
+arcagermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ std_PC1 + std_PC2 + I(std_PC2^2) + (1|Site/Plot/rowID), 
+                          family = binomial, arcadata)
+arcagermmod1dharma <- simulateResiduals(arcagermfinalmod)
+plot(arcagermmod1dharma)
+vif(arcagermfinalmod)
+summary(arcagermfinalmod)
+testDispersion(arcagermfinalmod)
+
+## ARCA new models
+#N signif
+arcagermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, arcadata)
+arcagermmod1dharma <- simulateResiduals(arcagermfinalmod)
+plot(arcagermmod1dharma)
+vif(arcagermfinalmod)
+summary(arcagermfinalmod)
+testDispersion(arcagermfinalmod)
+
+## hygl new models
+#Cover signif
+hyglgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, hygldata)
+hyglgermmod1dharma <- simulateResiduals(hyglgermfinalmod)
+plot(hyglgermmod1dharma)
+vif(hyglgermfinalmod)
+summary(hyglgermfinalmod)
+
+## laro new models
+#Cover signif
+larogermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, larodata)
+larogermmod1dharma <- simulateResiduals(larogermfinalmod)
+plot(larogermmod1dharma)
+vif(larogermfinalmod)
+summary(larogermfinalmod)
+
+## peai new models
+#Cover signif
+peaigermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, peaidata)
+peaigermmod1dharma <- simulateResiduals(peaigermfinalmod)
+plot(peaigermmod1dharma)
+vif(peaigermfinalmod)
+summary(peaigermfinalmod)
+
+## plde new models
+#pH signif
+pldegermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, pldedata)
+pldegermmod1dharma <- simulateResiduals(pldegermfinalmod)
+plot(pldegermmod1dharma)
+vif(pldegermfinalmod)
+summary(pldegermfinalmod)
+
+## pole new models
+#N signif
+polegermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, poledata)
+polegermmod1dharma <- simulateResiduals(polegermfinalmod)
+plot(polegermmod1dharma)
+vif(polegermfinalmod)
+summary(polegermfinalmod)
+
+## trcy new models
+#Cover signif
+trcygermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, trcydata)
+trcygermmod1dharma <- simulateResiduals(trcygermfinalmod)
+plot(trcygermmod1dharma)
+vif(trcygermfinalmod)
+summary(trcygermfinalmod)
+
+## tror new models
+#Cover signif
+trorgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, trordata)
+trorgermmod1dharma <- simulateResiduals(trorgermfinalmod)
+plot(trorgermmod1dharma)
+vif(trorgermfinalmod)
+summary(trorgermfinalmod)
+
+## vero new models
+#Cover signif
+verogermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, verodata)
+verogermmod1dharma <- simulateResiduals(verogermfinalmod)
+plot(verogermmod1dharma)
+vif(verogermfinalmod)
+summary(verogermfinalmod)
+
+#### New survival models ####
+
+## ARCA - ORIGINAL
+arcasurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                        Treatment:std_PC1 + Treatment:std_logp1_totalabund + std_PC1:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, arcadata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+arcasurvmod1dharma <- simulateResiduals(arcasurvmod1)
+plot(arcasurvmod1dharma)
+#good
+vif(arcasurvmod1)
+summary(arcasurvmod1)
+# Model simplification step - Significant Dry:PC1 and PC1:NA, removing all others
+arcasurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + std_PC1 + std_PC2 + std_logp1_totalabund + Dodder01 +
+                            Treatment:std_PC1 + std_PC1:std_logp1_totalabund + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), arcadata)
+arcasurvfinalmoddharma <- simulateResiduals(arcasurvfinalmod)
+plot(arcasurvfinalmoddharma)
+#good
+summary(arcasurvfinalmod)
+
+## New - ARCA
+arcasurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, arcadata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+arcasurvmod1dharma <- simulateResiduals(arcasurvmod1)
+plot(arcasurvmod1dharma)
+#good
+vif(arcasurvmod1)
+summary(arcasurvmod1)
+
+#N matters for survival, higher N higher survival. pH did not
+
+#Simplifying -- watering DOES interact with cover
+# water NO interaction with neighbour abundance
+# cover DOES interact with neighbour abundance
+#fundamentally the same as the original model
+
+arcasurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                            Treatment:Cover + Cover:std_logp1_totalabund + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), arcadata)
+arcasurvfinalmoddharma <- simulateResiduals(arcasurvfinalmod)
+plot(arcasurvfinalmoddharma)
+#good
+summary(arcasurvfinalmod)
+
+## hygl
+hyglsurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, hygldata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+hyglsurvmod1dharma <- simulateResiduals(hyglsurvmod1)
+plot(hyglsurvmod1dharma)
+#good
+vif(hyglsurvmod1)
+summary(hyglsurvmod1)
+
+ggplot(hygldata, aes(y=surv_to_produce_seeds, x=Treatment, colour = Cover))+
+  geom_boxplot()+
+  geom_jitter(alpha=0.3, width=0.1, height=0.2)+
+  theme_classic()
+#all dry plants in the shade died. HUGE estimates and SE from Dry:Shade
+
+#N matters for survival, higher N higher survival. pH did not
+#Simplyfing -- watering DOES interact with cover
+# watering does interact with neighbour abundance (different from orig. model, not signif in final mod)
+# cover no interaction with neighbour abundance
+
+hyglsurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                            Treatment:Cover + Treatment:std_logp1_totalabund + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), hygldata)
+hyglsurvfinalmoddharma <- simulateResiduals(hyglsurvfinalmod)
+plot(hyglsurvfinalmoddharma)
+vif(hyglsurvfinalmod)
+#good
+summary(hyglsurvfinalmod)
+r.squaredGLMM(hyglsurvfinalmod)
+
+## laro
+larosurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, larodata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+larosurvmod1dharma <- simulateResiduals(larosurvmod1)
+plot(larosurvmod1dharma)
+#good
+vif(larosurvmod1)
+summary(larosurvmod1)
+
+#Nothing signif
+#fundamentally the same as the original model
+
+larosurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), larodata)
+larosurvfinalmoddharma <- simulateResiduals(larosurvfinalmod)
+plot(larosurvfinalmoddharma)
+#good
+summary(larosurvfinalmod)
+
+## peai
+peaisurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, peaidata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+peaisurvmod1dharma <- simulateResiduals(peaisurvmod1)
+plot(peaisurvmod1dharma)
+#good
+vif(peaisurvmod1)
+summary(peaisurvmod1)
+
+#Nothing signif - different from orig model, PC1:NA
+
+peaisurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), peaidata)
+peaisurvfinalmoddharma <- simulateResiduals(peaisurvfinalmod)
+plot(peaisurvfinalmoddharma)
+#good
+summary(peaisurvfinalmod)
+
+## plde
+pldesurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, pldedata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+pldesurvmod1dharma <- simulateResiduals(pldesurvmod1)
+plot(pldesurvmod1dharma)
+#good
+vif(pldesurvmod1)
+#VIF OF 8 for pH - look into this later
+summary(pldesurvmod1)
+
+#Nothing signif - different from orig model, PC1:NA
+
+pldesurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), pldedata)
+pldesurvfinalmoddharma <- simulateResiduals(pldesurvfinalmod)
+plot(pldesurvfinalmoddharma)
+#good
+summary(pldesurvfinalmod)
+
+## trcy
+trcysurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, trcydata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+trcysurvmod1dharma <- simulateResiduals(trcysurvmod1)
+plot(trcysurvmod1dharma)
+#good
+vif(trcysurvmod1)
+summary(trcysurvmod1)
+
+#Simplifying -- watering DOES interact with cover
+# water NO interaction with neighbour abundance
+# cover DOES interact with neighbour abundance
+#different from the original model
+
+trcysurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                            Treatment:Cover + Cover:std_logp1_totalabund + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), trcydata)
+trcysurvfinalmoddharma <- simulateResiduals(trcysurvfinalmod)
+plot(trcysurvfinalmoddharma)
+#good
+summary(trcysurvfinalmod)
+
+## tror
+trorsurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, trordata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+trorsurvmod1dharma <- simulateResiduals(trorsurvmod1)
+plot(trorsurvmod1dharma)
+#good
+vif(trorsurvmod1)
+summary(trorsurvmod1)
+
+#Simplifying -- watering DOES interact with cover
+# water NO interaction with neighbour abundance
+# cover NO interaction with neighbour abundance
+#fundamentally the same as the original model
+
+trorsurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                            Treatment:Cover + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), trordata)
+trorsurvfinalmoddharma <- simulateResiduals(trorsurvfinalmod)
+plot(trorsurvfinalmoddharma)
+#good
+summary(trorsurvfinalmod)
+
+## vero
+verosurvmod1 <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                        Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot),
+                      family = binomial, verodata, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)))
+#Not converging without optimiser
+verosurvmod1dharma <- simulateResiduals(verosurvmod1)
+plot(verosurvmod1dharma)
+#good
+vif(verosurvmod1)
+summary(verosurvmod1)
+
+#Nothing signif
+#fundamentally the same as the original model
+
+verosurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), verodata)
+verosurvfinalmoddharma <- simulateResiduals(verosurvfinalmod)
+plot(verosurvfinalmoddharma)
+#good
+summary(verosurvfinalmod)
+
+##### New seed production models ####
+
+#ARCA
+arcaseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedarca)
+arcaseedmod1dharma <- simulateResiduals(arcaseedmod1)
+plot(arcaseedmod1dharma)
+summary(arcaseedmod1)
+#simplifying - signif Treatment:NA
+#same as original
+arcaseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                              Treatment:std_logp1_totalabund + (1|Site/Plot), 
+                            family = nbinom2, seedarca)
+arcaseedfinalmoddharma <- simulateResiduals(arcaseedfinalmod)
+plot(arcaseedfinalmoddharma)
+#not good
+summary(arcaseedfinalmod)
+
+#hygl
+#won't converge with this new model
+hyglseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedhygl)
+hyglseedmod1dharma <- simulateResiduals(hyglseedmod1)
+plot(hyglseedmod1dharma)
+summary(hyglseedmod1)
+#will converge using glmer.nb but drops TreatmentDry:CoverSun
+#BECAUSE there is a complete separation issue - no dry plants in the shade produced viable seeds
+#because there were no dry plants in the shade - they all died
+#same estimate values between models excpt for TreatmentDry estimate
+#glmmTMB optimiser stops and we don't get probabilities
+#glmer.nb just drops that row from the output.
+#Cover:Treatment not significant anyway so dropping it from final model
+hyglseedmod2 <- glmer.nb(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                           Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), seedhygl)
+hyglseedmod2dharma <- simulateResiduals(hyglseedmod2)
+plot(hyglseedmod2dharma)
+summary(hyglseedmod2)
+
+# ggplot(seedhygl, aes(x=Cover, y= No_viable_seeds_grouped, colour = Treatment)) +
+#   geom_jitter(alpha=0.5)+
+#   theme_classic()
+
+#simplifying - nothing signif
+hyglseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+                            family = nbinom2, seedhygl)
+hyglseedfinalmoddharma <- simulateResiduals(hyglseedfinalmod)
+plot(hyglseedfinalmoddharma)
+#good
+summary(hyglseedfinalmod)
+#same as original
+
+#peai
+peaiseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedpeai)
+peaiseedmod1dharma <- simulateResiduals(peaiseedmod1)
+plot(peaiseedmod1dharma)
+summary(peaiseedmod1)
+
+#simplifying - nothing signif, different from original
+peaiseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+                            family = nbinom2, seedpeai)
+peaiseedfinalmoddharma <- simulateResiduals(peaiseedfinalmod)
+plot(peaiseedfinalmoddharma)
+#good
+summary(peaiseedfinalmod)
+
+#laro
+laroseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedlaro)
+laroseedmod1dharma <- simulateResiduals(laroseedmod1)
+plot(laroseedmod1dharma)
+summary(laroseedmod1)
+
+#simplifying - nothing signif (Cover:NA 0.054!), different from original
+laroseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+                            family = nbinom2, seedlaro)
+laroseedfinalmoddharma <- simulateResiduals(laroseedfinalmod)
+plot(laroseedfinalmoddharma)
+#good
+summary(laroseedfinalmod)
+
+#plde
+pldeseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedplde)
+pldeseedmod1dharma <- simulateResiduals(pldeseedmod1)
+plot(pldeseedmod1dharma)
+summary(pldeseedmod1)
+
+#simplifying - nothing signif, same as original
+pldeseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+                            family = nbinom2, seedplde)
+pldeseedfinalmoddharma <- simulateResiduals(pldeseedfinalmod)
+plot(pldeseedfinalmoddharma)
+#good
+summary(pldeseedfinalmod)
+
+#trcy
+trcyseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedtrcy)
+trcyseedmod1dharma <- simulateResiduals(trcyseedmod1)
+plot(trcyseedmod1dharma)
+summary(trcyseedmod1)
+
+#simplifying - signif Cover:NA (and Treatment:Cover 0.052!), differnt from original
+trcyseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                              Cover:std_logp1_totalabund + (1|Site/Plot), 
+                            family = nbinom2, seedtrcy)
+trcyseedfinalmoddharma <- simulateResiduals(trcyseedfinalmod)
+plot(trcyseedfinalmoddharma)
+#good
+summary(trcyseedfinalmod)
+
+#tror
+trorseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedtror)
+trorseedmod1dharma <- simulateResiduals(trorseedmod1)
+plot(trorseedmod1dharma)
+summary(trorseedmod1)
+
+#simplifying - signif Treatment:Cover
+#same as original
+trorseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                              Treatment:Cover + (1|Site/Plot), 
+                            family = nbinom2, seedtror)
+trorseedfinalmoddharma <- simulateResiduals(trorseedfinalmod)
+plot(trorseedfinalmoddharma)
+#good
+summary(trorseedfinalmod)
+
+#vero
+veroseedmod1 <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                          Treatment:Cover + Treatment:std_logp1_totalabund + Cover:std_logp1_totalabund + (1|Site/Plot), 
+                        family = nbinom2, seedvero)
+veroseedmod1dharma <- simulateResiduals(veroseedmod1)
+plot(veroseedmod1dharma)
+summary(veroseedmod1)
+
+#simplifying - nothing signif, same as original
+veroseedfinalmod <- glmmTMB(No_viable_seeds_grouped ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 + (1|Site/Plot), 
+                            family = nbinom2, seedvero)
+veroseedfinalmoddharma <- simulateResiduals(veroseedfinalmod)
+plot(veroseedfinalmoddharma)
+#good
+summary(veroseedfinalmod)
+
+##### New population growth models ####
+#original: arcalambdamod1 <- lmer(log_lambda ~ Treatment + std_PC1 + std_PC2 + Neighbours01 +
+#Treatment:std_PC1 + Treatment:Neighbours01 + std_PC1:Neighbours01 + (1|Site/Plot), lambdaarca)
+
+## arca
+arcalambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdaarca)
+arcalambdamod1dharma <- simulateResiduals(arcalambdamod1)
+plot(arcalambdamod1dharma)
+#not good
+vif(arcalambdamod1)
+summary(arcalambdamod1)
+#Model simplification step - No interactions significant, removing all
+#same as original
+arcalambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + (1|Site/Plot), lambdaarca)
+arcalambdafinalmoddharma <- simulateResiduals(arcalambdafinalmod)
+plot(arcalambdafinalmoddharma)
+#okay
+summary(arcalambdafinalmod)
+
+## HYGL
+hygllambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdahygl)
+hygllambdamod1dharma <- simulateResiduals(hygllambdamod1)
+plot(hygllambdamod1dharma)
+#okay
+vif(hygllambdamod1)
+summary(hygllambdamod1)
+#Model simplification step - No interactions significant, removing all
+#same as original
+hygllambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + (1|Site/Plot), lambdahygl)
+hygllambdafinalmoddharma <- simulateResiduals(hygllambdafinalmod)
+plot(hygllambdafinalmoddharma)
+#okay
+summary(hygllambdafinalmod)
+
+## laro
+larolambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdalaro)
+larolambdamod1dharma <- simulateResiduals(larolambdamod1)
+plot(larolambdamod1dharma)
+#okay
+vif(larolambdamod1)
+summary(larolambdamod1)
+#Model simplification step - signif Cover:Neighbours, same as original
+larolambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdalaro)
+larolambdafinalmoddharma <- simulateResiduals(larolambdafinalmod)
+plot(larolambdafinalmoddharma)
+#okay
+summary(larolambdafinalmod)
+
+## peai
+peailambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdapeai)
+peailambdamod1dharma <- simulateResiduals(peailambdamod1)
+plot(peailambdamod1dharma)
+#okay
+vif(peailambdamod1)
+summary(peailambdamod1)
+#Model simplification step - signif Treatment:Cover, Cover:Neighbours
+#same as original
+peailambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + Treatment:Cover + Cover:Neighbours01 + (1|Site/Plot), lambdapeai)
+peailambdafinalmoddharma <- simulateResiduals(peailambdafinalmod)
+plot(peailambdafinalmoddharma)
+#okay
+summary(peailambdafinalmod)
+
+## plde
+pldelambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdaplde)
+pldelambdamod1dharma <- simulateResiduals(pldelambdamod1)
+plot(pldelambdamod1dharma)
+#okay
+vif(pldelambdamod1)
+summary(pldelambdamod1)
+#Model simplification step - No interactions significant, removing all
+#same as original
+pldelambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + (1|Site/Plot), lambdaplde)
+pldelambdafinalmoddharma <- simulateResiduals(pldelambdafinalmod)
+plot(pldelambdafinalmoddharma)
+#okay
+summary(pldelambdafinalmod)
+
+## trcy
+trcylambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdatrcy)
+trcylambdamod1dharma <- simulateResiduals(trcylambdamod1)
+plot(trcylambdamod1dharma)
+#okay
+vif(trcylambdamod1)
+summary(trcylambdamod1)
+#Model simplification step - signif Treatment:Neighbours and Cover:Neighbours
+#same as original
+trcylambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdatrcy)
+trcylambdafinalmoddharma <- simulateResiduals(trcylambdafinalmod)
+plot(trcylambdafinalmoddharma)
+#okay
+summary(trcylambdafinalmod)
+
+## tror
+trorlambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdatror)
+trorlambdamod1dharma <- simulateResiduals(trorlambdamod1)
+plot(trorlambdamod1dharma)
+#okay
+vif(trorlambdamod1)
+summary(trorlambdamod1)
+#Model simplification step - No interactions significant, removing all
+#same as original
+trorlambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + (1|Site/Plot), lambdatror)
+trorlambdafinalmoddharma <- simulateResiduals(trorlambdafinalmod)
+plot(trorlambdafinalmoddharma)
+#okay
+summary(trorlambdafinalmod)
+
+## vero
+verolambdamod1 <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 +
+                         Treatment:Cover + Treatment:Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdavero)
+verolambdamod1dharma <- simulateResiduals(verolambdamod1)
+plot(verolambdamod1dharma)
+#okay
+vif(verolambdamod1)
+summary(verolambdamod1)
+#Model simplification step - signif Cover:Neighbours 
+#different from original
+verolambdafinalmod <- lmer(log_lambda ~ Treatment + Cover + std_pH + std_N + Neighbours01 + Cover:Neighbours01 + (1|Site/Plot), lambdavero)
+verolambdafinalmoddharma <- simulateResiduals(verolambdafinalmod)
+plot(verolambdafinalmoddharma)
+#okay
+summary(verolambdafinalmod)
+
+
+#### New extracting marginal and conditional r squared values for table ####
+#Extracting values for theoretical marginal R squared
+germ_model_list <- list(arcagermfinalmod, hyglgermfinalmod, larogermfinalmod, peaigermfinalmod, pldegermfinalmod, polegermfinalmod, trcygermfinalmod, trorgermfinalmod, verogermfinalmod)
+rsquared = lapply(1:length(germ_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(germ_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+germ_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '6'] <- 'Podolepis lessonii')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '7'] <- 'Trachymene cyanopetala')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '8'] <- 'Trachymene ornata')
+germ_rsquared_table <- within(germ_rsquared_table, Species[Species == '9'] <- 'Goodenia rosea')
+
+## Table output GERMINATION ####
+## Extracting values for all in a loop
+germ_model_list <- list(arcagermfinalmod, hyglgermfinalmod, larogermfinalmod, peaigermfinalmod, pldegermfinalmod, polegermfinalmod, trcygermfinalmod, trorgermfinalmod, verogermfinalmod)
+effects = lapply(1:length(germ_model_list), function(x) {
+  as.data.frame(coef(summary(germ_model_list[[x]]))) %>% mutate(Species=paste0(x))})
+germ_effects_table <- do.call("rbind", effects)
+
+#make rownames a column
+germ_effects_table <- cbind(Effect = rownames(germ_effects_table), germ_effects_table)
+rownames(germ_effects_table) <- NULL
+
+#Rename species
+germ_effects_table <- within(germ_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+germ_effects_table <- within(germ_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+germ_effects_table <- within(germ_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+germ_effects_table <- within(germ_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+germ_effects_table <- within(germ_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+germ_effects_table <- within(germ_effects_table, Species[Species == '6'] <- 'Podolepis lessonii')
+germ_effects_table <- within(germ_effects_table, Species[Species == '7'] <- 'Trachymene cyanopetala')
+germ_effects_table <- within(germ_effects_table, Species[Species == '8'] <- 'Trachymene ornata')
+germ_effects_table <- within(germ_effects_table, Species[Species == '9'] <- 'Goodenia rosea')
+
+#Renaming effects since loop adding values to ends
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, 'std_pH')] <- 'pH'
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, 'std_N')] <- 'Nitrogen'
+germ_effects_table$Effect[startsWith(germ_effects_table$Effect, 'CoverShade')] <- 'Cover (shade)'
+
+germ_effects_table <- within(germ_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+germ_effects_table <- within(germ_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+germ_effects_table <- within(germ_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+germ_effects_table <- within(germ_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+germ_effects_table <- within(germ_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+germ_effects_table <- within(germ_effects_table, Species[Species == '6'] <- 'Podolepis lessonii')
+germ_effects_table <- within(germ_effects_table, Species[Species == '7'] <- 'Trachymene cyanopetala')
+germ_effects_table <- within(germ_effects_table, Species[Species == '8'] <- 'Trachymene ornata')
+germ_effects_table <- within(germ_effects_table, Species[Species == '9'] <- 'Goodenia rosea')
+
+#Renaming columns
+germ_effects_table <- germ_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
+
+#Making column with Estimate (+/- SE) and p value asterisks all combined
+#Add column for asterisks based on below function
+germ_effects_table <- germ_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                                            p_value <0.001~"***",
+                                                                            p_value <0.01~"**",
+                                                                            p_value <0.05~"*"))
+germ_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", germ_effects_table$Estimate, germ_effects_table$SE, germ_effects_table$p_asterisks)
+
+#Join with r squared values
+#germ_effects_table <- left_join(germ_effects_table, germ_rsquared_table)
+
+germ_effects_kbl <- germ_effects_table %>% select(Species, Effect, collated)
+germ_effects_kbl <- germ_effects_kbl %>% group_by(Species, Effect) %>%
+  pivot_wider(names_from = Species, values_from = collated)
+
+#Plotting with kableR
+germ_effects_kbl %>% kbl(align = 'lccccccccc') %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.13/0.82"=1, "0.25/0.91"=1, "0.29/0.84"=1, "0.26/0.89"=1, "0.23/0.91"=1, "0.28/0.96"=1, "0.12/0.92"=1, "0.34/0.90"=1, "0.35/0.93"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Emergence" = 1, "n=190"=1, "n=189"=1, "n=192"=1, "n=192"=1, "n=92"=1, "n=185"=1, "n=192"=1, "n=191"=1, "n=191"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
+  column_spec(1, italic = F) %>%
+  column_spec(1:10, width = 4)
+
+
+## SURVIVAL #### 
+
+### PROBLEM TO FIX - Estimate -23.7 for hygl Dry:Cover shade.
+### r squared values
+surv_model_list <- list(arcasurvfinalmod, hyglsurvfinalmod, larosurvfinalmod, peaisurvfinalmod, pldesurvfinalmod, trcysurvfinalmod, trorsurvfinalmod, verosurvfinalmod)
+rsquared = lapply(1:length(surv_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(surv_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+surv_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '7'] <- 'Trachymene ornata')
+surv_rsquared_table <- within(surv_rsquared_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+surv_model_list <- list(arcasurvfinalmod, hyglsurvfinalmod, larosurvfinalmod, peaisurvfinalmod, pldesurvfinalmod, trcysurvfinalmod, trorsurvfinalmod, verosurvfinalmod)
+effects = lapply(1:length(surv_model_list), function(x) {
+  as.data.frame(coef(summary(surv_model_list[[x]]))) %>% mutate(Species=paste0(x))})
+surv_effects_table <- do.call("rbind", effects)
+
+surv_effects_table <- cbind(Effect = rownames(surv_effects_table), surv_effects_table)
+rownames(surv_effects_table) <- NULL
+
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'CoverShade:std_logp1_totalabund')] <- 'Cover (shade):Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry:CoverShade')] <- 'Dry:Cover (shade)'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet:CoverShade')] <- 'Wet:Cover (shade)'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry:I(std_logp1_totalabund^2)')] <- 'Dry:Neighbour abundance^2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet:I(std_logp1_totalabund^2)')] <- 'Wet:Neighbour abundance^2'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry:std_logp1_totalabund')] <- 'Dry:Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet:std_logp1_totalabund')] <- 'Wet:Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'Dodder01')] <- 'Dodder (present)'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'std_logp1_totalabund')] <- 'Neighbour abundance'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'CoverShade')] <- 'Cover (shade)'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'std_pH')] <- 'pH'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'std_N')] <- 'Nitrogen'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentDry')] <- 'Dry'
+surv_effects_table$Effect[startsWith(surv_effects_table$Effect, 'TreatmentWet')] <- 'Wet'
+
+surv_effects_table <- within(surv_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+surv_effects_table <- within(surv_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+surv_effects_table <- within(surv_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+surv_effects_table <- within(surv_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+surv_effects_table <- within(surv_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+surv_effects_table <- within(surv_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+surv_effects_table <- within(surv_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
+surv_effects_table <- within(surv_effects_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+surv_effects_table <- surv_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
+surv_effects_table <- surv_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                                            p_value <0.001~"***",
+                                                                            p_value <0.01~"**",
+                                                                            p_value <0.05~"*"))
+surv_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", surv_effects_table$Estimate, surv_effects_table$SE, surv_effects_table$p_asterisks)
+
+surv_effects_kbl <- surv_effects_table %>% select(Species, Effect, collated)
+
+#Not sure why Dry and Wet are duplicating, extensively troubleshooted and not sure, but grouping by effects works well
+surv_effects_kbl <- surv_effects_kbl %>% group_by(Species, Effect) %>%
+  pivot_wider(names_from = Species, values_from = collated)
+
+#Plotting with kableR
+surv_effects_kbl %>% kbl(align = 'lcccccccc') %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.44/0.48"=1, "0.94/0.94"=1, "0.06/0.06"=1, "0.10/0.14"=1, "0.28/0.28"=1, "0.23/0.23"=1, "0.21/0.33"=1, "0.20/0.39"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Survival" = 1, "n=149"=1, "n=100"=1, "n=156"=1, "n=142"=1, "n=65"=1, "n=154"=1, "n=145"=1, "n=134"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
+  column_spec(1, italic = F) %>%
+  column_spec(1:9, width = 4)
+
+## FECUNDITY #### 
+seed_model_list <- list(arcaseedfinalmod, hyglseedfinalmod, laroseedfinalmod, peaiseedfinalmod, pldeseedfinalmod, trcyseedfinalmod, trorseedfinalmod, veroseedfinalmod)
+rsquared = lapply(1:length(seed_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(seed_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+seed_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '7'] <- 'Trachymene ornata')
+seed_rsquared_table <- within(seed_rsquared_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+seed_model_list <- list(arcaseedfinalmod, hyglseedfinalmod, laroseedfinalmod, peaiseedfinalmod, pldeseedfinalmod, trcyseedfinalmod, trorseedfinalmod, veroseedfinalmod)
+#glmmTMB model coefs need to be extracted slightly differently
+effects = lapply(1:length(seed_model_list), function(x) {
+  as.data.frame(coef(summary(seed_model_list[[x]]))[["cond"]]) %>% mutate(Species=paste0(x))})
+seed_effects_table <- do.call("rbind", effects)
+
+seed_effects_table <- cbind(Effect = rownames(seed_effects_table), seed_effects_table)
+rownames(seed_effects_table) <- NULL
+
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'CoverShade:std_logp1_totalabund')] <- 'Cover (shade):Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentDry:CoverShade')] <- 'Dry:Cover (shade)'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentWet:CoverShade')] <- 'Wet:Cover (shade)'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentDry:std_logp1_totalabund')] <- 'Dry:Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentWet:std_logp1_totalabund')] <- 'Wet:Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'Dodder01')] <- 'Dodder (present)'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'std_logp1_totalabund')] <- 'Neighbour abundance'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'std_pH')] <- 'pH'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'std_N')] <- 'Nitrogen'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'CoverShade')] <- 'Cover (shade)'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentDry')] <- 'Dry'
+seed_effects_table$Effect[startsWith(seed_effects_table$Effect, 'TreatmentWet')] <- 'Wet'
+
+seed_effects_table <- within(seed_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+seed_effects_table <- within(seed_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+seed_effects_table <- within(seed_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+seed_effects_table <- within(seed_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+seed_effects_table <- within(seed_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+seed_effects_table <- within(seed_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+seed_effects_table <- within(seed_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
+seed_effects_table <- within(seed_effects_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+seed_effects_table <- seed_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|z|)')
+seed_effects_table <- seed_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                                            p_value <0.001~"***",
+                                                                            p_value <0.01~"**",
+                                                                            p_value <0.05~"*"))
+seed_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", seed_effects_table$Estimate, seed_effects_table$SE, seed_effects_table$p_asterisks)
+
+seed_effects_kbl <- seed_effects_table %>% select(Species, Effect, collated)
+
+seed_effects_kbl <- seed_effects_kbl %>% group_by(Species, Effect) %>%
+  pivot_wider(names_from = Species, values_from = collated)
+
+#Plotting with kableR
+seed_effects_kbl %>% kbl(align = 'lcccccccc') %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.46/0.67"=1, "0.26/0.26"=1, "0.23/0.23"=1, "0.46/0.48"=1, "0.49/0.54"=1, "0.21/0.22"=1, "0.32/0.32"=1, "0.16/0.44"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Seed production" = 1, "n=55"=1, "n=41"=1, "n=79"=1, "n=76"=1, "n=35"=1, "n=112"=1, "n=76"=1, "n=93"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
+  column_spec(1, italic = F) %>%
+  column_spec(1:9, width = 4)
+
+## LAMBDA ####  
+#UPDATE COVERSUN TO COVERSHADE*
+lambda_model_list <- list(arcalambdafinalmod, hygllambdafinalmod, larolambdafinalmod, peailambdafinalmod, pldelambdafinalmod, trcylambdafinalmod, trorlambdafinalmod, verolambdafinalmod)
+rsquared = lapply(1:length(lambda_model_list), function(x) {
+  as.data.frame(r.squaredGLMM(lambda_model_list[[x]]))[1,] %>% mutate(Species=paste0(x))})
+lambda_rsquared_table <- do.call("rbind", rsquared)
+
+#Rename species
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '1'] <- 'Arctotheca calendula')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '3'] <- 'Lawrencella rosea')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '4'] <- 'Pentameris airoides')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '5'] <- 'Plantago debilis')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '7'] <- 'Trachymene ornata')
+lambda_rsquared_table <- within(lambda_rsquared_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+lambda_model_list <- list(arcalambdafinalmod, hygllambdafinalmod, larolambdafinalmod, peailambdafinalmod, pldelambdafinalmod, trcylambdafinalmod, trorlambdafinalmod, verolambdafinalmod)
+effects = lapply(1:length(lambda_model_list), function(x) {
+  as.data.frame(coef(summary(lambda_model_list[[x]]))) %>% mutate(Species=paste0(x))})
+lambda_effects_table <- do.call("rbind", effects)
+
+lambda_effects_table <- cbind(Effect = rownames(lambda_effects_table), lambda_effects_table)
+rownames(lambda_effects_table) <- NULL
+
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '1'] <- 'Arctotheca calendula')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '2'] <- 'Hyalosperma glutinosum')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '3'] <- 'Lawrencella rosea')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '4'] <- 'Pentameris airoides')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '5'] <- 'Plantago debilis')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '6'] <- 'Trachymene cyanopetala')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '7'] <- 'Trachymene ornata')
+lambda_effects_table <- within(lambda_effects_table, Species[Species == '8'] <- 'Goodenia rosea')
+
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, '(Intercept)')] <- 'Intercept'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'CoverShade:Neighbours01Neighbours1')] <- 'Cover (shade):Neighbours (present)'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'Neighbours01Neighbours1')] <- 'Neighbours (present)'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentDry:CoverShade')] <- 'Dry:Cover (shade)'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentWet:CoverShade')] <- 'Wet:Cover (shade)'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentDry:Neighbours01Neighbours1')] <- 'Dry:Neighbours (present)'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentWet:Neighbours01Neighbours1')] <- 'Wet:Neighbours (present)'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentDry')] <- 'Dry'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'TreatmentWet')] <- 'Wet'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_pH')] <- 'pH'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'std_N')] <- 'Nitrogen'
+lambda_effects_table$Effect[startsWith(lambda_effects_table$Effect, 'CoverShade')] <- 'Cover (shade)'
+
+
+lambda_effects_table <- lambda_effects_table %>% select(Species, Effect, Estimate, 'SE' = 'Std. Error', 'p_value' = 'Pr(>|t|)')
+lambda_effects_table <- lambda_effects_table %>% mutate(p_asterisks = case_when(p_value >=0.05~"",
+                                                                                p_value <0.001~"***",
+                                                                                p_value <0.01~"**",
+                                                                                p_value <0.05~"*"))
+lambda_effects_table$collated <- sprintf("%1.1f ± %1.1f%s", lambda_effects_table$Estimate, lambda_effects_table$SE, lambda_effects_table$p_asterisks)
+lambda_effects_kbl <- lambda_effects_table %>% select(Species, Effect, collated)
+lambda_effects_kbl <- lambda_effects_kbl %>% group_by(Species, Effect) %>%
+  pivot_wider(names_from = Species, values_from = collated)
+#Plotting with kableR
+lambda_effects_kbl %>% kbl(align = 'lcccccccc') %>%
+  kable_classic(full_width = T, html_font = "Times", font_size = 12) %>%
+  add_header_above(c("R^2 m/c" = 1, "0.22/0.22"=1, "0.27/0.49"=1, "0.20/0.60"=1, "0.36/0.52"=1, "0.39/0.81"=1, "0.26/0.75"=1, "0.12/0.38"=1, "0.26/0.49"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  add_header_above(c("Population growth" = 1, "n=48"=1, "n=48"=1, "n=48"=1, "n=48"=1, "n=24"=1, "n=48"=1, "n=48"=1, "n=48"=1), align = c("l", "c", "c", "c", "c", "c", "c", "c", "c"), italic = T, background = "lightgrey") %>%
+  row_spec(0, italic = T) %>%
+  column_spec(1, italic = F) %>%
+  column_spec(1:9, width = 4)
+
+#### Plotting germination in open v shade ####
+## Boxplot below - not using
+##Plotting raw data as percent_germ with boxplots in open vs shade.
+# boxplot(percent_germ ~ Cover, pch=19, ylab=NA, xlab=NA, names= NA, col = "white", cex= 2.5, cex.axis = 2.5, ylim=c(0,1), hygldata)
+# stripchart(percent_germ ~ Cover, hygldata, pch = 19, method = "jitter", col=alpha("grey60", 0.4), vertical = TRUE, cex = 2, add = TRUE)
+# text(x = 1.5, y = 0.7, "*", cex = 10, col = "red")
+
+##Plotting from model germination, with percent_germ
+hyglgermfinalmod <- glmer(cbind(total_germ, total_no_germ) ~ Cover + std_N + std_pH + (1|Site/Plot/rowID), 
+                          family = binomial, hygldata)
+hygl_germ_pred<-glmm.predict(mod=hyglgermfinalmod, newdat=data.frame(1, c(1,0), 0, 0),
+                              se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+#add cover name
+hygl_germ_pred$Cover <- c('Shade', 'Sun')
+
+## Plot them
+ggplot(hygl_germ_pred, aes(x = Cover, y = y))+
+  geom_point(position = position_dodge(0.8), cex=2.5)+
+  geom_errorbar(aes(ymin = lower, ymax = upper, width = 0.3), position = position_dodge(0.8), cex=1)+
+  ylab("Probability of germination")+
+  xlab("Cover")+
+  theme_classic()+
+  my_theme+
+  theme(axis.ticks.x = element_blank())
+## Want to add in the raw datapoints underneath, percent_germ
+at.x <- seq(1,by=.5,length.out=2) # set here the X-axis positions
+ggplot()+
+  geom_jitter(data=hygldata, aes(x = Cover, y = percent_germ), alpha = 0.2, col = "grey10", width=0.05, cex = 2)+
+  geom_point(data=hygl_germ_pred, aes(x=Cover, y=y), cex=3) +
+  geom_errorbar(data=hygl_germ_pred, aes(x=Cover, ymin = lower, ymax = upper, width = 0.1), cex=1)+
+ # geom_text(data=growth_emmeans, aes(x=Cover, y=10, label=c('a')), size =6)+
+  ylab("Probability of germination")+
+  #ylim(0, 1)+
+  theme_classic()+
+  theme(axis.text=element_text(size=16), 
+        axis.title=element_text(size=16),
+       aspect.ratio=1)
+       # axis.title.x=element_blank(),
+        #axis.text.x=element_blank())
+
+## survival is going to be plotted for ambient plots with average
+# amount of neighbours, absence of Dodder, avreage pH and N
+#library(scales)
+#need this to make y axis go up by 0.1 for survival
+
+
+## trying for survival
+##compare to boxplot
+boxplot(surv_to_produce_seeds ~ Cover, pch=19, ylab=NA, xlab=NA, names= NA, col = "white", cex= 2.5, cex.axis = 2.5, ylim=c(0,1.1), trcydata)
+stripchart(surv_to_produce_seeds ~ Cover, trcydata, pch = 19, method = "jitter", col=alpha("grey60", 0.2), vertical = TRUE, cex = 2, add = TRUE)
+#need to jitter vertically a bit
+
+trcysurvfinalmod <- glmer(surv_to_produce_seeds ~ Treatment + Cover + std_pH + std_N + std_logp1_totalabund + Dodder01 +
+                            Treatment:Cover + Cover:std_logp1_totalabund + (1|Site/Plot),
+                          family = binomial, control=glmerControl(optimizer="bobyqa",optCtrl=list(maxfun=2e5)), trcydata)
+summary(trcysurvfinalmod)
+#holding everything at its mean
+## you can make multiple predictions at once - here I made the predictions for sun =1 and sun=0
+#Ambient watering, no dodder, mean pH and mean N. Estimated for sun and shade
+trcy_cover_pred<-glmm.predict(mod=trcysurvfinalmod, newdat=data.frame(1, 0, 0, c(1,0), 0, 0, 0, 0, 0*c(1,0), 0*c(1,0), c(1*0)*0), 
+                           se.mult=1.96, logit_link=TRUE, log_link=FALSE, glmmTMB=FALSE)
+#add cover name
+trcy_cover_pred$Cover <- c('open', 'shade')
+
+## Plot them
+ggplot(trcy_cover_pred, aes(x = Cover, y = y))+
+  geom_point(position = position_dodge(0.8), cex=2.5)+
+  geom_errorbar(aes(ymin = lower, ymax = upper, width = 0.3), position = position_dodge(0.8), cex=1)+
+  ylab("Probability of survival")+
+  xlab("Cover")+
+  theme_classic()+
+  my_theme+
+  theme(axis.ticks.x = element_blank())
+#could plot survival datapoints onto this as well
+
+#seed proudction
+#type='response'
+
+
+#### Adding correlation tests between vital rates ####
+#### Build dataframe with plot-level vital rates ####
+#Need a dataframe with one value for each rate
+#vitaldata (germ and survival)
+#seedmodeldata (produced at least one seed)
+#popdata (lambda) --- this dataframe has data for all rates split by nbhs
+
+#popgrowthrate data has germination by plot, surv and seed production by neighbours by plot
+# so does popdata, with lambda
+### need to go back to the code in data prep, do same thing
+# but for all data, not split by neighbours
+
+meanvitalrates <- popgrowthratedata
+#without pole
+meanvitalrates <- meanvitalrates %>% filter(!(Species=="POLE"))
+#already have plot_germ, need plot_surv, plot_fec and plot_lambda
+
+##### plot_surv
+plot_survdata <- vitaldata %>% filter(!(is.na(surv_to_produce_seeds)))
+plot_surv_counts <- plot_survdata %>% group_by(Species, Site, Plot, surv_to_produce_seeds) %>% count()
+Species <- rep(c("ARCA", "HYGL", "LARO", "PEAI", "PLDE", "POLE", "TRCY", "TROR", "VERO"), each = 3, times = 8)
+Site <- rep(c("1", "2", "3", "4", "5", "6", "7", "8"), each = 9, times = 3)
+Plot <- rep(c("A", "B", "C"), times = 72)
+plot_surv_prop <- cbind(Species, Site, Plot)
+plot_surv_prop <- data.frame(plot_surv_prop)
+plot_surv_prop <- plot_surv_prop %>% unite("idforjoining", Plot:Site, sep = ":", remove = "false")
+plot_surv_counts$surv_to_produce_seeds <- as.factor(plot_surv_counts$surv_to_produce_seeds)
+plot_surv_prop <- left_join(plot_surv_prop, plot_surv_counts)
+plot_surv_prop <- within(plot_surv_prop, n[is.na(n)] <- 0)
+
+#
+plot_surv <- plot_surv_prop %>% group_by(Species, Site, Plot)  %>% 
+  summarise(plot_surv = ifelse(n[surv_to_produce_seeds==1]==0 & n[surv_to_produce_seeds==0]==0, NA, n[surv_to_produce_seeds==1]/(n[surv_to_produce_seeds==1] + n[surv_to_produce_seeds==0])),
+            total_n = sum(n))
+## Merge with plot-level data
+plot_surv <- plot_surv %>% select(Species, Site, Plot, plot_surv)
+meanvitalrates <- left_join(meanvitalrates, plot_surv)
+
+#Calculating mean viable seed production of logged seed values (exponentiated)
+allplotfec <- viable_plot %>% mutate(log_seeds = log(No_viable_seeds_grouped)) %>%
+  group_by(Species, Site, Plot) %>%
+  summarise(plot_fec = exp(mean(log_seeds)))
+##this is only where there were seeds produced. Need to factor in 0s?
+#I don't think so
+#Merge with plot-level data
+meanvitalrates <- left_join(meanvitalrates, allplotfec)
+
+#### Need plot_lambda (not in presence/absence of neighbours)
+### Assigning all survival and fecundity NA value to 0 for lambda calculations
+#(no plants germinated, none survived, none produced seeds)
+one_poplongdata <- meanvitalrates
+one_poplongdata <- within(one_poplongdata, plot_surv[is.na(plot_surv)] <- 0)
+one_poplongdata <- within(one_poplongdata, plot_fec[is.na(plot_fec)] <- 0)
+
+#Calculate population growth rates
+# Per capita growth rate of a given population  i = seed survival*(1-germination)+number of viable seeds produced per germinant*germination
+# prob of germination / germination fraction. # germinated / total germination, currently I have this as percent_germ which is a proportion (not percentage, despite the name)
+one_poplongdata <- one_poplongdata %>% mutate(plot_lambda = seed_survival*(1-plot_germ)+plot_fec*plot_surv*plot_germ)
+#Still get NAs where seed wasn't sown, working well
+
+#Merge this back with plot-levle data
+one_poplongdata <- one_poplongdata %>% select(Species, Site, Plot, plot_lambda)
+meanvitalrates <- left_join(meanvitalrates, one_poplongdata)
+
+#Simplify main dataframe
+plot_vitalrates <- meanvitalrates %>% select(Species, Site, Plot, seed_survival, plot_germ, plot_surv, plot_fec, plot_lambda)
+
+# I think we need to keep our zero values for fecundity and survival, instead of NAs
+#Yes! Need zero values, these are already factored into popdata too
+plot_zero <- plot_vitalrates
+plot_zero <- within(plot_zero, plot_surv[is.na(plot_surv)] <- 0)
+plot_zero <- within(plot_zero, plot_fec[is.na(plot_fec)] <- 0)
+
+## Change the column names, for plotting
+colnames(plot_zero) <- c("Species", "Site", "Plot", "seed_survival", "emergence", "survival", "seed production", "population growth rate")
+
+#Split the dataframe by species
+plotarca <- plot_zero %>% filter(Species == "ARCA")
+plothygl <- plot_zero %>% filter(Species == "HYGL")
+plotlaro <- plot_zero %>% filter(Species == "LARO")
+plotpeai <- plot_zero %>% filter(Species == "PEAI")
+plotplde <- plot_zero %>% filter(Species == "PLDE")
+plottrcy <- plot_zero %>% filter(Species == "TRCY")
+plottror <- plot_zero %>% filter(Species == "TROR")
+plotvero <- plot_zero %>% filter(Species == "VERO")
+
+#Need just the rates for plotting
+corrarca <- plotarca %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+corrhygl <- plothygl %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+corrlaro <- plotlaro %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+corrpeai <- plotpeai %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+corrplde <- plotplde %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+corrtrcy <- plottrcy %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+corrtror <- plottror %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+corrvero <- plotvero %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+
+#overall (all species)
+justrates <- plot_zero %>% ungroup() %>% select(emergence, survival, `seed production`, `population growth rate`)
+
+#### Correlation matrices ####
+
+#Two different correlation plots, all per species
+# regardless of environment: all data
+# unmanipulated plots only: unthinned, ambient
+
+#### ALL PLOTS ##
+library(RColorBrewer)
+
+#overall
+#Need use= 'complete' to omit NAs
+M = cor(justrates, use = 'complete')
+#diag = FALSE removed the 1:1 correlations
+corrplot(M, method = 'square', type = 'upper', diag = FALSE)
+## order = 'original' keeps the order in the data frame
+corrplot(M, method = 'circle', type = 'upper', order = 'original')
+corrplot(M, method = 'number', type = 'upper')
+corrplot.mixed(M, type = 'lower')
+corrplot(M, method = 'ellipse', type = 'upper', addCoef.col='black', diag = FALSE)
+
+#my favourite combination:
+corrplot(M, method = 'square', type = 'lower', addCoef.col='grey30', 
+         diag = FALSE, order='original', tl.col="black", cl.pos='n',
+         p.mat = p.mat,
+         insig = "label_sig",
+         pch.col = "red",
+         sig.level = c(.001, .01, .05))
+
+corrplot(M, method = 'square', type = 'lower', addCoef.col='grey30', 
+         diag = FALSE, order='original', tl.col="black", cl.pos='n',
+         p.mat = p.mat,
+         pch.col = "red",
+         sig.level = c(.001, .01, .05))
+
+## leave blank on non-significant coefficient
+## add significant correlation coefficients
+corrplot(M, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='grey30')
+
+## leave blank on non-significant coefficient
+## add all correlation coefficients
+corrplot(M, p.mat = p.mat, method = 'circle', type = 'lower', insig='blank',
+         order = 'original', diag = FALSE)$corrPos -> p1
+text(p1$x, p1$y, round(p1$corr, 2))
+
+# Visualize confidence interval
+corrplot(M, lowCI = testRes$lowCI, uppCI = testRes$uppCI, order = 'hclust',
+         tl.pos = 'd', rect.col = 'navy', plotC = 'rect', cl.pos = 'n')
+
+#labels = NULL
+#cl.pos='n' means don't draw legend
+trace(corrplot, edit=TRUE)
+#M<-cor(mtcars)
+#res1 <- cor.mtest(mtcars, conf.level = .95)
+corrplot(arca_all,
+         method="square",
+         type="lower",
+         p.mat = p.mat,
+         insig = "label_sig",
+         sig.level = c(.001, .01, .05),
+         pch.cex = 0.8,
+         pch.col = "red",
+         tl.col="black",
+         tl.cex=1,
+         addCoef.col = "black",
+         tl.pos="n",
+         diag = FALSE)
+#Look into adding p values to the plot **
+#How does this work statistically? E.g. accounting for my design? Blocks?
+#Can leave non-signficant correlation coefficients blank
+
+#https://github.com/caijun/ggcorrplot2
+# Use corr.test() from psych package to calculate the correlation matrix and 
+# corresponding p value matrix without adjustment.
+library(psych)
+ct <- corr.test(M, adjust = "none")
+corr <- ct$r
+p.mat <- ct$p
+#(sig.lvl = 0.05) are indicated by X by default.
+ggcorrplot.mixed(M, upper = "ellipse", lower = "number", p.mat = p.mat)
+
+#https://stackoverflow.com/questions/63227830/r-corrplot-plot-correlation-coefficients-along-with-significance-stars
+##Above article shows how to display both significance stars and R valus
+
+#Change the place_points function within the corrplot function. To do so, run:
+# 
+# trace(corrplot, edit=TRUE)
+# Then replace on line 443
+# 
+# place_points = function(sig.locs, point) {
+#   text(pos.pNew[, 1][sig.locs], pos.pNew[, 2][sig.locs], 
+#        labels = point, col = pch.col, cex = pch.cex, 
+#        lwd = 2)
+#   with:
+#     
+#     # adjust text(X,Y ...) according to your needs, here +0.25 is added to the Y-position    
+#     place_points = function(sig.locs, point) {
+#       text(pos.pNew[, 1][sig.locs], (pos.pNew[, 2][sig.locs])+0.25, 
+#            labels = point, col = pch.col, cex = pch.cex, 
+#            lwd = 2)
+### NOTE All that does is add +0.25 to height
+
+
+p.mat <- cor.mtest(justrates, conf.level = .95)
+
+corrplot(M, method = 'square', p.mat = p.mat, type = 'upper', diag = FALSE)
+corrplot(M, method = 'square', p.mat = p.mat, type = 'lower', diag = FALSE, insig='p-value')
+#insig='p-value' gives the p-value of the insignificant ones
+corrplot(M, method = 'circle', p.mat = p.mat, sig.level = c(0.001, 0.01, 0.05), pch.col = 'grey20', pch.cex=0.9, insig = 'label_sig', type = 'upper', diag = FALSE)
+
+corrplot(M, type="upper", order="hclust",
+         col=brewer.pal(n=10, name="PRGn"))
+#PuOr, #PRGn, #PiYG, #BrBG, #RdBu
+#n = 4
+
+#Fecundity and lambda are highly correlated.... 0.68.
+modfeclambda <- lmer(plot_lambda ~ plot_fec + (1|Site/Plot), plot_zero)
+summary(modfeclambda)
+r.squaredGLMM(modfeclambda)
+#0.39 R squared though. hm.
+#0.40 when we use 0 values instead of NAs for surv and fecundity.
+
+#par(mfrow=c(2,4))
+#rows, columns
+
+library(ggcorrplot2)
+
+dev.off()
+pdf("Output/Figures/panel_all_corr.pdf", width = 21, height = 12)
+par(mfrow=c(2,4), oma =c(0,14,14,0))
+
+arca_all = cor(corrarca, use = 'complete')
+corrplot(arca_all, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+#hygl
+hygl_all = cor(corrhygl, use = 'complete')
+corrplot(hygl_all, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+#laro
+laro_all = cor(corrlaro, use = 'complete')
+corrplot(laro_all, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+#peai
+peai_all = cor(corrpeai, use = 'complete')
+corrplot(peai_all, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+#plde
+plde_all = cor(corrplde, use = 'complete')
+corrplot(plde_all, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+#trcy
+trcy_all = cor(corrtrcy, use = 'complete')
+corrplot(trcy_all, method = 'square', type = 'lower', diag = FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+#tror
+tror_all = cor(corrtror, use = 'complete')
+corrplot(tror_all, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+#vero
+vero_all = cor(corrvero, use = 'complete')
+corrplot(vero_all, method = 'square', type = 'lower', diag=FALSE, p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='n', cl.pos='n', number.cex=3, tl.cex=2)
+dev.off()
+
+### tryinga different way
+dev.off()
+pdf("Output/Figures/panel_all_corr2.pdf", width = 21, height = 12)
+par(mfrow=c(2,4), oma =c(1,1,1,1))
+
+arca_all = cor(corrarca, use = 'complete')
+corrplot(arca_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+t#hygl
+hygl_all = cor(corrhygl, use = 'complete')
+corrplot(hygl_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+#laro
+laro_all = cor(corrlaro, use = 'complete')
+corrplot(laro_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+#peai
+peai_all = cor(corrpeai, use = 'complete')
+corrplot(peai_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+#plde
+plde_all = cor(corrplde, use = 'complete')
+corrplot(plde_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+#trcy
+trcy_all = cor(corrtrcy, use = 'complete')
+corrplot(trcy_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+#tror
+tror_all = cor(corrtror, use = 'complete')
+corrplot(tror_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+#vero
+vero_all = cor(corrvero, use = 'complete')
+corrplot(vero_all, method = 'square', type = 'lower', p.mat = p.mat, insig = 'blank', sig.level = 0.05, order = 'original', tl.col="black", addCoef.col='black', tl.pos='d', cl.pos='n', number.cex=3, tl.cex=0.01)
+dev.off()
+
+
+
+##Creating legend to add in manually
+corrplot(vero_all, method = 'circle', type = 'lower', tl.col="black")
+
+ggplot(corrtror, aes(x=plot_fec, y=plot_lambda))+
+  geom_point()+
+  geom_smooth(method='lm')+
+  theme_classic()
+#check this - highlight correlated except for the one outlier with high fecundity
+modfeclambda <- lm(plot_lambda ~ plot_fec, corrtror)
+summary(modfeclambda)
+
+### Plotting together
+p1 <- corrplot(M, method = 'circle', type = 'upper', addCoef.col='black', diag = FALSE, order='original', tl.col="black")
+p2 <- corrplot(M, method = 'number', type = 'upper', diag = FALSE, order='original', tl.col="black")
+
+p1 <- ggcorrplot(M, method = 'circle', type = 'upper')
+p2 <- ggcorrplot(M, method = 'number', type = 'upper')
+
+
+library(cowplot)
+prow <- plot_grid(p1 + theme(legend.position = "none"),
+                  p2 + theme(legend.position = "none"),
+                  rel_widths = c(1, 1), nrow = 1, align = 'hv',
+                  labels = c("(a)", "(b)"), label_x = 0, label_y = 1)
+
+plot_grid(p1, p2)
+# Extract the legend from the first corrgram
+#legend <- get_legend(p1)
+# Add the legend to the bottom of the plot row we made earlier.
+p <- cowplot::plot_grid(prow, ncol = 1)
+p
+
+ggcorrplot(corr, type = "lower")
+
+### UNMANIPULATED PLOTS ONLY ##
+
+#Filtering to plots with neighbours and ambient watering
+nbh_justrates <- popdata %>% filter(Neighbours01 == "Neighbours1") %>% ungroup() %>% 
+  select(plot_germ, plot_survival, plot_fecundity, lambda)
+#still need to do ambient watering **
+test <- vitaldata %>% filter()
+M_nbh = cor(nbh_justrates, use = 'complete')
+corrplot(M_nbh, method = 'circle', type = 'upper')
+corrplot(M_nbh, method = 'number', type = 'upper')
+
+
 
